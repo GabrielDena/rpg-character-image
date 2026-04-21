@@ -17,7 +17,6 @@ onMounted(() => {
 
 const count = computed(() => store.selectedImages.length)
 
-// Pick the column count whose column/row ratio best matches the container.
 const cols = computed(() => {
     if (count.value === 0) return 1
     const ratio =
@@ -38,19 +37,27 @@ const cols = computed(() => {
     return best
 })
 
-// Target height per image so every row fills the container exactly.
-const imageHeight = computed(() => {
-    if (!containerHeight.value) return 'auto'
+const maxImageHeight = computed(() => {
+    if (!containerHeight.value) return 'none'
     const rows = Math.ceil(count.value / cols.value)
-    // subtract row gaps from total height before dividing
     const gap = 2
     const usable = containerHeight.value - gap * (rows - 1)
     return `${Math.floor(usable / rows)}px`
 })
+
+const fitMode = ref<'cover' | 'contain'>('cover')
+
+const imageStyle = computed(() => ({
+    maxHeight: maxImageHeight.value,
+    marginBottom: '2px',
+    breakInside: 'avoid',
+    objectFit: fitMode.value,
+    objectPosition: fitMode.value === 'cover' ? 'top' : 'center',
+}))
 </script>
 
 <template>
-    <div ref="container" class="h-full w-full">
+    <div ref="container" class="relative h-full w-full">
         <!-- Empty state -->
         <div
             v-if="count === 0"
@@ -77,9 +84,21 @@ const imageHeight = computed(() => {
                 :src="`/api/image/${encodeURIComponent(filename)}`"
                 :alt="filename"
                 loading="lazy"
-                class="block w-full object-cover"
-                :style="{ height: imageHeight, marginBottom: '2px', breakInside: 'avoid', objectFit: 'contain' }"
+                class="block w-full"
+                :style="imageStyle"
             />
         </div>
+
+        <!-- Fit toggle -->
+        <UButton
+            v-if="count > 0"
+            size="xs"
+            color="neutral"
+            variant="solid"
+            :icon="fitMode === 'cover' ? 'i-heroicons-arrows-pointing-out' : 'i-heroicons-arrows-pointing-in'"
+            class="absolute right-2 top-2 opacity-60 hover:opacity-100"
+            :ui="{ base: 'bg-gray-900/80 backdrop-blur' }"
+            @click="fitMode = fitMode === 'cover' ? 'contain' : 'cover'"
+        />
     </div>
 </template>
