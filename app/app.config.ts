@@ -16,7 +16,7 @@ export default defineAppConfig({
             ],
         },
         colors: {
-            primary: 'brand',
+            primary: 'gray',
         },
         card: {
             variants: {
@@ -62,7 +62,7 @@ export default defineAppConfig({
         },
         pageAside: {
             slots: {
-                root: 'overflow-y-hidden overflow-hidden bg-brand-700 fixed left-0 z-99999 flex h-screen flex-col border-r border-gray-200 text-gray-100 transition-all duration-300 ease-in-out lg:max-h-screen lg:mt-0 lg:top-0',
+                root: 'overflow-y-hidden overflow-hidden bg-gray-700 fixed left-0 z-99999 flex h-screen flex-col border-r border-gray-200 text-gray-100 transition-all duration-300 ease-in-out lg:max-h-screen lg:mt-0 lg:top-0',
             },
         },
     },
