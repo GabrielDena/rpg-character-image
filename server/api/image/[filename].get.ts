@@ -10,6 +10,7 @@ const MIME_TYPES: Record<string, string> = {
   '.webp': 'image/webp',
   '.avif': 'image/avif',
   '.bmp': 'image/bmp',
+  '.jfif': 'image/jpeg',
 }
 
 export default defineEventHandler((event) => {

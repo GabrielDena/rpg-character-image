@@ -2,7 +2,7 @@ import { readdirSync } from 'node:fs'
 import { extname } from 'node:path'
 import { getState } from '../utils/state'
 
-const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif', '.bmp'])
+const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.jfif', '.png', '.gif', '.webp', '.avif', '.bmp'])
 
 export default defineEventHandler(() => {
   const { selectedFolder } = getState()
