@@ -1,69 +1,75 @@
 export const useAppStore = defineStore('app', () => {
-    const selectedFolder = ref<string | null>(null)
-    const selectedImages = ref<string[]>([])
-    const wsConnected = ref(false)
+    const selectedFolder = ref<string | null>(null);
+    const selectedImages = ref<string[]>([]);
+    const wsConnected = ref(false);
 
-    let ws: WebSocket | null = null
-    let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+    let ws: WebSocket | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
     function connect() {
-        if (!import.meta.client) return
-        if (ws && ws.readyState === WebSocket.OPEN) return
+        if (!import.meta.client) return;
+        if (ws && ws.readyState === WebSocket.OPEN) return;
 
-        const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
-        ws = new WebSocket(`${protocol}//${location.host}/_ws`)
+        const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        ws = new WebSocket(`${protocol}//${location.host}/_ws`);
 
         ws.onopen = () => {
-            wsConnected.value = true
+            wsConnected.value = true;
             if (reconnectTimer) {
-                clearTimeout(reconnectTimer)
-                reconnectTimer = null
+                clearTimeout(reconnectTimer);
+                reconnectTimer = null;
             }
-        }
+        };
 
         ws.onclose = () => {
-            wsConnected.value = false
-            reconnectTimer = setTimeout(connect, 2000)
-        }
+            wsConnected.value = false;
+            if (!reconnectTimer) {
+                reconnectTimer = setTimeout(connect, 2000);
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket encountered an error:', error);
+        };
 
         ws.onmessage = (event: MessageEvent) => {
             try {
-                const msg = JSON.parse(event.data as string)
+                const msg = JSON.parse(event.data as string);
                 if (msg.type === 'state') {
-                    selectedFolder.value = msg.data.selectedFolder ?? null
-                    selectedImages.value = msg.data.selectedImages ?? []
+                    selectedFolder.value = msg.data.selectedFolder ?? null;
+                    selectedImages.value = msg.data.selectedImages ?? [];
                 } else if (msg.type === 'images-updated') {
-                    selectedImages.value = msg.data.selectedImages ?? []
+                    selectedImages.value = msg.data.selectedImages ?? [];
                 } else if (msg.type === 'folder-changed') {
-                    selectedFolder.value = msg.data.folder ?? null
-                    selectedImages.value = []
+                    selectedFolder.value = msg.data.folder ?? null;
+                    selectedImages.value = [];
                 }
             } catch {}
-        }
+        };
     }
 
     function sendSelection(images: string[]) {
         if (ws?.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: 'select-images', images }))
+            ws.send(JSON.stringify({ type: 'select-images', images }));
         } else {
-            $fetch('/api/selection', { method: 'POST', body: { images } }).catch(() => {})
+            $fetch('/api/selection', { method: 'POST', body: { images } }).catch(() => {});
         }
     }
 
     function toggleImage(filename: string) {
-        const next = new Set(selectedImages.value)
+        const next = new Set(selectedImages.value);
         if (next.has(filename)) {
-            next.delete(filename)
+            next.delete(filename);
         } else {
-            next.add(filename)
+            next.add(filename);
         }
-        selectedImages.value = [...next]
-        sendSelection(selectedImages.value)
+        selectedImages.value = [...next];
+        sendSelection(selectedImages.value);
     }
 
     function clearSelection() {
-        selectedImages.value = []
-        sendSelection([])
+        selectedImages.value = [];
+        sendSelection([]);
     }
 
     return {
@@ -73,5 +79,6 @@ export const useAppStore = defineStore('app', () => {
         connect,
         toggleImage,
         clearSelection,
-    }
-})
+    };
+});
+

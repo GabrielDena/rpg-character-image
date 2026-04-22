@@ -22,3 +22,6 @@ logs
 .env
 .env.*
 !.env.example
+
+# Persisted folder selection
+folder-path.txt
