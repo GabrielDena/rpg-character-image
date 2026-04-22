@@ -1,30 +1,31 @@
 <script setup lang="ts">
 interface ImageItem {
-    filename: string
-    url: string
+    filename: string;
+    url: string;
 }
 
-const store = useAppStore()
+const store = useAppStore();
 
-const images = ref<ImageItem[]>([])
-const loadingImages = ref(false)
-const imagesError = ref<string | null>(null)
+const images = ref<ImageItem[]>([]);
+const loadingImages = ref(false);
+const imagesError = ref<string | null>(null);
+const gridCols = ref(4);
 
-const selectedSet = computed(() => new Set(store.selectedImages))
-const selectedCount = computed(() => store.selectedImages.length)
+const selectedSet = computed(() => new Set(store.selectedImages));
+const selectedCount = computed(() => store.selectedImages.length);
 
 async function fetchImages() {
-    if (!store.selectedFolder) return
-    loadingImages.value = true
-    imagesError.value = null
+    if (!store.selectedFolder) return;
+    loadingImages.value = true;
+    imagesError.value = null;
     try {
-        const { images: imgs } = await $fetch<{ images: ImageItem[] }>('/api/images')
-        images.value = imgs
+        const { images: imgs } = await $fetch<{ images: ImageItem[] }>('/api/images');
+        images.value = imgs;
     } catch (e: unknown) {
-        const err = e as { data?: { message?: string } }
-        imagesError.value = err?.data?.message ?? 'Could not load images'
+        const err = e as { data?: { message?: string } };
+        imagesError.value = err?.data?.message ?? 'Could not load images';
     } finally {
-        loadingImages.value = false
+        loadingImages.value = false;
     }
 }
 
@@ -32,11 +33,11 @@ async function fetchImages() {
 watch(
     () => store.selectedFolder,
     (folder) => {
-        if (folder) fetchImages()
-        else images.value = []
+        if (folder) fetchImages();
+        else images.value = [];
     },
-    { immediate: true },
-)
+    { immediate: true }
+);
 </script>
 
 <template>
@@ -67,6 +68,31 @@ watch(
                         label="Clear"
                         @click="store.clearSelection()"
                     />
+                    <div class="flex items-center gap-1">
+                        <UButton
+                            variant="ghost"
+                            color="neutral"
+                            size="xs"
+                            icon="i-heroicons-minus"
+                            :disabled="gridCols >= 10"
+                            @click="gridCols++"
+                        />
+                        <UButton
+                            variant="ghost"
+                            color="neutral"
+                            size="xs"
+                            icon="i-heroicons-arrow-path"
+                            @click="gridCols = 4"
+                        />
+                        <UButton
+                            variant="ghost"
+                            color="neutral"
+                            size="xs"
+                            icon="i-heroicons-plus"
+                            :disabled="gridCols <= 2"
+                            @click="gridCols--"
+                        />
+                    </div>
                 </div>
             </div>
         </div>
@@ -83,12 +109,23 @@ watch(
             />
 
             <!-- Loading skeleton -->
-            <div v-else-if="loadingImages" class="grid grid-cols-3 gap-0.5 sm:grid-cols-4">
-                <USkeleton v-for="n in 12" :key="n" class="aspect-square w-full" />
+            <div
+                v-else-if="loadingImages"
+                class="grid gap-0.5"
+                :style="`grid-template-columns: repeat(${gridCols}, minmax(0, 1fr))`"
+            >
+                <USkeleton
+                    v-for="n in 12"
+                    :key="n"
+                    class="aspect-square w-full"
+                />
             </div>
 
             <!-- Error state -->
-            <div v-else-if="imagesError" class="p-4">
+            <div
+                v-else-if="imagesError"
+                class="p-4"
+            >
                 <UAlert
                     icon="i-heroicons-exclamation-triangle"
                     color="error"
@@ -109,7 +146,11 @@ watch(
             />
 
             <!-- Image grid -->
-            <div v-else class="grid grid-cols-3 gap-0.5 sm:grid-cols-4">
+            <div
+                v-else
+                class="grid gap-0.5"
+                :style="`grid-template-columns: repeat(${gridCols}, minmax(0, 1fr))`"
+            >
                 <button
                     v-for="image in images"
                     :key="image.filename"
@@ -127,7 +168,7 @@ watch(
                     <!-- Selection tint -->
                     <div
                         v-if="selectedSet.has(image.filename)"
-                        class="pointer-events-none absolute inset-0 bg-primary-500/20"
+                        class="bg-primary-500/20 pointer-events-none absolute inset-0"
                     />
 
                     <!-- Selection indicator -->
@@ -150,3 +191,4 @@ watch(
         </div>
     </div>
 </template>
+
