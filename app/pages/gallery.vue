@@ -54,6 +54,16 @@ const imageStyle = computed(() => ({
     objectFit: fitMode.value,
     objectPosition: fitMode.value === 'cover' ? 'top' : 'center',
 }))
+
+const lightboxSrc = ref<string | null>(null)
+
+function openLightbox(filename: string) {
+    lightboxSrc.value = `/api/image/${encodeURIComponent(filename)}`
+}
+
+function closeLightbox() {
+    lightboxSrc.value = null
+}
 </script>
 
 <template>
@@ -84,8 +94,9 @@ const imageStyle = computed(() => ({
                 :src="`/api/image/${encodeURIComponent(filename)}`"
                 :alt="filename"
                 loading="lazy"
-                class="block w-full"
+                class="block w-full cursor-pointer"
                 :style="imageStyle"
+                @click="openLightbox(filename)"
             />
         </div>
 
@@ -100,5 +111,30 @@ const imageStyle = computed(() => ({
             :ui="{ base: 'bg-gray-900/80 backdrop-blur' }"
             @click="fitMode = fitMode === 'cover' ? 'contain' : 'cover'"
         />
+
+        <!-- Lightbox -->
+        <Transition name="lightbox">
+            <div
+                v-if="lightboxSrc"
+                class="absolute inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/90"
+                @click="closeLightbox"
+            >
+                <img
+                    :src="lightboxSrc"
+                    class="max-h-full max-w-full object-contain"
+                />
+            </div>
+        </Transition>
     </div>
 </template>
+
+<style scoped>
+.lightbox-enter-active,
+.lightbox-leave-active {
+    transition: opacity 0.2s ease;
+}
+.lightbox-enter-from,
+.lightbox-leave-to {
+    opacity: 0;
+}
+</style>
