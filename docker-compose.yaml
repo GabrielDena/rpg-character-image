@@ -1,0 +1,11 @@
+services:
+  rpg-display:
+    build: .
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    volumes:
+      - ${RPG_IMAGE_FOLDER_PATH:-./default-images}:/app/public/local-images
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production

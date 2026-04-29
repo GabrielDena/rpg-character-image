@@ -10,6 +10,11 @@ interface BrowseResult {
     directories: Directory[];
 }
 
+interface PreviewImage {
+    filename: string;
+    url: string;
+}
+
 const toast = useToast();
 
 const savedFolder = ref<string | null>(null);
@@ -17,13 +22,20 @@ const browseData = ref<BrowseResult | null>(null);
 const pending = ref(false);
 const browseError = ref<string | null>(null);
 const saving = ref(false);
+const previewImages = ref<PreviewImage[]>([]);
 
 async function browse(path?: string) {
     pending.value = true;
     browseError.value = null;
+    previewImages.value = [];
     try {
         const params = path ? `?path=${encodeURIComponent(path)}` : '';
-        browseData.value = await $fetch<BrowseResult>(`/api/folder/browse${params}`);
+        const [browse, preview] = await Promise.all([
+            $fetch<BrowseResult>(`/api/folder/browse${params}`),
+            $fetch<{ images: PreviewImage[] }>(`/api/folder/preview${params}`),
+        ]);
+        browseData.value = browse;
+        previewImages.value = preview.images;
     } catch (e: unknown) {
         const err = e as { data?: { message?: string } };
         browseError.value = err?.data?.message ?? 'Could not read directory';
@@ -123,6 +135,23 @@ async function selectFolder() {
                         @click="i < pathSegments.length - 1 ? navigate(seg.path) : undefined"
                     />
                 </template>
+            </div>
+        </div>
+
+        <!-- Image preview strip -->
+        <div
+            v-if="previewImages.length"
+            class="shrink-0 border-b border-gray-800 bg-gray-950"
+        >
+            <div class="flex gap-1.5 overflow-x-auto px-2 py-2 [&::-webkit-scrollbar]:hidden">
+                <img
+                    v-for="img in previewImages"
+                    :key="img.filename"
+                    :src="img.url"
+                    :alt="img.filename"
+                    :title="img.filename"
+                    class="h-16 w-16 shrink-0 rounded-lg object-cover"
+                />
             </div>
         </div>
 
