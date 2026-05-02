@@ -1,9 +1,20 @@
 <script setup lang="ts">
+const BUCKET = 'adventures';
+const IMAGE_EXTS = new Set(['jpg', 'jpeg', 'jfif', 'png', 'gif', 'webp', 'avif', 'bmp']);
+
+interface StorageItem {
+    name: string;
+    id: string | null;
+    metadata: Record<string, unknown> | null;
+}
+
 interface ImageItem {
-    filename: string;
+    name: string;
+    path: string;
     url: string;
 }
 
+const supabase = useSupabase();
 const store = useAppStore();
 
 const images = ref<ImageItem[]>([]);
@@ -19,17 +30,26 @@ async function fetchImages() {
     loadingImages.value = true;
     imagesError.value = null;
     try {
-        const { images: imgs } = await $fetch<{ images: ImageItem[] }>('/api/images');
-        images.value = imgs;
+        const { items } = await $fetch<{ items: StorageItem[] }>('/api/storage/list', {
+            query: { path: store.selectedFolder },
+        });
+        images.value = items
+            .filter((item) => item.id && IMAGE_EXTS.has(item.name.split('.').pop()?.toLowerCase() ?? ''))
+            .map((item) => {
+                const path = `${store.selectedFolder}/${item.name}`;
+                return {
+                    name: item.name,
+                    path,
+                    url: supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl,
+                };
+            });
     } catch (e: unknown) {
-        const err = e as { data?: { message?: string } };
-        imagesError.value = err?.data?.message ?? 'Could not load images';
+        imagesError.value = e instanceof Error ? e.message : 'Could not load images';
     } finally {
         loadingImages.value = false;
     }
 }
 
-// Refetch when folder changes (e.g. updated from another device via WS)
 watch(
     () => store.selectedFolder,
     (folder) => {
@@ -99,16 +119,14 @@ watch(
 
         <!-- Content -->
         <div class="min-h-0 flex-1 overflow-y-auto">
-            <!-- No folder selected -->
             <UEmpty
                 v-if="!store.selectedFolder"
                 icon="i-heroicons-folder"
                 title="No folder selected"
-                description="Go to the Folder tab to choose a folder first"
+                description="Go to the Folder tab and select a folder first"
                 class="py-20"
             />
 
-            <!-- Loading skeleton -->
             <div
                 v-else-if="loadingImages"
                 class="grid gap-0.5"
@@ -121,7 +139,6 @@ watch(
                 />
             </div>
 
-            <!-- Error state -->
             <div
                 v-else-if="imagesError"
                 class="p-4"
@@ -136,7 +153,6 @@ watch(
                 />
             </div>
 
-            <!-- Empty folder -->
             <UEmpty
                 v-else-if="!images.length"
                 icon="i-heroicons-photo"
@@ -145,7 +161,6 @@ watch(
                 class="py-20"
             />
 
-            <!-- Image grid -->
             <div
                 v-else
                 class="grid gap-0.5"
@@ -153,35 +168,33 @@ watch(
             >
                 <button
                     v-for="image in images"
-                    :key="image.filename"
+                    :key="image.path"
                     class="group relative aspect-square overflow-hidden bg-gray-800 focus:outline-none"
-                    @click="store.toggleImage(image.filename)"
+                    @click="store.toggleImage(image.path)"
                 >
                     <img
                         :src="image.url"
-                        :alt="image.filename"
+                        :alt="image.name"
                         loading="lazy"
                         class="size-full object-cover transition-opacity duration-150"
-                        :class="selectedSet.has(image.filename) ? 'opacity-80' : 'opacity-100'"
+                        :class="selectedSet.has(image.path) ? 'opacity-80' : 'opacity-100'"
                     />
 
-                    <!-- Selection tint -->
                     <div
-                        v-if="selectedSet.has(image.filename)"
+                        v-if="selectedSet.has(image.path)"
                         class="bg-primary-500/20 pointer-events-none absolute inset-0"
                     />
 
-                    <!-- Selection indicator -->
                     <div
                         class="absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full transition-all duration-150"
                         :class="
-                            selectedSet.has(image.filename)
+                            selectedSet.has(image.path)
                                 ? 'bg-primary-500 ring-2 ring-white'
                                 : 'bg-black/50 ring-1 ring-white/30'
                         "
                     >
                         <UIcon
-                            v-if="selectedSet.has(image.filename)"
+                            v-if="selectedSet.has(image.path)"
                             name="i-heroicons-check"
                             class="size-3 text-white"
                         />

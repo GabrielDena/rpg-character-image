@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue';
 
+const BUCKET = 'adventures';
+
+const supabase = useSupabase();
 const store = useAppStore();
 
 const container = ref<HTMLElement | null>(null);
@@ -56,8 +59,12 @@ const imageStyle = computed<CSSProperties>(() => ({
 
 const lightboxSrc = ref<string | null>(null);
 
-function openLightbox(filename: string) {
-    lightboxSrc.value = `/api/image/${encodeURIComponent(filename)}`;
+function getPublicUrl(path: string) {
+    return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+function openLightbox(path: string) {
+    lightboxSrc.value = getPublicUrl(path);
 }
 
 function closeLightbox() {
@@ -92,14 +99,14 @@ function closeLightbox() {
             :style="{ columnCount: cols, columnGap: '2px' }"
         >
             <img
-                v-for="filename in store.selectedImages"
-                :key="filename"
-                :src="`/api/image/${encodeURIComponent(filename)}`"
-                :alt="filename"
+                v-for="path in store.selectedImages"
+                :key="path"
+                :src="getPublicUrl(path)"
+                :alt="path.split('/').pop()"
                 loading="lazy"
                 class="block w-full cursor-pointer"
                 :style="imageStyle"
-                @click="openLightbox(filename)"
+                @click="openLightbox(path)"
             />
         </div>
 
