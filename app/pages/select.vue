@@ -30,8 +30,10 @@ async function fetchImages() {
     loadingImages.value = true;
     imagesError.value = null;
     try {
+        const password = import.meta.client ? (sessionStorage.getItem('app_password') ?? '') : '';
         const { items } = await $fetch<{ items: StorageItem[] }>('/api/storage/list', {
-            query: { path: store.selectedFolder },
+            method: 'POST',
+            body: { password, path: store.selectedFolder },
         });
         images.value = items
             .filter((item) => item.id && IMAGE_EXTS.has(item.name.split('.').pop()?.toLowerCase() ?? ''))

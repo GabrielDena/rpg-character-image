@@ -78,7 +78,10 @@ async function browse(path = '') {
     fetchError.value = null;
     showCreateForm.value = false;
     try {
-        const { items: data } = await $fetch<{ items: StorageItem[] }>('/api/storage/list', { query: { path } });
+        const { items: data } = await $fetch<{ items: StorageItem[] }>('/api/storage/list', {
+            method: 'POST',
+            body: { password: getPassword(), path },
+        });
         items.value = data.filter((item) => item.name !== '.keep');
         currentPath.value = path;
     } catch (e: unknown) {
@@ -92,7 +95,7 @@ async function selectFolder() {
     if (!currentPath.value) return;
     saving.value = true;
     try {
-        await $fetch('/api/folder', { method: 'POST', body: { path: currentPath.value } });
+        await $fetch('/api/folder', { method: 'POST', body: { path: currentPath.value, password: getPassword() } });
         store.selectedFolder = currentPath.value;
         store.selectedImages = [];
         toast.add({

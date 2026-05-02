@@ -1,7 +1,10 @@
+import { checkPassword } from '../../utils/auth'
 import { supabaseAdmin } from '../../utils/supabaseAdmin'
 
 export default defineEventHandler(async (event) => {
-  const { path = '' } = getQuery(event) as { path?: string }
+  const { password, path = '' } = await readBody<{ password: string; path?: string }>(event)
+
+  if (!checkPassword(password)) throw createError({ statusCode: 401, message: 'Unauthorized' })
 
   const { data, error } = await supabaseAdmin().storage
     .from('adventures')

@@ -14,11 +14,12 @@ export const useAppStore = defineStore('app', () => {
         ws = new WebSocket(`${protocol}//${location.host}/_ws`);
 
         ws.onopen = () => {
-            wsConnected.value = true;
             if (reconnectTimer) {
                 clearTimeout(reconnectTimer);
                 reconnectTimer = null;
             }
+            const password = sessionStorage.getItem('app_password') ?? '';
+            ws!.send(JSON.stringify({ type: 'auth', password }));
         };
 
         ws.onclose = () => {
@@ -36,6 +37,7 @@ export const useAppStore = defineStore('app', () => {
             try {
                 const msg = JSON.parse(event.data as string);
                 if (msg.type === 'state') {
+                    wsConnected.value = true;
                     selectedFolder.value = msg.data.selectedFolder ?? null;
                     selectedImages.value = msg.data.selectedImages ?? [];
                 } else if (msg.type === 'images-updated') {
@@ -52,7 +54,8 @@ export const useAppStore = defineStore('app', () => {
         if (ws?.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: 'select-images', images }));
         } else {
-            $fetch('/api/selection', { method: 'POST', body: { images } }).catch(() => {});
+            const password = sessionStorage.getItem('app_password') ?? '';
+            $fetch('/api/selection', { method: 'POST', body: { images, password } }).catch(() => {});
         }
     }
 
@@ -81,4 +84,3 @@ export const useAppStore = defineStore('app', () => {
         clearSelection,
     };
 });
-

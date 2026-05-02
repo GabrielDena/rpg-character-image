@@ -11,6 +11,15 @@ export default defineNuxtConfig({
             supabaseKey: process.env.SUPABASE_KEY ?? '',
         },
     },
+    routeRules: {
+        '/**': {
+            headers: {
+                'X-Content-Type-Options': 'nosniff',
+                'X-Frame-Options': 'DENY',
+                'Referrer-Policy': 'strict-origin-when-cross-origin',
+            },
+        },
+    },
     nitro: {
         experimental: {
             websocket: true,
