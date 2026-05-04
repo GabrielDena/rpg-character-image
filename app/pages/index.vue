@@ -19,7 +19,7 @@ const verifying = ref(false);
 const passwordError = ref<string | null>(null);
 
 function getPassword() {
-    return sessionStorage.getItem('app_password') ?? '';
+    return localStorage.getItem('app_password') ?? '';
 }
 
 async function verifyPassword() {
@@ -28,7 +28,7 @@ async function verifyPassword() {
     passwordError.value = null;
     try {
         await $fetch('/api/auth/verify', { method: 'POST', body: { password: passwordInput.value } });
-        sessionStorage.setItem('app_password', passwordInput.value);
+        localStorage.setItem('app_password', passwordInput.value);
         isAuthenticated.value = true;
         await browse();
     } catch {
@@ -200,7 +200,7 @@ async function handleUpload(event: Event) {
 }
 
 onMounted(() => {
-    isAuthenticated.value = !!sessionStorage.getItem('app_password');
+    isAuthenticated.value = !!localStorage.getItem('app_password');
     if (isAuthenticated.value) {
         browse();
         fetchLastFolder();

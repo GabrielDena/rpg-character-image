@@ -18,7 +18,7 @@ export const useAppStore = defineStore('app', () => {
                 clearTimeout(reconnectTimer);
                 reconnectTimer = null;
             }
-            const password = sessionStorage.getItem('app_password') ?? '';
+            const password = localStorage.getItem('app_password') ?? '';
             ws!.send(JSON.stringify({ type: 'auth', password }));
         };
 
@@ -54,7 +54,7 @@ export const useAppStore = defineStore('app', () => {
         if (ws?.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: 'select-images', images }));
         } else {
-            const password = sessionStorage.getItem('app_password') ?? '';
+            const password = localStorage.getItem('app_password') ?? '';
             $fetch('/api/selection', { method: 'POST', body: { images, password } }).catch(() => {});
         }
     }
