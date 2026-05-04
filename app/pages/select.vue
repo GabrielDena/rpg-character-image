@@ -22,6 +22,8 @@ const loadingImages = ref(false);
 const imagesError = ref<string | null>(null);
 const gridCols = ref(4);
 const searchQuery = ref('');
+const rouletteMode = ref(false);
+const scrollContainer = ref<HTMLElement | null>(null);
 
 const selectedSet = computed(() => new Set(store.selectedImages));
 const selectedCount = computed(() => store.selectedImages.length);
@@ -31,6 +33,28 @@ const filteredImages = computed(() => {
     const query = searchQuery.value.toLowerCase();
     return images.value.filter((img) => img.name.toLowerCase().includes(query));
 });
+
+const rouletteImages = computed<ImageItem[]>(() => {
+    if (!rouletteMode.value || filteredImages.value.length === 0) return filteredImages.value;
+    const repeated: ImageItem[] = [];
+    for (let i = 0; i < 10; i++) {
+        repeated.push(...filteredImages.value);
+    }
+    return repeated;
+});
+
+function selectRandom() {
+    if (filteredImages.value.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * filteredImages.value.length);
+    const randomImage = filteredImages.value[randomIndex];
+    if (randomImage) {
+        store.toggleImage(randomImage.path);
+    }
+}
+
+function toggleRouletteMode() {
+    rouletteMode.value = !rouletteMode.value;
+}
 
 async function fetchImages() {
     if (!store.selectedFolder) return;
@@ -118,7 +142,28 @@ watch(
                         label="Clear"
                         @click="store.clearSelection()"
                     />
-                    <div class="flex items-center gap-1">
+                    <UButton
+                        v-if="filteredImages.length > 0 && !loadingImages"
+                        variant="ghost"
+                        color="primary"
+                        size="xs"
+                        icon="i-heroicons-sparkles"
+                        label="Random"
+                        @click="selectRandom()"
+                    />
+                    <UButton
+                        v-if="filteredImages.length > 0 && !loadingImages"
+                        variant="ghost"
+                        :color="rouletteMode ? 'primary' : 'neutral'"
+                        size="xs"
+                        icon="i-heroicons-arrow-path-rounded-square"
+                        :label="rouletteMode ? 'Grid' : 'Roulette'"
+                        @click="toggleRouletteMode()"
+                    />
+                    <div
+                        v-if="!rouletteMode"
+                        class="flex items-center gap-1"
+                    >
                         <UButton
                             variant="ghost"
                             color="neutral"
@@ -148,7 +193,10 @@ watch(
         </div>
 
         <!-- Content -->
-        <div class="min-h-0 flex-1 overflow-y-auto">
+        <div
+            v-if="!rouletteMode"
+            class="min-h-0 flex-1 overflow-y-auto"
+        >
             <UEmpty
                 v-if="!store.selectedFolder"
                 icon="i-heroicons-folder"
@@ -238,6 +286,71 @@ watch(
                         />
                     </div>
                 </button>
+            </div>
+        </div>
+
+        <!-- Roulette Mode -->
+        <div
+            v-else
+            class="min-h-0 flex-1 overflow-hidden"
+        >
+            <div
+                v-if="filteredImages.length === 0"
+                class="flex h-full items-center justify-center"
+            >
+                <UEmpty
+                    icon="i-heroicons-photo"
+                    title="No images"
+                    description="No images available for roulette"
+                />
+            </div>
+            <div
+                v-else
+                class="flex h-full flex-col"
+            >
+                <div
+                    ref="scrollContainer"
+                    class="flex-1 overflow-x-auto overflow-y-hidden scroll-smooth"
+                    style="scrollbar-width: none; -ms-overflow-style: none;"
+                >
+                    <div class="flex h-full items-center gap-2 px-4">
+                        <button
+                            v-for="(image, index) in rouletteImages"
+                            :key="`${image.path}-${index}`"
+                            class="relative aspect-square shrink-0 overflow-hidden rounded-lg bg-gray-800 focus:outline-none"
+                            style="height: 80%; width: auto;"
+                            @click="store.toggleImage(image.path)"
+                        >
+                            <img
+                                :src="image.url"
+                                :alt="image.name"
+                                loading="lazy"
+                                class="size-full object-cover object-top transition-opacity duration-150"
+                                :class="selectedSet.has(image.path) ? 'opacity-80' : 'opacity-100'"
+                            />
+                            
+                            <div
+                                v-if="selectedSet.has(image.path)"
+                                class="bg-primary-500/20 pointer-events-none absolute inset-0"
+                            />
+                            
+                            <div
+                                class="absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full transition-all duration-150"
+                                :class="
+                                    selectedSet.has(image.path)
+                                        ? 'bg-primary-500 ring-2 ring-white'
+                                        : 'bg-black/50 ring-1 ring-white/30'
+                                "
+                            >
+                                <UIcon
+                                    v-if="selectedSet.has(image.path)"
+                                    name="i-heroicons-check"
+                                    class="size-3 text-white"
+                                />
+                            </div>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
