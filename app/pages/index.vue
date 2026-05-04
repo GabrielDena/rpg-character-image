@@ -17,6 +17,7 @@ const isAuthenticated = ref(false);
 const passwordInput = ref('');
 const verifying = ref(false);
 const passwordError = ref<string | null>(null);
+const showPassword = ref(false);
 
 function getPassword() {
     return localStorage.getItem('app_password') ?? '';
@@ -134,9 +135,40 @@ async function fetchLastFolder() {
     }
 }
 
+function validateFolderName(name: string): string | null {
+    if (!name) return 'Folder name is required';
+    if (name.length > 255) return 'Folder name is too long (max 255 characters)';
+    
+    const invalidChars = /[<>:"\/\\|?*\x00-\x1F]/;
+    if (invalidChars.test(name)) {
+        return 'Folder name contains invalid characters';
+    }
+    
+    if (name === '.' || name === '..') {
+        return 'Invalid folder name';
+    }
+    
+    if (name.startsWith('.')) {
+        return 'Folder name cannot start with a dot';
+    }
+    
+    return null;
+}
+
 async function createFolder() {
     const name = newFolderName.value.trim();
-    if (!name) return;
+    
+    const validationError = validateFolderName(name);
+    if (validationError) {
+        toast.add({
+            title: 'Invalid folder name',
+            description: validationError,
+            color: 'error',
+            icon: 'i-heroicons-exclamation-circle',
+        });
+        return;
+    }
+    
     creatingFolder.value = true;
     try {
         const placeholderPath = currentPath.value ? `${currentPath.value}/${name}/.keep` : `${name}/.keep`;
@@ -218,13 +250,24 @@ onMounted(() => {
             <p class="text-center text-sm font-medium text-gray-300">Enter password to continue</p>
             <UInput
                 v-model="passwordInput"
-                type="password"
+                :type="showPassword ? 'text' : 'password'"
                 placeholder="Password"
                 size="lg"
                 :disabled="verifying"
                 autofocus
                 @keyup.enter="verifyPassword"
-            />
+            >
+                <template #trailing>
+                    <UButton
+                        variant="link"
+                        color="neutral"
+                        size="xs"
+                        :icon="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
+                        :padded="false"
+                        @click="showPassword = !showPassword"
+                    />
+                </template>
+            </UInput>
             <p
                 v-if="passwordError"
                 class="text-center text-sm text-red-400"
