@@ -16,9 +16,21 @@ export default defineWebSocketHandler({
                 if (data.type === 'auth' && checkPassword(data.password)) {
                     authenticated.add(peer.id)
                     addPeer(peer)
-                    peer.send(JSON.stringify({ type: 'state', data: getState() }))
+                    try {
+                        peer.send(JSON.stringify({ type: 'state', data: getState() }))
+                    } catch (error: any) {
+                        if (error?.code !== 'ECONNRESET') {
+                            console.error('[WS Send Error]', error)
+                        }
+                    }
                 } else {
-                    peer.close()
+                    try {
+                        peer.close()
+                    } catch (error: any) {
+                        if (error?.code !== 'ECONNRESET') {
+                            console.error('[WS Close Error]', error)
+                        }
+                    }
                 }
                 return
             }
@@ -27,7 +39,9 @@ export default defineWebSocketHandler({
                 setSelectedImages(data.images)
                 broadcast({ type: 'images-updated', data: { selectedImages: data.images } })
             }
-        } catch {}
+        } catch (error: any) {
+            console.error('[WS Message Error]', error)
+        }
     },
 
     close(peer) {

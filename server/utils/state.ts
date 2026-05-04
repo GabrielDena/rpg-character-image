@@ -35,6 +35,13 @@ export function removePeer(peer: unknown) {
 export function broadcast(message: object) {
   const data = JSON.stringify(message)
   for (const peer of peers) {
-    peer.send(data)
+    try {
+      peer.send(data)
+    } catch (error: any) {
+      if (error?.code !== 'ECONNRESET') {
+        console.error('[Broadcast Error]', error)
+      }
+      peers.delete(peer)
+    }
   }
 }
