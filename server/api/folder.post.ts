@@ -1,5 +1,6 @@
 import { checkPassword } from '../utils/auth'
 import { setFolder, broadcast } from '../utils/state'
+import { saveLastFolder } from '../utils/lastFolder'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<{ path: string; password: string }>(event)
@@ -9,6 +10,7 @@ export default defineEventHandler(async (event) => {
 
   setFolder(body.path)
   broadcast({ type: 'folder-changed', data: { folder: body.path } })
+  await saveLastFolder(body.path)
 
   return { folder: body.path }
 })

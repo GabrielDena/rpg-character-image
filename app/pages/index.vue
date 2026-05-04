@@ -50,6 +50,8 @@ const newFolderName = ref('');
 const creatingFolder = ref(false);
 
 const fileInput = ref<HTMLInputElement | null>(null);
+const lastFolder = ref<string | null>(null);
+const loadingLastFolder = ref(false);
 
 const pathSegments = computed(() => {
     if (!currentPath.value) return [];
@@ -91,16 +93,18 @@ async function browse(path = '') {
     }
 }
 
-async function selectFolder() {
-    if (!currentPath.value) return;
+async function selectFolder(path?: string) {
+    const folderPath = path || currentPath.value;
+    if (!folderPath) return;
     saving.value = true;
     try {
-        await $fetch('/api/folder', { method: 'POST', body: { path: currentPath.value, password: getPassword() } });
-        store.selectedFolder = currentPath.value;
+        await $fetch('/api/folder', { method: 'POST', body: { path: folderPath, password: getPassword() } });
+        store.selectedFolder = folderPath;
         store.selectedImages = [];
+        lastFolder.value = folderPath;
         toast.add({
             title: 'Folder selected',
-            description: currentPath.value,
+            description: folderPath,
             color: 'success',
             icon: 'i-heroicons-check-circle',
         });
@@ -108,6 +112,25 @@ async function selectFolder() {
         toast.add({ title: 'Could not select folder', color: 'error', icon: 'i-heroicons-exclamation-circle' });
     } finally {
         saving.value = false;
+    }
+}
+
+async function selectLastFolder() {
+    if (!lastFolder.value) return;
+    loadingLastFolder.value = true;
+    try {
+        await selectFolder(lastFolder.value);
+    } finally {
+        loadingLastFolder.value = false;
+    }
+}
+
+async function fetchLastFolder() {
+    try {
+        const { folder } = await $fetch<{ folder: string | null }>('/api/last-folder');
+        lastFolder.value = folder;
+    } catch {
+        lastFolder.value = null;
     }
 }
 
@@ -178,7 +201,10 @@ async function handleUpload(event: Event) {
 
 onMounted(() => {
     isAuthenticated.value = !!sessionStorage.getItem('app_password');
-    if (isAuthenticated.value) browse();
+    if (isAuthenticated.value) {
+        browse();
+        fetchLastFolder();
+    }
 });
 </script>
 
@@ -370,7 +396,7 @@ onMounted(() => {
         </div>
 
         <!-- Footer -->
-        <div class="shrink-0 space-y-2 border-t border-gray-800 bg-gray-950 p-4">
+        <div class="shrink-0 space-y-3 border-t border-gray-800 bg-gray-950 p-4">
             <div class="flex gap-2">
                 <UButton
                     class="flex-1"
@@ -405,11 +431,34 @@ onMounted(() => {
                 :variant="isCurrentSaved ? 'outline' : 'solid'"
                 :leading-icon="isCurrentSaved ? 'i-heroicons-check-circle' : 'i-heroicons-folder-open'"
                 :disabled="!currentPath || pending"
-                :loading="saving"
-                @click="selectFolder"
+                :loading="saving && !loadingLastFolder"
+                @click="() => selectFolder()"
             >
                 {{ isCurrentSaved ? 'Current folder selected' : 'Select this folder' }}
             </UButton>
+            
+            <div
+                v-if="store.selectedFolder || lastFolder"
+                class="flex items-center justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2"
+            >
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs text-gray-500">
+                        {{ store.selectedFolder ? 'Current Selected Folder' : 'Last Selected Folder' }}
+                    </p>
+                    <p class="truncate text-sm text-gray-300">
+                        {{ store.selectedFolder || lastFolder }}
+                    </p>
+                </div>
+                <UButton
+                    v-if="!store.selectedFolder && lastFolder"
+                    color="primary"
+                    variant="soft"
+                    size="xs"
+                    label="Select"
+                    :loading="loadingLastFolder"
+                    @click="selectLastFolder"
+                />
+            </div>
         </div>
     </div>
 </template>
