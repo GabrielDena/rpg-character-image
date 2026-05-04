@@ -214,7 +214,7 @@ watch(
                         :src="image.url"
                         :alt="image.name"
                         loading="lazy"
-                        class="size-full object-cover transition-opacity duration-150"
+                        class="size-full object-cover object-top transition-opacity duration-150"
                         :class="selectedSet.has(image.path) ? 'opacity-80' : 'opacity-100'"
                     />
 
