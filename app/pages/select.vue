@@ -21,9 +21,16 @@ const images = ref<ImageItem[]>([]);
 const loadingImages = ref(false);
 const imagesError = ref<string | null>(null);
 const gridCols = ref(4);
+const searchQuery = ref('');
 
 const selectedSet = computed(() => new Set(store.selectedImages));
 const selectedCount = computed(() => store.selectedImages.length);
+
+const filteredImages = computed(() => {
+    if (!searchQuery.value.trim()) return images.value;
+    const query = searchQuery.value.toLowerCase();
+    return images.value.filter((img) => img.name.toLowerCase().includes(query));
+});
 
 async function fetchImages() {
     if (!store.selectedFolder) return;
@@ -66,14 +73,35 @@ watch(
     <div class="flex h-full flex-col">
         <!-- Status bar -->
         <div class="shrink-0 border-b border-gray-800 bg-gray-900 px-4 py-3">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-3">
                 <span class="text-sm text-gray-400">
                     <template v-if="loadingImages">Loading…</template>
                     <template v-else-if="store.selectedFolder">
-                        {{ images.length }} image{{ images.length !== 1 ? 's' : '' }}
+                        {{ filteredImages.length }}<template v-if="searchQuery">/{{ images.length }}</template> image{{ filteredImages.length !== 1 ? 's' : '' }}
                     </template>
                     <template v-else>No folder selected</template>
                 </span>
+
+                <UInput
+                    v-if="store.selectedFolder && !loadingImages"
+                    v-model="searchQuery"
+                    icon="i-heroicons-magnifying-glass"
+                    placeholder="Search images..."
+                    size="xs"
+                    class="w-48"
+                >
+                    <template #trailing>
+                        <UButton
+                            v-if="searchQuery"
+                            variant="link"
+                            color="neutral"
+                            size="xs"
+                            icon="i-heroicons-x-mark"
+                            :padded="false"
+                            @click="searchQuery = ''"
+                        />
+                    </template>
+                </UInput>
 
                 <div class="flex items-center gap-2">
                     <UBadge
@@ -163,13 +191,21 @@ watch(
                 class="py-20"
             />
 
+            <UEmpty
+                v-else-if="!filteredImages.length"
+                icon="i-heroicons-magnifying-glass"
+                title="No matches"
+                description="No images match your search query"
+                class="py-20"
+            />
+
             <div
                 v-else
                 class="grid gap-0.5"
                 :style="`grid-template-columns: repeat(${gridCols}, minmax(0, 1fr))`"
             >
                 <button
-                    v-for="image in images"
+                    v-for="image in filteredImages"
                     :key="image.path"
                     class="group relative aspect-square overflow-hidden bg-gray-800 focus:outline-none"
                     @click="store.toggleImage(image.path)"
