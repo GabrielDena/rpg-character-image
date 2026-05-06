@@ -60,6 +60,8 @@ const saveBoth = ref(true);
 const processingImages = ref(false);
 const uploadProgress = ref({ current: 0, total: 0 });
 
+const isDev = computed(() => import.meta.dev);
+
 const pathSegments = computed(() => {
     if (!currentPath.value) return [];
     const parts = currentPath.value.split('/').filter(Boolean);
@@ -520,6 +522,13 @@ onMounted(() => {
 
         <!-- Footer -->
         <div class="shrink-0 space-y-3 border-t border-gray-800 bg-gray-950 p-4">
+            <BatchRemoveBackground
+                v-if="isDev"
+                :current-path="currentPath"
+                @refresh="browse(currentPath)"
+            />
+            
+            <!-- Upload processing indicator -->
             <div
                 v-if="processingImages"
                 class="rounded-lg border border-blue-800 bg-blue-950/30 px-3 py-2"
