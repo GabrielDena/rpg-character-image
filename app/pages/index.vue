@@ -56,6 +56,7 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const lastFolder = ref<string | null>(null);
 const loadingLastFolder = ref(false);
 const removeBgOnUpload = ref(true);
+const saveBoth = ref(true);
 const processingImages = ref(false);
 const uploadProgress = ref({ current: 0, total: 0 });
 
@@ -206,40 +207,76 @@ async function handleUpload(event: Event) {
     const failed: string[] = [];
     
     try {
-        let filesToUpload: { file: File | Blob; name: string }[] = [];
+        let filesToUpload: { file: File | Blob; path: string }[] = [];
         
         if (removeBgOnUpload.value) {
             processingImages.value = true;
             uploadProgress.value = { current: 0, total: files.length };
             
+            const noBgFolder = currentPath.value ? `${currentPath.value}/no-bg` : 'no-bg';
+            
+            try {
+                await $fetch('/api/storage/folder', {
+                    method: 'POST',
+                    body: { password, path: `${noBgFolder}/.keep` },
+                });
+            } catch (error) {
+                console.log('no-bg folder might already exist or creation failed:', error);
+            }
+            
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 if (!file) continue;
                 
+                if (saveBoth.value) {
+                    const originalPath = currentPath.value ? `${currentPath.value}/${file.name}` : file.name;
+                    filesToUpload.push({ file, path: originalPath });
+                }
+                
                 try {
                     const blob = await removeBackground(file);
-                    const newName = file.name.replace(/(\.[^.]+)$/, '-no-bg.png');
-                    filesToUpload.push({ file: blob, name: newName });
+                    const fileName = file.name.replace(/(\.[^.]+)$/, '.png');
+                    const path = `${noBgFolder}/${fileName}`;
+                    filesToUpload.push({ file: blob, path });
                 } catch (error) {
                     console.error(`Failed to remove background from ${file.name}:`, error);
-                    filesToUpload.push({ file, name: file.name });
+                    if (!saveBoth.value) {
+                        const path = currentPath.value ? `${currentPath.value}/${file.name}` : file.name;
+                        filesToUpload.push({ file, path });
+                    }
                 }
                 uploadProgress.value.current = i + 1;
             }
             processingImages.value = false;
         } else {
-            filesToUpload = files.map(f => ({ file: f, name: f.name }));
+            filesToUpload = files.map(f => {
+                const path = currentPath.value ? `${currentPath.value}/${f.name}` : f.name;
+                return { file: f, path };
+            });
         }
         
+        const partialWarnings: string[] = [];
+        
         await Promise.all(
-            filesToUpload.map(async ({ file, name }) => {
-                const path = currentPath.value ? `${currentPath.value}/${name}` : name;
-                const signed = await $fetch<{ token: string; path: string }>('/api/storage/sign-upload', {
-                    method: 'POST',
-                    body: { password, path },
-                });
-                const { error } = await supabase.storage.from(BUCKET).uploadToSignedUrl(signed.path, signed.token, file);
-                if (error) failed.push(name);
+            filesToUpload.map(async ({ file, path }) => {
+                try {
+                    const signed = await $fetch<{ token: string; path: string }>('/api/storage/sign-upload', {
+                        method: 'POST',
+                        body: { password, path },
+                    });
+                    const { error } = await supabase.storage.from(BUCKET).uploadToSignedUrl(signed.path, signed.token, file);
+                    if (error) {
+                        const fileName = path.split('/').pop() || path;
+                        if (error.message?.includes('already exists') || error.message?.includes('duplicate')) {
+                            partialWarnings.push(fileName);
+                        } else {
+                            failed.push(fileName);
+                        }
+                    }
+                } catch (error) {
+                    const fileName = path.split('/').pop() || path;
+                    failed.push(fileName);
+                }
             })
         );
         
@@ -250,6 +287,14 @@ async function handleUpload(event: Event) {
                 title: `${failed.length} file(s) failed to upload`,
                 color: 'error',
                 icon: 'i-heroicons-exclamation-circle',
+            });
+        } else if (partialWarnings.length) {
+            const successCount = filesToUpload.length - partialWarnings.length;
+            toast.add({
+                title: `${successCount} file(s) uploaded`,
+                description: `${partialWarnings.length} version(s) already existed`,
+                color: 'warning',
+                icon: 'i-heroicons-exclamation-triangle',
             });
         } else {
             toast.add({
@@ -490,18 +535,36 @@ onMounted(() => {
                 </div>
             </div>
             
-            <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2.5 transition-colors hover:bg-gray-800">
-                <input
-                    v-model="removeBgOnUpload"
-                    type="checkbox"
-                    class="size-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
-                />
-                <UIcon
-                    name="i-heroicons-scissors"
-                    class="size-4 text-gray-400"
-                />
-                <span class="flex-1 text-sm text-gray-300">Remove background before upload</span>
-            </label>
+            <div class="flex gap-2">
+                <label class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2.5 transition-colors hover:bg-gray-800">
+                    <input
+                        v-model="removeBgOnUpload"
+                        type="checkbox"
+                        class="size-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
+                    />
+                    <UIcon
+                        name="i-heroicons-scissors"
+                        class="size-4 text-gray-400"
+                    />
+                    <span class="flex-1 text-sm text-gray-300">Remove BG</span>
+                </label>
+                
+                <label
+                    v-if="removeBgOnUpload"
+                    class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2.5 transition-colors hover:bg-gray-800"
+                >
+                    <input
+                        v-model="saveBoth"
+                        type="checkbox"
+                        class="size-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
+                    />
+                    <UIcon
+                        name="i-heroicons-document-duplicate"
+                        class="size-4 text-gray-400"
+                    />
+                    <span class="flex-1 text-sm text-gray-300">Save Both</span>
+                </label>
+            </div>
             
             <div class="flex gap-2">
                 <UButton

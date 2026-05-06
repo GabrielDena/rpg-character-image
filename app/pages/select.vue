@@ -18,6 +18,8 @@ const supabase = useSupabase();
 const store = useAppStore();
 
 const images = ref<ImageItem[]>([]);
+const folders = ref<StorageItem[]>([]);
+const currentPath = ref('');
 const loadingImages = ref(false);
 const imagesError = ref<string | null>(null);
 const gridCols = ref(4);
@@ -27,6 +29,17 @@ const scrollContainer = ref<HTMLElement | null>(null);
 
 const selectedSet = computed(() => new Set(store.selectedImages));
 const selectedCount = computed(() => store.selectedImages.length);
+
+const pathSegments = computed(() => {
+    if (!currentPath.value) return [];
+    const relative = currentPath.value.replace(store.selectedFolder || '', '').replace(/^\//, '');
+    if (!relative) return [];
+    const parts = relative.split('/').filter(Boolean);
+    return parts.map((part, i) => ({
+        label: part,
+        path: parts.slice(0, i + 1).join('/'),
+    }));
+});
 
 const filteredImages = computed(() => {
     if (!searchQuery.value.trim()) return images.value;
@@ -62,14 +75,18 @@ async function fetchImages() {
     imagesError.value = null;
     try {
         const password = import.meta.client ? (localStorage.getItem('app_password') ?? '') : '';
+        const pathToFetch = currentPath.value || store.selectedFolder;
         const { items } = await $fetch<{ items: StorageItem[] }>('/api/storage/list', {
             method: 'POST',
-            body: { password, path: store.selectedFolder },
+            body: { password, path: pathToFetch },
         });
+        
+        folders.value = items.filter((item) => !item.id && item.name !== '.keep');
+        
         images.value = items
             .filter((item) => item.id && IMAGE_EXTS.has(item.name.split('.').pop()?.toLowerCase() ?? ''))
             .map((item) => {
-                const path = `${store.selectedFolder}/${item.name}`;
+                const path = `${pathToFetch}/${item.name}`;
                 return {
                     name: item.name,
                     path,
@@ -83,11 +100,32 @@ async function fetchImages() {
     }
 }
 
+function navigateToFolder(folderName: string) {
+    const basePath = currentPath.value || store.selectedFolder || '';
+    currentPath.value = basePath ? `${basePath}/${folderName}` : folderName;
+    fetchImages();
+}
+
+function navigateToPath(relativePath: string) {
+    currentPath.value = store.selectedFolder ? `${store.selectedFolder}/${relativePath}` : relativePath;
+    fetchImages();
+}
+
+function navigateToRoot() {
+    currentPath.value = '';
+    fetchImages();
+}
+
 watch(
     () => store.selectedFolder,
     (folder) => {
-        if (folder) fetchImages();
-        else images.value = [];
+        if (folder) {
+            currentPath.value = '';
+            fetchImages();
+        } else {
+            images.value = [];
+            folders.value = [];
+        }
     },
     { immediate: true }
 );
@@ -95,6 +133,45 @@ watch(
 
 <template>
     <div class="flex h-full flex-col">
+        <!-- Breadcrumb -->
+        <div
+            v-if="store.selectedFolder && pathSegments.length > 0"
+            class="shrink-0 border-b border-gray-800 bg-gray-900"
+        >
+            <div class="flex items-center gap-0.5 overflow-x-auto px-2 py-2 [&::-webkit-scrollbar]:hidden">
+                <UButton
+                    variant="ghost"
+                    color="neutral"
+                    size="xs"
+                    icon="i-heroicons-home"
+                    class="shrink-0 text-gray-500"
+                    @click="navigateToRoot"
+                />
+                <template
+                    v-for="(seg, i) in pathSegments"
+                    :key="seg.path"
+                >
+                    <UIcon
+                        name="i-heroicons-chevron-right"
+                        class="size-3 shrink-0 text-gray-700"
+                    />
+                    <UButton
+                        variant="ghost"
+                        color="neutral"
+                        size="xs"
+                        :label="seg.label"
+                        class="max-w-36 shrink-0 truncate"
+                        :class="
+                            i === pathSegments.length - 1
+                                ? 'cursor-default text-gray-100'
+                                : 'text-gray-500 hover:text-gray-300'
+                        "
+                        @click="i < pathSegments.length - 1 ? navigateToPath(seg.path) : undefined"
+                    />
+                </template>
+            </div>
+        </div>
+        
         <!-- Status bar -->
         <div class="shrink-0 border-b border-gray-800 bg-gray-900 px-4 py-3">
             <div class="flex items-center justify-between gap-3">
@@ -252,6 +329,23 @@ watch(
                 class="grid gap-0.5"
                 :style="`grid-template-columns: repeat(${gridCols}, minmax(0, 1fr))`"
             >
+                <!-- Folders -->
+                <button
+                    v-for="folder in folders"
+                    :key="folder.name"
+                    class="group relative aspect-square overflow-hidden bg-gray-800 focus:outline-none"
+                    @click="navigateToFolder(folder.name)"
+                >
+                    <div class="flex size-full flex-col items-center justify-center gap-2 bg-gray-850">
+                        <UIcon
+                            name="i-heroicons-folder"
+                            class="size-12 text-gray-600 transition-colors group-hover:text-gray-400"
+                        />
+                        <span class="max-w-full truncate px-2 text-xs text-gray-400 transition-colors group-hover:text-gray-200">{{ folder.name }}</span>
+                    </div>
+                </button>
+                
+                <!-- Images -->
                 <button
                     v-for="image in filteredImages"
                     :key="image.path"
