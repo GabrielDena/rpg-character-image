@@ -63,6 +63,36 @@ const backgroundImages = ref<string[]>([]);
 const selectedBackground = ref<string | null>(null);
 const loadingBackgrounds = ref(false);
 
+onMounted(() => {
+    if (import.meta.client) {
+        const savedFitMode = localStorage.getItem('gallery_fitMode');
+        if (savedFitMode === 'cover' || savedFitMode === 'contain') {
+            fitMode.value = savedFitMode;
+        }
+
+        const savedBackground = localStorage.getItem('gallery_selectedBackground');
+        if (savedBackground) {
+            selectedBackground.value = savedBackground;
+        }
+    }
+});
+
+watch(fitMode, (newValue) => {
+    if (import.meta.client) {
+        localStorage.setItem('gallery_fitMode', newValue);
+    }
+});
+
+watch(selectedBackground, (newValue) => {
+    if (import.meta.client) {
+        if (newValue) {
+            localStorage.setItem('gallery_selectedBackground', newValue);
+        } else {
+            localStorage.removeItem('gallery_selectedBackground');
+        }
+    }
+});
+
 function getPublicUrl(path: string) {
     return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 }
@@ -77,32 +107,32 @@ function closeLightbox() {
 
 async function fetchBackgroundImages() {
     if (!store.selectedFolder) return;
-    
+
     loadingBackgrounds.value = true;
     try {
         const bgPath = `${store.selectedFolder}/backgrounds`;
         const password = import.meta.client ? (localStorage.getItem('app_password') ?? '') : '';
-        
+
         const response = await $fetch<{ items: { name: string; id: string | null }[] }>('/api/storage/list', {
             method: 'POST',
             body: { password, path: bgPath },
-        }).catch(err => {
+        }).catch((err) => {
             console.error('Fetch error:', err);
             return { items: [] };
         });
-        
+
         const items = response?.items || [];
         console.log('Background images data:', items);
-        
+
         const imageExts = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp']);
         backgroundImages.value = items
-            .filter(file => {
+            .filter((file) => {
                 if (!file.name || file.name === '.keep' || !file.id) return false;
                 const ext = file.name.split('.').pop()?.toLowerCase();
                 return ext && imageExts.has(ext);
             })
-            .map(file => `${bgPath}/${file.name}`);
-        
+            .map((file) => `${bgPath}/${file.name}`);
+
         console.log('Filtered background images:', backgroundImages.value);
     } catch (error) {
         console.error('Error fetching backgrounds:', error);
@@ -131,7 +161,15 @@ function clearBackground() {
     <div
         ref="container"
         class="relative h-full w-full"
-        :style="selectedBackground ? { backgroundImage: `url(${getPublicUrl(selectedBackground)})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}"
+        :style="
+            selectedBackground
+                ? {
+                      backgroundImage: `url(${getPublicUrl(selectedBackground)})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                  }
+                : {}
+        "
     >
         <!-- Empty state -->
         <div
