@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { removeBackground } from '@imgly/background-removal';
+
 const BUCKET = 'adventures';
 const IMAGE_EXTS = new Set(['jpg', 'jpeg', 'jfif', 'png', 'gif', 'webp', 'avif', 'bmp']);
 
@@ -53,6 +55,9 @@ const creatingFolder = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 const lastFolder = ref<string | null>(null);
 const loadingLastFolder = ref(false);
+const removeBgOnUpload = ref(true);
+const processingImages = ref(false);
+const uploadProgress = ref({ current: 0, total: 0 });
 
 const pathSegments = computed(() => {
     if (!currentPath.value) return [];
@@ -199,19 +204,47 @@ async function handleUpload(event: Event) {
     const password = getPassword();
     uploading.value = true;
     const failed: string[] = [];
+    
     try {
+        let filesToUpload: { file: File | Blob; name: string }[] = [];
+        
+        if (removeBgOnUpload.value) {
+            processingImages.value = true;
+            uploadProgress.value = { current: 0, total: files.length };
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (!file) continue;
+                
+                try {
+                    const blob = await removeBackground(file);
+                    const newName = file.name.replace(/(\.[^.]+)$/, '-no-bg.png');
+                    filesToUpload.push({ file: blob, name: newName });
+                } catch (error) {
+                    console.error(`Failed to remove background from ${file.name}:`, error);
+                    filesToUpload.push({ file, name: file.name });
+                }
+                uploadProgress.value.current = i + 1;
+            }
+            processingImages.value = false;
+        } else {
+            filesToUpload = files.map(f => ({ file: f, name: f.name }));
+        }
+        
         await Promise.all(
-            files.map(async (file) => {
-                const path = currentPath.value ? `${currentPath.value}/${file.name}` : file.name;
+            filesToUpload.map(async ({ file, name }) => {
+                const path = currentPath.value ? `${currentPath.value}/${name}` : name;
                 const signed = await $fetch<{ token: string; path: string }>('/api/storage/sign-upload', {
                     method: 'POST',
                     body: { password, path },
                 });
                 const { error } = await supabase.storage.from(BUCKET).uploadToSignedUrl(signed.path, signed.token, file);
-                if (error) failed.push(file.name);
+                if (error) failed.push(name);
             })
         );
+        
         await browse(currentPath.value);
+        
         if (failed.length) {
             toast.add({
                 title: `${failed.length} file(s) failed to upload`,
@@ -220,13 +253,15 @@ async function handleUpload(event: Event) {
             });
         } else {
             toast.add({
-                title: `${files.length} image${files.length !== 1 ? 's' : ''} uploaded`,
+                title: `${filesToUpload.length} image${filesToUpload.length !== 1 ? 's' : ''} uploaded`,
                 color: 'success',
                 icon: 'i-heroicons-cloud-arrow-up',
             });
         }
     } finally {
         uploading.value = false;
+        processingImages.value = false;
+        uploadProgress.value = { current: 0, total: 0 };
         input.value = '';
     }
 }
@@ -440,6 +475,34 @@ onMounted(() => {
 
         <!-- Footer -->
         <div class="shrink-0 space-y-3 border-t border-gray-800 bg-gray-950 p-4">
+            <div
+                v-if="processingImages"
+                class="rounded-lg border border-blue-800 bg-blue-950/30 px-3 py-2"
+            >
+                <div class="flex items-center gap-2">
+                    <UIcon
+                        name="i-heroicons-scissors"
+                        class="size-4 text-blue-400"
+                    />
+                    <span class="text-sm text-blue-300">
+                        Removing backgrounds... {{ uploadProgress.current }}/{{ uploadProgress.total }}
+                    </span>
+                </div>
+            </div>
+            
+            <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2.5 transition-colors hover:bg-gray-800">
+                <input
+                    v-model="removeBgOnUpload"
+                    type="checkbox"
+                    class="size-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
+                />
+                <UIcon
+                    name="i-heroicons-scissors"
+                    class="size-4 text-gray-400"
+                />
+                <span class="flex-1 text-sm text-gray-300">Remove background before upload</span>
+            </label>
+            
             <div class="flex gap-2">
                 <UButton
                     class="flex-1"
