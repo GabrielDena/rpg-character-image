@@ -58,6 +58,10 @@ const imageStyle = computed<CSSProperties>(() => ({
 }));
 
 const lightboxSrc = ref<string | null>(null);
+const showBgModal = ref(false);
+const backgroundImages = ref<string[]>([]);
+const selectedBackground = ref<string | null>(null);
+const loadingBackgrounds = ref(false);
 
 function getPublicUrl(path: string) {
     return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
@@ -70,12 +74,64 @@ function openLightbox(path: string) {
 function closeLightbox() {
     lightboxSrc.value = null;
 }
+
+async function fetchBackgroundImages() {
+    if (!store.selectedFolder) return;
+    
+    loadingBackgrounds.value = true;
+    try {
+        const bgPath = `${store.selectedFolder}/backgrounds`;
+        const password = import.meta.client ? (localStorage.getItem('app_password') ?? '') : '';
+        
+        const response = await $fetch<{ items: { name: string; id: string | null }[] }>('/api/storage/list', {
+            method: 'POST',
+            body: { password, path: bgPath },
+        }).catch(err => {
+            console.error('Fetch error:', err);
+            return { items: [] };
+        });
+        
+        const items = response?.items || [];
+        console.log('Background images data:', items);
+        
+        const imageExts = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp']);
+        backgroundImages.value = items
+            .filter(file => {
+                if (!file.name || file.name === '.keep' || !file.id) return false;
+                const ext = file.name.split('.').pop()?.toLowerCase();
+                return ext && imageExts.has(ext);
+            })
+            .map(file => `${bgPath}/${file.name}`);
+        
+        console.log('Filtered background images:', backgroundImages.value);
+    } catch (error) {
+        console.error('Error fetching backgrounds:', error);
+        backgroundImages.value = [];
+    } finally {
+        loadingBackgrounds.value = false;
+    }
+}
+
+function openBgModal() {
+    showBgModal.value = true;
+    fetchBackgroundImages();
+}
+
+function selectBackground(path: string) {
+    selectedBackground.value = path;
+    showBgModal.value = false;
+}
+
+function clearBackground() {
+    selectedBackground.value = null;
+}
 </script>
 
 <template>
     <div
         ref="container"
         class="relative h-full w-full"
+        :style="selectedBackground ? { backgroundImage: `url(${getPublicUrl(selectedBackground)})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}"
     >
         <!-- Empty state -->
         <div
@@ -110,17 +166,42 @@ function closeLightbox() {
             />
         </div>
 
-        <!-- Fit toggle -->
-        <UButton
+        <!-- Action buttons -->
+        <div
             v-if="count > 0"
-            size="xs"
-            color="neutral"
-            variant="solid"
-            :icon="fitMode === 'cover' ? 'i-heroicons-arrows-pointing-out' : 'i-heroicons-arrows-pointing-in'"
-            class="absolute top-2 right-2 opacity-60 hover:opacity-100"
-            :ui="{ base: 'bg-gray-900/80 backdrop-blur' }"
-            @click="fitMode = fitMode === 'cover' ? 'contain' : 'cover'"
-        />
+            class="absolute top-2 right-2 flex gap-2"
+        >
+            <UButton
+                size="xs"
+                color="neutral"
+                variant="solid"
+                icon="i-heroicons-photo"
+                class="opacity-60 hover:opacity-100"
+                :ui="{ base: 'bg-gray-900/80 backdrop-blur' }"
+                @click="openBgModal"
+            >
+                Select BG
+            </UButton>
+            <UButton
+                v-if="selectedBackground"
+                size="xs"
+                color="neutral"
+                variant="solid"
+                icon="i-heroicons-x-mark"
+                class="opacity-60 hover:opacity-100"
+                :ui="{ base: 'bg-gray-900/80 backdrop-blur' }"
+                @click="clearBackground"
+            />
+            <UButton
+                size="xs"
+                color="neutral"
+                variant="solid"
+                :icon="fitMode === 'cover' ? 'i-heroicons-arrows-pointing-out' : 'i-heroicons-arrows-pointing-in'"
+                class="opacity-60 hover:opacity-100"
+                :ui="{ base: 'bg-gray-900/80 backdrop-blur' }"
+                @click="fitMode = fitMode === 'cover' ? 'contain' : 'cover'"
+            />
+        </div>
 
         <!-- Lightbox -->
         <Transition name="lightbox">
@@ -133,6 +214,78 @@ function closeLightbox() {
                     :src="lightboxSrc"
                     class="max-h-full max-w-full object-contain"
                 />
+            </div>
+        </Transition>
+
+        <!-- Background selection modal -->
+        <Transition name="lightbox">
+            <div
+                v-if="showBgModal"
+                class="absolute inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+                @click.self="showBgModal = false"
+            >
+                <div class="w-full max-w-2xl rounded-xl border border-gray-800 bg-gray-900 p-4">
+                    <div class="mb-4 flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-100">Select Background</h3>
+                        <UButton
+                            size="xs"
+                            color="neutral"
+                            variant="ghost"
+                            icon="i-heroicons-x-mark"
+                            @click="showBgModal = false"
+                        />
+                    </div>
+
+                    <div
+                        v-if="loadingBackgrounds"
+                        class="flex items-center justify-center py-12"
+                    >
+                        <UIcon
+                            name="i-heroicons-arrow-path"
+                            class="size-8 animate-spin text-gray-500"
+                        />
+                    </div>
+
+                    <div
+                        v-else-if="backgroundImages.length === 0"
+                        class="py-12 text-center"
+                    >
+                        <UIcon
+                            name="i-heroicons-photo"
+                            class="mx-auto size-12 text-gray-700"
+                        />
+                        <p class="mt-2 text-sm text-gray-400">No backgrounds found</p>
+                        <p class="mt-1 text-xs text-gray-600">Add images to the "backgrounds" folder</p>
+                    </div>
+
+                    <div
+                        v-else
+                        class="grid max-h-96 grid-cols-3 gap-2 overflow-y-auto"
+                    >
+                        <button
+                            v-for="bgPath in backgroundImages"
+                            :key="bgPath"
+                            class="group relative aspect-video overflow-hidden rounded-lg border-2 transition-all hover:border-blue-500"
+                            :class="selectedBackground === bgPath ? 'border-blue-500' : 'border-transparent'"
+                            @click="selectBackground(bgPath)"
+                        >
+                            <img
+                                :src="getPublicUrl(bgPath)"
+                                :alt="bgPath.split('/').pop()"
+                                class="h-full w-full object-cover transition-transform group-hover:scale-105"
+                            />
+                            <div
+                                v-if="selectedBackground === bgPath"
+                                class="absolute inset-0 flex items-center justify-center bg-blue-500/20"
+                            >
+                                <UIcon
+                                    name="i-heroicons-check-circle"
+                                    class="size-8 text-blue-500"
+                                />
+                            </div>
+                        </button>
+                    </div>
+                </div>
             </div>
         </Transition>
     </div>
