@@ -2,7 +2,10 @@
 export default defineNuxtConfig({
     compatibilityDate: '2025-07-15',
     devtools: { enabled: true },
-    devServer: { host: '0.0.0.0' },
+    devServer: { 
+        host: '0.0.0.0',
+        port: 3000
+    },
     modules: ['@nuxt/ui', '@nuxt/eslint', '@pinia/nuxt'],
     css: ['~/assets/css/main.css'],
     runtimeConfig: {
@@ -23,6 +26,15 @@ export default defineNuxtConfig({
     nitro: {
         experimental: {
             websocket: true,
+        },
+    },
+    vite: {
+        server: {
+            hmr: {
+                protocol: 'ws',
+                host: '0.0.0.0',
+                port: 24678,
+            },
         },
     },
 });
