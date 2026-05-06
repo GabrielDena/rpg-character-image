@@ -176,7 +176,7 @@ function clearBackground() {
                 color="neutral"
                 variant="solid"
                 icon="i-heroicons-photo"
-                class="opacity-60 hover:opacity-100"
+                class="text-white opacity-60 hover:opacity-100"
                 :ui="{ base: 'bg-gray-900/80 backdrop-blur' }"
                 @click="openBgModal"
             >
@@ -188,7 +188,7 @@ function clearBackground() {
                 color="neutral"
                 variant="solid"
                 icon="i-heroicons-x-mark"
-                class="opacity-60 hover:opacity-100"
+                class="text-white opacity-60 hover:opacity-100"
                 :ui="{ base: 'bg-gray-900/80 backdrop-blur' }"
                 @click="clearBackground"
             />
@@ -197,7 +197,7 @@ function clearBackground() {
                 color="neutral"
                 variant="solid"
                 :icon="fitMode === 'cover' ? 'i-heroicons-arrows-pointing-out' : 'i-heroicons-arrows-pointing-in'"
-                class="opacity-60 hover:opacity-100"
+                class="text-white opacity-60 hover:opacity-100"
                 :ui="{ base: 'bg-gray-900/80 backdrop-blur' }"
                 @click="fitMode = fitMode === 'cover' ? 'contain' : 'cover'"
             />
