@@ -6,6 +6,7 @@ function handleMessage(_ws: WebSocket, event: MessageEvent) {
         case 'state':
             store.setSelectedFolder(message.data.selectedFolder);
             store.setSelectedImages(message.data.selectedImages);
+            store.setGalleryFitMode(message.data.galleryFitMode);
             break;
         case 'folder-updated':
             store.setSelectedFolder(message.data.selectedFolder);
@@ -16,9 +17,9 @@ function handleMessage(_ws: WebSocket, event: MessageEvent) {
         case 'image-uploaded':
             store.notifyImageUploaded();
             break;
-        // case 'background-updated':
-        //     // Handle background update
-        //     break;
+        case 'fit-mode-updated':
+            store.setGalleryFitMode(message.data.fitMode);
+            break;
         default:
             console.warn('Unknown message type:', (message as any).type);
     }

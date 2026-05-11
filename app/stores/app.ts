@@ -2,6 +2,7 @@ export const useAppStore = defineStore('app', () => {
     const selectedFolder = ref<string | null>(null);
     const selectedImages = ref<string[]>([]);
     const imageListVersion = ref(0);
+    const galleryFitMode = ref<'cover' | 'contain'>('cover');
 
     function sendSelection(images: string[]) {
         const password = localStorage.getItem('app_password') ?? '';
@@ -36,6 +37,10 @@ export const useAppStore = defineStore('app', () => {
         imageListVersion.value++;
     }
 
+    function setGalleryFitMode(mode: 'cover' | 'contain') {
+        galleryFitMode.value = mode;
+    }
+
     return {
         selectedFolder,
         selectedImages,
@@ -45,6 +50,8 @@ export const useAppStore = defineStore('app', () => {
         setSelectedFolder,
         imageListVersion,
         notifyImageUploaded,
+        galleryFitMode,
+        setGalleryFitMode,
     };
 });
 

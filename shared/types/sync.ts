@@ -1,4 +1,4 @@
-export type PayloadTypes = 'state' | 'folder-updated' | 'images-updated' | 'image-uploaded';
+export type PayloadTypes = 'state' | 'folder-updated' | 'images-updated' | 'image-uploaded' | 'fit-mode-updated';
 
 interface BasePayload {
     type: PayloadTypes;
@@ -12,6 +12,7 @@ export interface SyncPayload extends BasePayload {
     data: {
         selectedFolder: string | null;
         selectedImages: string[];
+        galleryFitMode: 'cover' | 'contain';
     };
 }
 
@@ -36,4 +37,11 @@ export interface ImageUploadedPayload extends BasePayload {
     };
 }
 
-export type WSPayload = SyncPayload | FolderPayload | ImagesPayload | ImageUploadedPayload;
+export interface FitModePayload extends BasePayload {
+    type: 'fit-mode-updated';
+    data: {
+        fitMode: 'cover' | 'contain';
+    };
+}
+
+export type WSPayload = SyncPayload | FolderPayload | ImagesPayload | ImageUploadedPayload | FitModePayload;

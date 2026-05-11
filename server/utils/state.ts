@@ -1,11 +1,13 @@
 interface AppState {
   selectedFolder: string | null
   selectedImages: string[]
+  galleryFitMode: 'cover' | 'contain'
 }
 
 const state: AppState = {
   selectedFolder: null,
   selectedImages: [],
+  galleryFitMode: 'cover',
 }
 
 export function getState(): AppState {
@@ -19,5 +21,9 @@ export function setFolder(folder: string | null) {
 
 export function setSelectedImages(images: string[]) {
   state.selectedImages = images
+}
+
+export function setGalleryFitMode(mode: 'cover' | 'contain') {
+  state.galleryFitMode = mode
 }
 
