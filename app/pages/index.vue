@@ -111,6 +111,7 @@ async function selectFolder(path?: string) {
         store.selectedFolder = folderPath;
         store.selectedImages = [];
         lastFolder.value = folderPath;
+        localStorage.setItem('last_folder', folderPath);
         toast.add({
             title: 'Folder selected',
             description: folderPath,
@@ -134,13 +135,8 @@ async function selectLastFolder() {
     }
 }
 
-async function fetchLastFolder() {
-    try {
-        const { folder } = await $fetch<{ folder: string | null }>('/api/last-folder');
-        lastFolder.value = folder;
-    } catch {
-        lastFolder.value = null;
-    }
+function fetchLastFolder() {
+    lastFolder.value = localStorage.getItem('last_folder');
 }
 
 function validateFolderName(name: string): string | null {
@@ -589,7 +585,7 @@ onMounted(() => {
                     color="neutral"
                     variant="outline"
                     leading-icon="i-heroicons-cloud-arrow-up"
-                    label="Upload"
+                    :label="`Upload to ${currentPath || 'current folder'}`"
                     :loading="uploading"
                     @click="fileInput?.click()"
                 />
