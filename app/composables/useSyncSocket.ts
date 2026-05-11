@@ -1,7 +1,6 @@
 function handleMessage(_ws: WebSocket, event: MessageEvent) {
     const store = useAppStore();
     const message: WSPayload = JSON.parse(event.data);
-    console.log('Parsed message', message);
 
     switch (message.type) {
         case 'state':
@@ -11,9 +10,9 @@ function handleMessage(_ws: WebSocket, event: MessageEvent) {
         case 'folder-updated':
             store.setSelectedFolder(message.data.selectedFolder);
             break;
-        // case 'images-updated':
-        //     // Handle images update
-        //     break;
+        case 'images-updated':
+            store.setSelectedImages(message.data.selectedImages);
+            break;
         // case 'background-updated':
         //     // Handle background update
         //     break;

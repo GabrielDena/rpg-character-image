@@ -13,6 +13,6 @@ export default defineEventHandler(async (event) => {
     };
     broadcast(folderPayload);
 
-    return { folder: body.path };
+    return { folder: getState().selectedFolder };
 });
 
