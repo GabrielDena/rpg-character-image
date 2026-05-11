@@ -27,3 +27,8 @@ export function setGalleryFitMode(mode: 'cover' | 'contain') {
   state.galleryFitMode = mode
 }
 
+export function initState(folder: string | null, images: string[]) {
+  state.selectedFolder = folder
+  state.selectedImages = images
+}
+
