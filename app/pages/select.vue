@@ -129,6 +129,11 @@ watch(
     },
     { immediate: true }
 );
+
+watch(
+    () => store.imageListVersion,
+    () => fetchImages(),
+);
 </script>
 
 <template>

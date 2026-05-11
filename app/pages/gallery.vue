@@ -47,14 +47,12 @@ const maxImageHeight = computed(() => {
     return `${Math.floor(usable / rows)}px`;
 });
 
-const fitMode = ref<'cover' | 'contain'>('cover');
-
 const imageStyle = computed<CSSProperties>(() => ({
     maxHeight: maxImageHeight.value,
     marginBottom: '2px',
     breakInside: 'avoid',
-    objectFit: fitMode.value,
-    objectPosition: fitMode.value === 'cover' ? 'top' : 'center',
+    objectFit: store.galleryFitMode,
+    objectPosition: store.galleryFitMode === 'cover' ? 'top' : 'center',
 }));
 
 const lightboxSrc = ref<string | null>(null);
@@ -67,7 +65,7 @@ onMounted(() => {
     if (import.meta.client) {
         const savedFitMode = localStorage.getItem('gallery_fitMode');
         if (savedFitMode === 'cover' || savedFitMode === 'contain') {
-            fitMode.value = savedFitMode;
+            store.setGalleryFitMode(savedFitMode);
         }
 
         const savedBackground = localStorage.getItem('gallery_selectedBackground');
@@ -77,11 +75,17 @@ onMounted(() => {
     }
 });
 
-watch(fitMode, (newValue) => {
+watch(() => store.galleryFitMode, (newValue) => {
     if (import.meta.client) {
         localStorage.setItem('gallery_fitMode', newValue);
     }
 });
+
+function toggleFitMode() {
+    const next = store.galleryFitMode === 'cover' ? 'contain' : 'cover';
+    const password = import.meta.client ? (localStorage.getItem('app_password') ?? '') : '';
+    $fetch('/api/fit-mode', { method: 'POST', body: { fitMode: next, password } }).catch(() => {});
+}
 
 watch(selectedBackground, (newValue) => {
     if (import.meta.client) {
@@ -234,10 +238,10 @@ function clearBackground() {
                 size="xs"
                 color="neutral"
                 variant="solid"
-                :icon="fitMode === 'cover' ? 'i-heroicons-arrows-pointing-out' : 'i-heroicons-arrows-pointing-in'"
+                :icon="store.galleryFitMode === 'cover' ? 'i-heroicons-arrows-pointing-out' : 'i-heroicons-arrows-pointing-in'"
                 class="text-white opacity-60 hover:opacity-100"
                 :ui="{ base: 'bg-gray-900/80 backdrop-blur' }"
-                @click="fitMode = fitMode === 'cover' ? 'contain' : 'cover'"
+                @click="toggleFitMode"
             />
         </div>
 

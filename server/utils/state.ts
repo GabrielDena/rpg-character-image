@@ -1,15 +1,14 @@
 interface AppState {
   selectedFolder: string | null
   selectedImages: string[]
+  galleryFitMode: 'cover' | 'contain'
 }
 
 const state: AppState = {
   selectedFolder: null,
   selectedImages: [],
+  galleryFitMode: 'cover',
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const peers = new Set<any>()
 
 export function getState(): AppState {
   return { ...state }
@@ -24,24 +23,7 @@ export function setSelectedImages(images: string[]) {
   state.selectedImages = images
 }
 
-export function addPeer(peer: unknown) {
-  peers.add(peer)
+export function setGalleryFitMode(mode: 'cover' | 'contain') {
+  state.galleryFitMode = mode
 }
 
-export function removePeer(peer: unknown) {
-  peers.delete(peer)
-}
-
-export function broadcast(message: object) {
-  const data = JSON.stringify(message)
-  for (const peer of peers) {
-    try {
-      peer.send(data)
-    } catch (error: any) {
-      if (error?.code !== 'ECONNRESET') {
-        console.error('[Broadcast Error]', error)
-      }
-      peers.delete(peer)
-    }
-  }
-}

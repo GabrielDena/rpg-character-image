@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const route = useRoute()
-const store = useAppStore()
 
 const tabs = [
   { label: 'Folder', icon: 'i-heroicons-folder', activeIcon: 'i-heroicons-folder-open', to: '/' },
@@ -16,13 +15,6 @@ function isActive(path: string) {
 <template>
   <nav class="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-800 bg-gray-900">
     <div class="relative flex h-16 items-stretch">
-      <!-- WS connection indicator -->
-      <div class="absolute top-2 right-3 flex items-center gap-1">
-        <div
-          class="size-1.5 rounded-full transition-colors duration-500"
-          :class="store.wsConnected ? 'bg-green-500' : 'bg-red-600'"
-        />
-      </div>
       <NuxtLink
         v-for="tab in tabs"
         :key="tab.to"

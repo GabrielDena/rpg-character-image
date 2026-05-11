@@ -6,7 +6,7 @@ export default defineNuxtConfig({
         host: '0.0.0.0',
         port: 3000
     },
-    modules: ['@nuxt/ui', '@nuxt/eslint', '@pinia/nuxt'],
+    modules: ['@nuxt/ui', '@nuxt/eslint', '@pinia/nuxt', '@vueuse/nuxt'],
     css: ['~/assets/css/main.css'],
     runtimeConfig: {
         public: {
@@ -26,15 +26,6 @@ export default defineNuxtConfig({
     nitro: {
         experimental: {
             websocket: true,
-        },
-    },
-    vite: {
-        server: {
-            hmr: {
-                protocol: 'ws',
-                host: '0.0.0.0',
-                port: 24678,
-            },
         },
     },
 });
