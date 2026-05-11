@@ -58,7 +58,6 @@ const imageStyle = computed<CSSProperties>(() => ({
 const lightboxSrc = ref<string | null>(null);
 const showBgModal = ref(false);
 const backgroundImages = ref<string[]>([]);
-const selectedBackground = ref<string | null>(null);
 const loadingBackgrounds = ref(false);
 
 onMounted(() => {
@@ -66,11 +65,6 @@ onMounted(() => {
         const savedFitMode = localStorage.getItem('gallery_fitMode');
         if (savedFitMode === 'cover' || savedFitMode === 'contain') {
             store.setGalleryFitMode(savedFitMode);
-        }
-
-        const savedBackground = localStorage.getItem('gallery_selectedBackground');
-        if (savedBackground) {
-            selectedBackground.value = savedBackground;
         }
     }
 });
@@ -86,16 +80,6 @@ function toggleFitMode() {
     const password = import.meta.client ? (localStorage.getItem('app_password') ?? '') : '';
     $fetch('/api/fit-mode', { method: 'POST', body: { fitMode: next, password } }).catch(() => {});
 }
-
-watch(selectedBackground, (newValue) => {
-    if (import.meta.client) {
-        if (newValue) {
-            localStorage.setItem('gallery_selectedBackground', newValue);
-        } else {
-            localStorage.removeItem('gallery_selectedBackground');
-        }
-    }
-});
 
 function getPublicUrl(path: string) {
     return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
@@ -152,12 +136,12 @@ function openBgModal() {
 }
 
 function selectBackground(path: string) {
-    selectedBackground.value = path;
+    store.setSelectedBackground(path);
     showBgModal.value = false;
 }
 
 function clearBackground() {
-    selectedBackground.value = null;
+    store.setSelectedBackground(null);
 }
 </script>
 
@@ -166,9 +150,9 @@ function clearBackground() {
         ref="container"
         class="relative h-full w-full"
         :style="
-            selectedBackground
+            store.selectedBackground
                 ? {
-                      backgroundImage: `url(${getPublicUrl(selectedBackground)})`,
+                      backgroundImage: `url(${getPublicUrl(store.selectedBackground!)})`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                   }
@@ -225,7 +209,7 @@ function clearBackground() {
                 Select BG
             </UButton>
             <UButton
-                v-if="selectedBackground"
+                v-if="store.selectedBackground"
                 size="xs"
                 color="neutral"
                 variant="solid"
@@ -308,7 +292,7 @@ function clearBackground() {
                             v-for="bgPath in backgroundImages"
                             :key="bgPath"
                             class="group relative aspect-video overflow-hidden rounded-lg border-2 transition-all hover:border-blue-500"
-                            :class="selectedBackground === bgPath ? 'border-blue-500' : 'border-transparent'"
+                            :class="store.selectedBackground === bgPath ? 'border-blue-500' : 'border-transparent'"
                             @click="selectBackground(bgPath)"
                         >
                             <img
@@ -317,7 +301,7 @@ function clearBackground() {
                                 class="h-full w-full object-cover transition-transform group-hover:scale-105"
                             />
                             <div
-                                v-if="selectedBackground === bgPath"
+                                v-if="store.selectedBackground === bgPath"
                                 class="absolute inset-0 flex items-center justify-center bg-blue-500/20"
                             >
                                 <UIcon
