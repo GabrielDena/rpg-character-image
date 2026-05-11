@@ -1,5 +1,5 @@
 import { checkPassword } from '../utils/auth'
-import { setFolder, broadcast } from '../utils/state'
+import { setFolder } from '../utils/state'
 import { saveLastFolder } from '../utils/lastFolder'
 
 export default defineEventHandler(async (event) => {
@@ -9,7 +9,6 @@ export default defineEventHandler(async (event) => {
   if (!body?.path) throw createError({ statusCode: 400, message: 'Path is required' })
 
   setFolder(body.path)
-  broadcast({ type: 'folder-changed', data: { folder: body.path } })
   await saveLastFolder(body.path)
 
   return { folder: body.path }

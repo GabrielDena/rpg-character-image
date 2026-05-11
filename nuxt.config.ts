@@ -23,11 +23,6 @@ export default defineNuxtConfig({
             },
         },
     },
-    nitro: {
-        experimental: {
-            websocket: true,
-        },
-    },
     vite: {
         server: {
             hmr: {
