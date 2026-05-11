@@ -13,6 +13,9 @@ function handleMessage(_ws: WebSocket, event: MessageEvent) {
         case 'images-updated':
             store.setSelectedImages(message.data.selectedImages);
             break;
+        case 'image-uploaded':
+            store.notifyImageUploaded();
+            break;
         // case 'background-updated':
         //     // Handle background update
         //     break;

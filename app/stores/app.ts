@@ -1,6 +1,7 @@
 export const useAppStore = defineStore('app', () => {
     const selectedFolder = ref<string | null>(null);
     const selectedImages = ref<string[]>([]);
+    const imageListVersion = ref(0);
 
     function sendSelection(images: string[]) {
         const password = localStorage.getItem('app_password') ?? '';
@@ -31,6 +32,10 @@ export const useAppStore = defineStore('app', () => {
         selectedFolder.value = folder;
     }
 
+    function notifyImageUploaded() {
+        imageListVersion.value++;
+    }
+
     return {
         selectedFolder,
         selectedImages,
@@ -38,6 +43,8 @@ export const useAppStore = defineStore('app', () => {
         clearSelection,
         setSelectedImages,
         setSelectedFolder,
+        imageListVersion,
+        notifyImageUploaded,
     };
 });
 

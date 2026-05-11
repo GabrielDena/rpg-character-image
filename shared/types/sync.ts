@@ -1,4 +1,4 @@
-export type PayloadTypes = 'state' | 'folder-updated' | 'images-updated';
+export type PayloadTypes = 'state' | 'folder-updated' | 'images-updated' | 'image-uploaded';
 
 interface BasePayload {
     type: PayloadTypes;
@@ -29,4 +29,11 @@ export interface ImagesPayload extends BasePayload {
     };
 }
 
-export type WSPayload = SyncPayload | FolderPayload | ImagesPayload;
+export interface ImageUploadedPayload extends BasePayload {
+    type: 'image-uploaded';
+    data: {
+        folder: string;
+    };
+}
+
+export type WSPayload = SyncPayload | FolderPayload | ImagesPayload | ImageUploadedPayload;
