@@ -23,10 +23,16 @@ export const useAppStore = defineStore('app', () => {
         sendSelection([]);
     }
 
+    function setSelectedImages(images: string[]) {
+        selectedImages.value = images;
+    }
+
     return {
         selectedFolder,
         selectedImages,
         toggleImage,
         clearSelection,
+        setSelectedImages,
     };
 });
+
