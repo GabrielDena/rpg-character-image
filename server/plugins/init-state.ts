@@ -5,7 +5,7 @@ export default defineNitroPlugin(async () => {
     try {
         const saved = await loadCampaignState()
         if (saved) {
-            initState(saved.selectedFolder, saved.selectedImages)
+            initState(saved.selectedFolder, saved.selectedImages, saved.selectedBackground)
             console.log(`[init] Restored state from DB: folder=${saved.selectedFolder}, images=${saved.selectedImages.length}`)
         }
     } catch (err) {

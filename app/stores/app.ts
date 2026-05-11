@@ -1,6 +1,7 @@
 export const useAppStore = defineStore('app', () => {
     const selectedFolder = ref<string | null>(null);
     const selectedImages = ref<string[]>([]);
+    const selectedBackground = ref<string | null>(null);
     const imageListVersion = ref(0);
     const galleryFitMode = ref<'cover' | 'contain'>('cover');
 
@@ -37,6 +38,12 @@ export const useAppStore = defineStore('app', () => {
         imageListVersion.value++;
     }
 
+    function setSelectedBackground(path: string | null) {
+        selectedBackground.value = path;
+        const password = import.meta.client ? (localStorage.getItem('app_password') ?? '') : '';
+        $fetch('/api/background', { method: 'POST', body: { background: path, password } }).catch(() => {});
+    }
+
     function setGalleryFitMode(mode: 'cover' | 'contain') {
         galleryFitMode.value = mode;
     }
@@ -44,10 +51,12 @@ export const useAppStore = defineStore('app', () => {
     return {
         selectedFolder,
         selectedImages,
+        selectedBackground,
         toggleImage,
         clearSelection,
         setSelectedImages,
         setSelectedFolder,
+        setSelectedBackground,
         imageListVersion,
         notifyImageUploaded,
         galleryFitMode,

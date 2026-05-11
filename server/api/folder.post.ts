@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     if (!body?.path) throw createError({ statusCode: 400, message: 'Path is required' });
 
     setFolder(body.path);
-    saveCampaignState(body.path, getState().selectedImages).catch(() => {});
+    saveCampaignState(body.path, getState().selectedImages, null).catch(() => {});
     const folderPayload: FolderPayload = {
         type: 'folder-updated',
         data: {

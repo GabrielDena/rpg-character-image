@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     if (!Array.isArray(body?.images)) throw createError({ statusCode: 400, message: 'images must be an array' });
 
     setSelectedImages(body.images);
-    saveCampaignState(getState().selectedFolder, body.images).catch(() => {});
+    saveCampaignState(getState().selectedFolder, body.images, getState().selectedBackground).catch(() => {});
     const imagesPaylod: ImagesPayload = {
         type: 'images-updated',
         data: {
