@@ -312,8 +312,8 @@ async function handleUpload(event: Event) {
 onMounted(() => {
     isAuthenticated.value = !!localStorage.getItem('app_password');
     if (isAuthenticated.value) {
-        browse();
         fetchLastFolder();
+        browse(store.selectedFolder ?? lastFolder.value ?? '');
     }
 });
 </script>
