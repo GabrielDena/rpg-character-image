@@ -23,12 +23,17 @@ const currentPath = ref('');
 const loadingImages = ref(false);
 const imagesError = ref<string | null>(null);
 const GRID_COLS_KEY = 'select_grid_cols';
+const SEARCH_QUERY_KEY = 'select_search_query';
 const gridCols = ref(import.meta.client ? (Number(localStorage.getItem(GRID_COLS_KEY)) || 4) : 4);
+
+const searchQuery = ref(import.meta.client ? (localStorage.getItem(SEARCH_QUERY_KEY) ?? '') : '');
 
 watch(gridCols, (val) => {
     if (import.meta.client) localStorage.setItem(GRID_COLS_KEY, String(val));
 });
-const searchQuery = ref('');
+watch(searchQuery, (val) => {
+    if (import.meta.client) localStorage.setItem(SEARCH_QUERY_KEY, val);
+});
 const rouletteMode = ref(false);
 
 const selectedSet = computed(() => new Set(store.selectedImages));
