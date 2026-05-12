@@ -22,10 +22,14 @@ const folders = ref<StorageItem[]>([]);
 const currentPath = ref('');
 const loadingImages = ref(false);
 const imagesError = ref<string | null>(null);
-const gridCols = ref(4);
+const GRID_COLS_KEY = 'select_grid_cols';
+const gridCols = ref(import.meta.client ? (Number(localStorage.getItem(GRID_COLS_KEY)) || 4) : 4);
+
+watch(gridCols, (val) => {
+    if (import.meta.client) localStorage.setItem(GRID_COLS_KEY, String(val));
+});
 const searchQuery = ref('');
 const rouletteMode = ref(false);
-const scrollContainer = ref<HTMLElement | null>(null);
 
 const selectedSet = computed(() => new Set(store.selectedImages));
 const selectedCount = computed(() => store.selectedImages.length);
