@@ -1,6 +1,3 @@
-import { setFolder } from '#imports';
-import { saveCampaignState } from '../utils/db';
-
 export default defineEventHandler(async (event) => {
     const body = await readBody<{ path: string; password: string }>(event);
 

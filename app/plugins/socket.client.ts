@@ -1,6 +1,4 @@
-import { useSyncSocket } from "~/composables/useSyncSocket";
-
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin(() => {
     const { open } = useSyncSocket();
     open();
 });

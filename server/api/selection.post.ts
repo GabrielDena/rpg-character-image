@@ -1,5 +1,3 @@
-import { saveCampaignState } from '../utils/db';
-
 export default defineEventHandler(async (event) => {
     const body = await readBody<{ images: string[]; password: string }>(event);
 

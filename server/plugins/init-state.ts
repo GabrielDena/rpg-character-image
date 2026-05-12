@@ -1,6 +1,3 @@
-import { loadCampaignState } from '../utils/db'
-import { initState } from '../utils/state'
-
 export default defineNitroPlugin(async () => {
     try {
         const saved = await loadCampaignState()

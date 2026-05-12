@@ -1,4 +1,4 @@
-export default defineNitroPlugin((nitroApp) => {
+export default defineNitroPlugin(() => {
     process.on('unhandledRejection', (reason: any, promise) => {
         if (reason && reason.code === 'ECONNRESET') {
             console.warn('⚠️ [Node TCP] Ignored an abrupt client disconnect (ECONNRESET).');
