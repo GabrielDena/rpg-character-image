@@ -69,11 +69,14 @@ onMounted(() => {
     }
 });
 
-watch(() => store.galleryFitMode, (newValue) => {
-    if (import.meta.client) {
-        localStorage.setItem('gallery_fitMode', newValue);
+watch(
+    () => store.galleryFitMode,
+    (newValue) => {
+        if (import.meta.client) {
+            localStorage.setItem('gallery_fitMode', newValue);
+        }
     }
-});
+);
 
 function toggleFitMode() {
     const next = store.galleryFitMode === 'cover' ? 'contain' : 'cover';
@@ -193,10 +196,7 @@ function clearBackground() {
         </div>
 
         <!-- Action buttons -->
-        <div
-            v-if="count > 0"
-            class="absolute top-2 right-2 flex gap-2"
-        >
+        <div class="absolute top-2 right-2 flex gap-2">
             <UButton
                 size="xs"
                 color="neutral"
@@ -219,10 +219,15 @@ function clearBackground() {
                 @click="clearBackground"
             />
             <UButton
+                v-if="count > 0"
                 size="xs"
                 color="neutral"
                 variant="solid"
-                :icon="store.galleryFitMode === 'cover' ? 'i-heroicons-arrows-pointing-out' : 'i-heroicons-arrows-pointing-in'"
+                :icon="
+                    store.galleryFitMode === 'cover'
+                        ? 'i-heroicons-arrows-pointing-out'
+                        : 'i-heroicons-arrows-pointing-in'
+                "
                 class="text-white opacity-60 hover:opacity-100"
                 :ui="{ base: 'bg-gray-900/80 backdrop-blur' }"
                 @click="toggleFitMode"
