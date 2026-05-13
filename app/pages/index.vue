@@ -55,8 +55,8 @@ const creatingFolder = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 const lastFolder = ref<string | null>(null);
 const loadingLastFolder = ref(false);
-const removeBgOnUpload = ref(true);
-const saveBoth = ref(true);
+const removeBgOnUpload = ref(false);
+const saveBoth = ref(false);
 const processingImages = ref(false);
 const uploadProgress = ref({ current: 0, total: 0 });
 
