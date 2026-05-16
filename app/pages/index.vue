@@ -93,7 +93,7 @@ async function browse(path = '') {
             method: 'POST',
             body: { password: getPassword(), path },
         });
-        items.value = data.filter((item) => item.name !== '.keep');
+        items.value = data.filter((item) => item.name !== '.keep' && item.name !== 'no-bg');
         currentPath.value = path;
     } catch (e: unknown) {
         fetchError.value = e instanceof Error ? e.message : 'Could not list bucket';
