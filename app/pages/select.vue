@@ -323,7 +323,7 @@ watch(
             </div>
 
             <UEmpty
-                v-else-if="!images.length"
+                v-else-if="!images.length && !folders.length"
                 icon="i-heroicons-photo"
                 title="No images found"
                 description="This folder contains no supported image files"
@@ -331,7 +331,7 @@ watch(
             />
 
             <UEmpty
-                v-else-if="!filteredImages.length"
+                v-else-if="!filteredImages.length && !folders.length"
                 icon="i-heroicons-magnifying-glass"
                 title="No matches"
                 description="No images match your search query"
