@@ -108,12 +108,10 @@ async function fetchBackgroundImages() {
             method: 'POST',
             body: { password, path: bgPath },
         }).catch((err) => {
-            console.error('Fetch error:', err);
             return { items: [] };
         });
 
         const items = response?.items || [];
-        console.log('Background images data:', items);
 
         const imageExts = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp']);
         backgroundImages.value = items
@@ -124,9 +122,7 @@ async function fetchBackgroundImages() {
             })
             .map((file) => `${bgPath}/${file.name}`);
 
-        console.log('Filtered background images:', backgroundImages.value);
     } catch (error) {
-        console.error('Error fetching backgrounds:', error);
         backgroundImages.value = [];
     } finally {
         loadingBackgrounds.value = false;

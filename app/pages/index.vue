@@ -56,7 +56,6 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const lastFolder = ref<string | null>(null);
 const loadingLastFolder = ref(false);
 const removeBgOnUpload = ref(false);
-const saveBoth = ref(false);
 const processingImages = ref(false);
 const uploadProgress = ref({ current: 0, total: 0 });
 
@@ -93,7 +92,7 @@ async function browse(path = '') {
             method: 'POST',
             body: { password: getPassword(), path },
         });
-        items.value = data.filter((item) => item.name !== '.keep' && item.name !== 'no-bg');
+        items.value = data.filter((item) => item.name !== '.keep');
         currentPath.value = path;
     } catch (e: unknown) {
         fetchError.value = e instanceof Error ? e.message : 'Could not list bucket';
@@ -142,26 +141,26 @@ function fetchLastFolder() {
 function validateFolderName(name: string): string | null {
     if (!name) return 'Folder name is required';
     if (name.length > 255) return 'Folder name is too long (max 255 characters)';
-    
+
     const invalidChars = /[<>:"\/\\|?*\x00-\x1F]/;
     if (invalidChars.test(name)) {
         return 'Folder name contains invalid characters';
     }
-    
+
     if (name === '.' || name === '..') {
         return 'Invalid folder name';
     }
-    
+
     if (name.startsWith('.')) {
         return 'Folder name cannot start with a dot';
     }
-    
+
     return null;
 }
 
 async function createFolder() {
     const name = newFolderName.value.trim();
-    
+
     const validationError = validateFolderName(name);
     if (validationError) {
         toast.add({
@@ -172,7 +171,7 @@ async function createFolder() {
         });
         return;
     }
-    
+
     creatingFolder.value = true;
     try {
         const placeholderPath = currentPath.value ? `${currentPath.value}/${name}/.keep` : `${name}/.keep`;
@@ -203,58 +202,39 @@ async function handleUpload(event: Event) {
     const password = getPassword();
     uploading.value = true;
     const failed: string[] = [];
-    
+
     try {
         let filesToUpload: { file: File | Blob; path: string }[] = [];
-        
+
         if (removeBgOnUpload.value) {
             processingImages.value = true;
             uploadProgress.value = { current: 0, total: files.length };
-            
-            const noBgFolder = currentPath.value ? `${currentPath.value}/no-bg` : 'no-bg';
-            
-            try {
-                await $fetch('/api/storage/folder', {
-                    method: 'POST',
-                    body: { password, path: `${noBgFolder}/.keep` },
-                });
-            } catch (error) {
-                console.log('no-bg folder might already exist or creation failed:', error);
-            }
-            
+
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 if (!file) continue;
-                
-                if (saveBoth.value) {
-                    const originalPath = currentPath.value ? `${currentPath.value}/${file.name}` : file.name;
-                    filesToUpload.push({ file, path: originalPath });
-                }
-                
+
                 try {
                     const blob = await removeBackground(file);
-                    const fileName = file.name.replace(/(\.[^.]+)$/, '.png');
-                    const path = `${noBgFolder}/${fileName}`;
+                    const fileName = file.name.replace(/(\.[^.]+)$/, '_no_bg.png');
+                    const path = currentPath.value ? `${currentPath.value}/${fileName}` : fileName;
                     filesToUpload.push({ file: blob, path });
                 } catch (error) {
-                    console.error(`Failed to remove background from ${file.name}:`, error);
-                    if (!saveBoth.value) {
-                        const path = currentPath.value ? `${currentPath.value}/${file.name}` : file.name;
-                        filesToUpload.push({ file, path });
-                    }
+                    const path = currentPath.value ? `${currentPath.value}/${file.name}` : file.name;
+                    filesToUpload.push({ file, path });
                 }
                 uploadProgress.value.current = i + 1;
             }
             processingImages.value = false;
         } else {
-            filesToUpload = files.map(f => {
+            filesToUpload = files.map((f) => {
                 const path = currentPath.value ? `${currentPath.value}/${f.name}` : f.name;
                 return { file: f, path };
             });
         }
-        
+
         const partialWarnings: string[] = [];
-        
+
         await Promise.all(
             filesToUpload.map(async ({ file, path }) => {
                 try {
@@ -262,7 +242,9 @@ async function handleUpload(event: Event) {
                         method: 'POST',
                         body: { password, path },
                     });
-                    const { error } = await supabase.storage.from(BUCKET).uploadToSignedUrl(signed.path, signed.token, file);
+                    const { error } = await supabase.storage
+                        .from(BUCKET)
+                        .uploadToSignedUrl(signed.path, signed.token, file);
                     if (error) {
                         const fileName = path.split('/').pop() || path;
                         if (error.message?.includes('already exists') || error.message?.includes('duplicate')) {
@@ -277,9 +259,9 @@ async function handleUpload(event: Event) {
                 }
             })
         );
-        
+
         await browse(currentPath.value);
-        
+
         if (failed.length) {
             toast.add({
                 title: `${failed.length} file(s) failed to upload`,
@@ -523,7 +505,7 @@ onMounted(() => {
                 :current-path="currentPath"
                 @refresh="browse(currentPath)"
             />
-            
+
             <!-- Upload processing indicator -->
             <div
                 v-if="processingImages"
@@ -539,9 +521,11 @@ onMounted(() => {
                     </span>
                 </div>
             </div>
-            
+
             <div class="flex gap-2">
-                <label class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2.5 transition-colors hover:bg-gray-800">
+                <label
+                    class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2.5 transition-colors hover:bg-gray-800"
+                >
                     <input
                         v-model="removeBgOnUpload"
                         type="checkbox"
@@ -553,24 +537,8 @@ onMounted(() => {
                     />
                     <span class="flex-1 text-sm text-gray-300">Remove BG</span>
                 </label>
-                
-                <label
-                    v-if="removeBgOnUpload"
-                    class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2.5 transition-colors hover:bg-gray-800"
-                >
-                    <input
-                        v-model="saveBoth"
-                        type="checkbox"
-                        class="size-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
-                    />
-                    <UIcon
-                        name="i-heroicons-document-duplicate"
-                        class="size-4 text-gray-400"
-                    />
-                    <span class="flex-1 text-sm text-gray-300">Save Both</span>
-                </label>
             </div>
-            
+
             <div class="flex gap-2">
                 <UButton
                     class="flex-1"
@@ -610,7 +578,7 @@ onMounted(() => {
             >
                 {{ isCurrentSaved ? 'Current folder selected' : 'Select this folder' }}
             </UButton>
-            
+
             <div
                 v-if="store.selectedFolder || lastFolder"
                 class="flex items-center justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2"
@@ -636,3 +604,4 @@ onMounted(() => {
         </div>
     </div>
 </template>
+
