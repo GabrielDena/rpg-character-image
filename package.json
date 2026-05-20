@@ -8,7 +8,11 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "start": "nuxt build && nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@imgly/background-removal": "^1.7.0",
@@ -18,13 +22,18 @@
     "@pinia/nuxt": "0.11.3",
     "@supabase/supabase-js": "^2.105.1",
     "@vueuse/nuxt": "14.3.0",
+    "drizzle-orm": "^0.45.2",
     "nuxt": "^4.4.2",
     "pinia": "^3.0.4",
+    "postgres": "^3.4.9",
     "tailwindcss": "^4.2.4",
     "vue": "^3.5.32",
-    "vue-router": "^5.0.4"
+    "vue-router": "^5.0.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/node": "^25.9.1",
+    "drizzle-kit": "^0.31.10",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "typescript": "^6.0.3"
