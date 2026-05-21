@@ -13,6 +13,14 @@ export interface Adventure {
     createdAt: Date;
 }
 
+export interface Background {
+    id: string;
+    adventureId: string;
+    name: string;
+    storagePath: string;
+    createdAt: Date;
+}
+
 export interface Character {
     id: string;
     adventureId: string;

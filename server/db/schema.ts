@@ -17,6 +17,16 @@ export const adventures = pgTable('adventures', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const backgrounds = pgTable('backgrounds', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    adventureId: uuid('adventure_id')
+        .notNull()
+        .references(() => adventures.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    storagePath: text('storage_path').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const characters = pgTable('characters', {
     id: uuid('id').defaultRandom().primaryKey(),
     adventureId: uuid('adventure_id')
@@ -52,6 +62,9 @@ export type NewSystem = typeof systems.$inferInsert;
 
 export type Adventure = typeof adventures.$inferSelect;
 export type NewAdventure = typeof adventures.$inferInsert;
+
+export type Background = typeof backgrounds.$inferSelect;
+export type NewBackground = typeof backgrounds.$inferInsert;
 
 export type Character = typeof characters.$inferSelect;
 export type NewCharacter = typeof characters.$inferInsert;
