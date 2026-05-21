@@ -25,6 +25,10 @@ export interface Character {
     id: string;
     adventureId: string;
     name: string;
+    type: string;
+    playbook: string | null;
+    description: string | null;
+    avatarPath: string | null;
     createdAt: Date;
 }
 
@@ -34,5 +38,6 @@ export interface CharacterImage {
     storagePath: string;
     isProfile: boolean;
     createdAt: Date;
+    url?: string | null;
 }
 

@@ -15,6 +15,13 @@
       "when": 1779395409783,
       "tag": "0001_gorgeous_caretaker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779404513061,
+      "tag": "0002_tiny_lila_cheney",
+      "breakpoints": true
     }
   ]
 }

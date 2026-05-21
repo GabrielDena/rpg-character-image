@@ -409,6 +409,7 @@ onMounted(fetchData);
     <CharacterCreateModal
         v-model:open="showCharacterModal"
         :adventure-id="adventureId"
+        :system-id="systemId"
         @created="fetchCharacters"
     />
 </template>

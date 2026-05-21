@@ -33,6 +33,10 @@ export const characters = pgTable('characters', {
         .notNull()
         .references(() => adventures.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 255 }).notNull(),
+    type: varchar('type', { length: 3 }).notNull().default('npc'),
+    playbook: varchar('playbook', { length: 255 }),
+    description: text('description'),
+    avatarPath: text('avatar_path'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
