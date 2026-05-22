@@ -16,15 +16,5 @@ export default defineEventHandler(async (event) => {
 
     if (rows.length === 0) return { images: [] };
 
-    const { data } = await supabaseAdmin()
-        .storage.from(STORAGE_BUCKET)
-        .createSignedUrls(rows.map((r) => r.storagePath), 3600);
-
-    const urlMap = new Map<string, string>();
-    data?.forEach((item, i) => {
-        const row = rows[i];
-        if (row && item.signedUrl) urlMap.set(row.id, item.signedUrl);
-    });
-
-    return { images: rows.map((r) => ({ ...r, url: urlMap.get(r.id) ?? null })) };
+    return { images: rows.map((r) => ({ ...r, url: `/api/images/${r.storagePath}` })) };
 });
