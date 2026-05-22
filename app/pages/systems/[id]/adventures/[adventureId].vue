@@ -23,7 +23,7 @@ const charactersList = ref<CharacterWithUrl[]>([]);
 const loading = ref(false);
 const fetchError = ref<string | null>(null);
 
-const activeTab = ref<'backgrounds' | 'characters'>('backgrounds');
+const activeTab = ref<'backgrounds' | 'characters'>('characters');
 const showCharacterModal = ref(false);
 const editingCharacter = ref<CharacterWithUrl | null>(null);
 
@@ -56,7 +56,9 @@ async function fetchData() {
             $fetch<{ backgrounds: BackgroundWithUrl[] }>('/api/backgrounds', {
                 query: { adventureId },
             }),
-            $fetch<{ characters: CharacterWithUrl[] }>('/api/characters', { query: { adventureId } }),
+            $fetch<{ characters: CharacterWithUrl[] }>('/api/characters', {
+                query: { adventureId },
+            }),
         ]);
         adventure.value = adventureData.adventure;
         backgroundsList.value = backgroundsData.backgrounds;
@@ -98,7 +100,11 @@ async function handleFileSelect(event: Event) {
 
         await $fetch('/api/backgrounds', { method: 'POST', body: formData });
         await fetchBackgrounds();
-        toast.add({ title: 'Background uploaded', color: 'success', icon: 'i-heroicons-check-circle' });
+        toast.add({
+            title: 'Background uploaded',
+            color: 'success',
+            icon: 'i-heroicons-check-circle',
+        });
     } catch (e: unknown) {
         toast.add({
             title: 'Upload failed',
@@ -158,8 +164,8 @@ async function deleteBackground(bg: BackgroundWithUrl) {
 }
 
 const tabs = [
-    { key: 'backgrounds' as const, label: 'Backgrounds', icon: 'i-heroicons-photo' },
     { key: 'characters' as const, label: 'Characters', icon: 'i-heroicons-user-group' },
+    { key: 'backgrounds' as const, label: 'Backgrounds', icon: 'i-heroicons-photo' },
 ];
 
 onMounted(fetchData);
@@ -189,7 +195,7 @@ onMounted(fetchData);
         </div>
 
         <!-- Tabs -->
-        <div class="shrink-0 flex gap-1 border-b border-gray-800 bg-gray-900 px-3">
+        <div class="flex shrink-0 gap-1 border-b border-gray-800 bg-gray-900 px-3">
             <button
                 v-for="tab in tabs"
                 :key="tab.key"
@@ -232,7 +238,13 @@ onMounted(fetchData);
                     variant="soft"
                     title="Could not load data"
                     :description="fetchError"
-                    :actions="[{ label: 'Retry', leadingIcon: 'i-heroicons-arrow-path', onClick: fetchData }]"
+                    :actions="[
+                        {
+                            label: 'Retry',
+                            leadingIcon: 'i-heroicons-arrow-path',
+                            onClick: fetchData,
+                        },
+                    ]"
                 />
             </div>
 
@@ -241,7 +253,9 @@ onMounted(fetchData);
                 <div v-if="activeTab === 'backgrounds'">
                     <div class="flex items-center justify-between p-4 pb-2">
                         <p class="text-xs text-gray-500">
-                            {{ backgroundsList.length }} background{{ backgroundsList.length !== 1 ? 's' : '' }}
+                            {{ backgroundsList.length }} background{{
+                                backgroundsList.length !== 1 ? 's' : ''
+                            }}
                         </p>
                         <UButton
                             size="sm"
@@ -300,7 +314,7 @@ onMounted(fetchData);
                                 <input
                                     v-if="editingId === bg.id"
                                     v-model="editingName"
-                                    class="w-full rounded-md bg-gray-700 px-2 py-1 text-sm text-gray-100 outline-none ring-1 ring-violet-500"
+                                    class="w-full rounded-md bg-gray-700 px-2 py-1 text-sm text-gray-100 ring-1 ring-violet-500 outline-none"
                                     @keyup.enter="saveEdit(bg)"
                                     @keyup.escape="cancelEdit"
                                     @blur="cancelEdit"
@@ -357,7 +371,9 @@ onMounted(fetchData);
                 <div v-else-if="activeTab === 'characters'">
                     <div class="flex items-center justify-between p-4 pb-2">
                         <p class="text-xs text-gray-500">
-                            {{ charactersList.length }} character{{ charactersList.length !== 1 ? 's' : '' }}
+                            {{ charactersList.length }} character{{
+                                charactersList.length !== 1 ? 's' : ''
+                            }}
                         </p>
                         <UButton
                             size="sm"
@@ -402,7 +418,9 @@ onMounted(fetchData);
                                 class="flex w-full items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-gray-800 active:bg-gray-700"
                                 @click="openEditModal(character)"
                             >
-                                <div class="size-8 shrink-0 overflow-hidden rounded-full bg-gray-800">
+                                <div
+                                    class="size-8 shrink-0 overflow-hidden rounded-full bg-gray-800"
+                                >
                                     <img
                                         v-if="character.avatarUrl"
                                         :src="character.avatarUrl"
@@ -425,7 +443,9 @@ onMounted(fetchData);
                                     </p>
                                     <p class="text-xs text-gray-500">
                                         {{ character.type.toUpperCase() }}
-                                        <span v-if="character.playbook"> · {{ character.playbook }}</span>
+                                        <span v-if="character.playbook">
+                                            · {{ character.playbook }}</span
+                                        >
                                     </p>
                                 </div>
                                 <UIcon
@@ -449,3 +469,4 @@ onMounted(fetchData);
         @updated="fetchCharacters"
     />
 </template>
+
