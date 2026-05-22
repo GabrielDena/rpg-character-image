@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Adventure, Character } from '#shared/types/models';
+import type { Adventure } from '#shared/types/models';
+import type { CharacterWithUrl } from '~/components/CharacterCreateModal.vue';
 
 interface BackgroundWithUrl {
     id: string;
@@ -18,12 +19,23 @@ const toast = useToast();
 
 const adventure = ref<Adventure | null>(null);
 const backgroundsList = ref<BackgroundWithUrl[]>([]);
-const charactersList = ref<Character[]>([]);
+const charactersList = ref<CharacterWithUrl[]>([]);
 const loading = ref(false);
 const fetchError = ref<string | null>(null);
 
 const activeTab = ref<'backgrounds' | 'characters'>('backgrounds');
 const showCharacterModal = ref(false);
+const editingCharacter = ref<CharacterWithUrl | null>(null);
+
+function openCreateModal() {
+    editingCharacter.value = null;
+    showCharacterModal.value = true;
+}
+
+function openEditModal(character: CharacterWithUrl) {
+    editingCharacter.value = character;
+    showCharacterModal.value = true;
+}
 
 const uploading = ref(false);
 const fileInputRef = ref<HTMLInputElement>();
@@ -44,7 +56,7 @@ async function fetchData() {
             $fetch<{ backgrounds: BackgroundWithUrl[] }>('/api/backgrounds', {
                 query: { adventureId },
             }),
-            $fetch<{ characters: Character[] }>('/api/characters', { query: { adventureId } }),
+            $fetch<{ characters: CharacterWithUrl[] }>('/api/characters', { query: { adventureId } }),
         ]);
         adventure.value = adventureData.adventure;
         backgroundsList.value = backgroundsData.backgrounds;
@@ -64,7 +76,7 @@ async function fetchBackgrounds() {
 }
 
 async function fetchCharacters() {
-    const { characters } = await $fetch<{ characters: Character[] }>('/api/characters', {
+    const { characters } = await $fetch<{ characters: CharacterWithUrl[] }>('/api/characters', {
         query: { adventureId },
     });
     charactersList.value = characters;
@@ -350,7 +362,7 @@ onMounted(fetchData);
                         <UButton
                             size="sm"
                             leading-icon="i-heroicons-plus"
-                            @click="showCharacterModal = true"
+                            @click="openCreateModal"
                         >
                             New Character
                         </UButton>
@@ -372,7 +384,7 @@ onMounted(fetchData);
                         </div>
                         <UButton
                             leading-icon="i-heroicons-plus"
-                            @click="showCharacterModal = true"
+                            @click="openCreateModal"
                         >
                             New Character
                         </UButton>
@@ -386,19 +398,41 @@ onMounted(fetchData);
                             v-for="character in charactersList"
                             :key="character.id"
                         >
-                            <div
-                                class="flex w-full items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-gray-800"
+                            <button
+                                class="flex w-full items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-gray-800 active:bg-gray-700"
+                                @click="openEditModal(character)"
                             >
-                                <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-gray-800">
-                                    <UIcon
-                                        name="i-heroicons-user"
-                                        class="size-4 text-gray-500"
+                                <div class="size-8 shrink-0 overflow-hidden rounded-full bg-gray-800">
+                                    <img
+                                        v-if="character.avatarUrl"
+                                        :src="character.avatarUrl"
+                                        :alt="character.name"
+                                        class="size-full object-cover"
                                     />
+                                    <div
+                                        v-else
+                                        class="flex size-full items-center justify-center"
+                                    >
+                                        <UIcon
+                                            name="i-heroicons-user"
+                                            class="size-4 text-gray-500"
+                                        />
+                                    </div>
                                 </div>
-                                <p class="min-w-0 flex-1 truncate text-sm font-medium text-gray-200">
-                                    {{ character.name }}
-                                </p>
-                            </div>
+                                <div class="min-w-0 flex-1 text-left">
+                                    <p class="truncate text-sm font-medium text-gray-200">
+                                        {{ character.name }}
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        {{ character.type.toUpperCase() }}
+                                        <span v-if="character.playbook"> · {{ character.playbook }}</span>
+                                    </p>
+                                </div>
+                                <UIcon
+                                    name="i-heroicons-pencil"
+                                    class="size-4 shrink-0 text-gray-600"
+                                />
+                            </button>
                         </li>
                     </ul>
                 </div>
@@ -410,6 +444,8 @@ onMounted(fetchData);
         v-model:open="showCharacterModal"
         :adventure-id="adventureId"
         :system-id="systemId"
+        :character="editingCharacter"
         @created="fetchCharacters"
+        @updated="fetchCharacters"
     />
 </template>
