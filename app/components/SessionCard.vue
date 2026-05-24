@@ -5,7 +5,7 @@ defineProps<{
 </script>
 
 <template>
-    <div class="flex h-full flex-col rounded-xl border border-gray-800 bg-gray-900">
+    <div class="flex h-full flex-col overflow-hidden rounded-xl border border-gray-800 bg-gray-900">
         <div
             v-if="title"
             class="flex h-10 shrink-0 items-center justify-between border-b border-gray-800 px-3"

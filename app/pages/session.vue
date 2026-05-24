@@ -234,6 +234,7 @@ onMounted(async () => {
                 />
                 <SessionScenePanel
                     :adventure-id="activeAdventure.id"
+                    :system-id="activeSystem!.id"
                     :active-characters="activeCharacters"
                     :active-ids="activeCharacterIds"
                     :loading="loadingCharacters"

@@ -3,6 +3,7 @@ import type { CharacterWithUrl } from '~/components/CharacterCreateModal.vue';
 
 const props = defineProps<{
     adventureId: string;
+    systemId: string;
     activeCharacters: CharacterWithUrl[];
     activeIds: string[];
     loading: boolean;
@@ -14,6 +15,13 @@ const emit = defineEmits<{
 }>();
 
 const showNpcModal = ref(false);
+const showCharacterModal = ref(false);
+const editingCharacter = ref<CharacterWithUrl | null>(null);
+
+function toggleEditCharacter(character: CharacterWithUrl) {
+    showCharacterModal.value = true;
+    editingCharacter.value = character;
+}
 </script>
 
 <template>
@@ -81,7 +89,10 @@ const showNpcModal = ref(false);
                             />
                         </button>
                     </template>
-                    <template class="flex flex-col items-center justify-center gap-2 p-2">
+                    <button
+                        class="flex w-full flex-col items-center justify-center gap-2 p-2 hover:bg-gray-800"
+                        @click="toggleEditCharacter(character)"
+                    >
                         <div class="size-7 shrink-0 overflow-hidden rounded-full bg-gray-800">
                             <img
                                 v-if="character.avatarUrl"
@@ -109,7 +120,7 @@ const showNpcModal = ref(false);
                         >
                             {{ character.type }}
                         </span>
-                    </template>
+                    </button>
                 </SessionCard>
             </li>
         </ul>
@@ -118,6 +129,12 @@ const showNpcModal = ref(false);
             :adventure-id="adventureId"
             :active-ids="activeIds"
             @confirm="emit('update', $event)"
+        />
+        <CharacterCreateModal
+            v-model:open="showCharacterModal"
+            :adventure-id="adventureId"
+            :system-id="systemId"
+            :character="editingCharacter"
         />
     </SessionCard>
 </template>
