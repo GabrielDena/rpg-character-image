@@ -113,13 +113,12 @@ const showNpcModal = ref(false);
                 </SessionCard>
             </li>
         </ul>
+        <NpcPickerModal
+            v-model:open="showNpcModal"
+            :adventure-id="adventureId"
+            :active-ids="activeIds"
+            @confirm="emit('update', $event)"
+        />
     </SessionCard>
-
-    <NpcPickerModal
-        v-model:open="showNpcModal"
-        :adventure-id="adventureId"
-        :active-ids="activeIds"
-        @confirm="emit('update', $event)"
-    />
 </template>
 

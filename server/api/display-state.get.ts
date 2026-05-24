@@ -42,7 +42,16 @@ export default defineEventHandler(async () => {
         : [];
 
     const selectedBackground = state.selectedBackgroundId
-        ? await db.select().from(backgrounds).where(eq(backgrounds.id, state.selectedBackgroundId))
+        ? (
+              await db
+                  .select()
+                  .from(backgrounds)
+                  .where(eq(backgrounds.id, state.selectedBackgroundId))
+                  .limit(1)
+          ).map((bg) => ({
+              ...bg,
+              url: `/api/images/${bg.storagePath}`,
+          }))[0]
         : null;
 
     return {

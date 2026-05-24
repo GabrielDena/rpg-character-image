@@ -8,6 +8,7 @@ function getPassword() {
 }
 
 const toast = useToast();
+const loadingState = ref(false);
 
 // ── Active campaign ────────────────────────────────────────────────────────────
 const activeAdventureId = ref<string | null>(null);
@@ -138,13 +139,14 @@ async function fetchBackgrounds(adventureId: string) {
     }
 }
 
-async function onBackgroundSelected(backgroundId: string) {
+async function onBackgroundSelected(backgroundId: string | null) {
     savingBackground.value = true;
     try {
         await $fetch('/api/display-state', {
             method: 'PATCH',
             body: { selectedBackgroundId: backgroundId, password: getPassword() },
         });
+        selectedBackground.value = allBackgrounds.value.find((c) => c.id === backgroundId) ?? null;
     } catch (e: unknown) {
         toast.add({
             title: 'Failed to update scene',
@@ -158,6 +160,7 @@ async function onBackgroundSelected(backgroundId: string) {
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 onMounted(async () => {
+    loadingState.value = true;
     const state = await $fetch<{
         activeAdventureId: string | null;
         adventure: Adventure | null;
@@ -168,70 +171,78 @@ onMounted(async () => {
         selectedBackground: BackgroundWithUrl | null;
     }>('/api/display-state');
 
-    if (state.activeAdventureId && state.adventure && state.system) {
-        activeAdventureId.value = state.activeAdventureId;
-        activeAdventure.value = state.adventure;
-        activeSystem.value = state.system;
-        activeCharacterIds.value = state.activeCharacterIds;
-        await fetchCharacters(state.activeAdventureId);
-        activeCharacters.value = allCharacters.value.filter((c) =>
-            state.activeCharacterIds.includes(c.id)
-        );
-        await fetchBackgrounds(state.activeAdventureId);
-        selectedBackground.value = state.selectedBackground;
+    try {
+        if (state.activeAdventureId && state.adventure && state.system) {
+            activeAdventureId.value = state.activeAdventureId;
+            activeAdventure.value = state.adventure;
+            activeSystem.value = state.system;
+            activeCharacterIds.value = state.activeCharacterIds;
+            await fetchCharacters(state.activeAdventureId);
+            activeCharacters.value = allCharacters.value.filter((c) =>
+                state.activeCharacterIds.includes(c.id)
+            );
+            await fetchBackgrounds(state.activeAdventureId);
+            selectedBackground.value = state.selectedBackground;
+        }
+    } catch {
+    } finally {
+        loadingState.value = false;
     }
 });
 </script>
 
 <template>
     <div class="flex h-full flex-col">
-        <!-- Header -->
-        <div class="shrink-0 border-b border-gray-800 bg-gray-900 px-4 py-3">
-            <h1 class="text-base font-semibold text-gray-100">Session</h1>
-        </div>
+        <USkeleton v-if="loadingState" />
+        <template v-else>
+            <!-- Header -->
+            <div class="shrink-0 border-b border-gray-800 bg-gray-900 px-4 py-3">
+                <h1 class="text-base font-semibold text-gray-100">Session</h1>
+            </div>
 
-        <div class="shrink-0 px-4 pt-4">
-            <SessionCampaignSelector
-                :active-adventure-id="activeAdventureId"
-                :active-adventure="activeAdventure"
-                :active-system="activeSystem"
-                :loading="settingAdventure"
-                @select="onAdventureSelected"
-                @clear="onAdventureCleared"
-            />
-        </div>
+            <div class="shrink-0 px-4 pt-4">
+                <SessionCampaignSelector
+                    :active-adventure-id="activeAdventureId"
+                    :active-adventure="activeAdventure"
+                    :active-system="activeSystem"
+                    :loading="settingAdventure"
+                    @select="onAdventureSelected"
+                    @clear="onAdventureCleared"
+                />
+            </div>
 
-        <div class="shrink-0 px-4 pt-4">
-            <SessionBackgroundSelector
-                :backgrounds="allBackgrounds"
-                :selected-background="selectedBackground"
-                :loading="loadingBackgrounds"
-                :saving-background="savingBackground"
-                @select="onBackgroundSelected"
-            />
-        </div>
+            <div class="shrink-0 px-4 pt-4">
+                <SessionBackgroundSelector
+                    :backgrounds="allBackgrounds"
+                    :selected-background="selectedBackground"
+                    :loading="loadingBackgrounds"
+                    :saving-background="savingBackground"
+                    @select="onBackgroundSelected"
+                />
+            </div>
 
-        <div
-            v-if="activeAdventure"
-            class="flex min-h-0 flex-1 gap-3 p-4"
-        >
-            <SessionPlayerList
-                :characters="pcCharacters"
-                :active-ids="activeCharacterIds"
-                :loading="loadingCharacters"
-                class="w-40 shrink-0"
-                @toggle="onPcToggled"
-            />
-            <SessionScenePanel
-                :adventure-id="activeAdventure.id"
-                :active-characters="activeCharacters"
-                :active-ids="activeCharacterIds"
-                :loading="loadingCharacters"
-                :saving="savingScene"
-                class="min-w-0 flex-1"
-                @update="onSceneUpdated"
-            />
-        </div>
+            <div
+                v-if="activeAdventure"
+                class="flex min-h-0 flex-1 gap-3 p-4"
+            >
+                <SessionPlayerList
+                    :characters="pcCharacters"
+                    :active-ids="activeCharacterIds"
+                    :loading="loadingCharacters"
+                    class="w-40 shrink-0"
+                    @toggle="onPcToggled"
+                />
+                <SessionScenePanel
+                    :adventure-id="activeAdventure.id"
+                    :active-characters="activeCharacters"
+                    :active-ids="activeCharacterIds"
+                    :loading="loadingCharacters"
+                    :saving="savingScene"
+                    class="min-w-0 flex-1"
+                    @update="onSceneUpdated"
+                />
+            </div>
+        </template>
     </div>
 </template>
 

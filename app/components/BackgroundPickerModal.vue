@@ -46,7 +46,7 @@ function confirm(id: string) {
             <div class="space-y-3">
                 <UInput
                     v-model="search"
-                    placeholder="Search NPCs…"
+                    placeholder="Search Backgrounds…"
                     leading-icon="i-heroicons-magnifying-glass"
                     autofocus
                 />
