@@ -3,6 +3,7 @@ const route = useRoute()
 
 const tabs = [
   { label: 'Systems', icon: 'i-heroicons-book-open', activeIcon: 'i-heroicons-book-open', to: '/' },
+  { label: 'Session', icon: 'i-heroicons-play', activeIcon: 'i-heroicons-play-solid', to: '/session' },
   { label: 'Gallery', icon: 'i-heroicons-squares-2x2', activeIcon: 'i-heroicons-squares-2x2', to: '/gallery' },
 ]
 

@@ -56,7 +56,7 @@ export const displayState = pgTable('display_state', {
         onDelete: 'set null',
     }),
     activeCharacterIds: uuid('active_character_ids').array().default([]).notNull(),
-    selectedBackground: text('selected_background'),
+    selectedBackgroundId: uuid('selected_background_id').references(() => backgrounds.id),
     galleryFitMode: varchar('gallery_fit_mode', { length: 10 }).default('cover').notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
