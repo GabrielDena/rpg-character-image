@@ -1,4 +1,4 @@
-export type PayloadTypes = 'state' | 'folder-updated' | 'images-updated' | 'image-uploaded' | 'fit-mode-updated' | 'background-updated';
+export type PayloadTypes = 'state' | 'folder-updated' | 'images-updated' | 'image-uploaded' | 'fit-mode-updated' | 'background-updated' | 'adventure-updated';
 
 interface BasePayload {
     type: PayloadTypes;
@@ -52,4 +52,11 @@ export interface BackgroundPayload extends BasePayload {
     };
 }
 
-export type WSPayload = SyncPayload | FolderPayload | ImagesPayload | ImageUploadedPayload | FitModePayload | BackgroundPayload;
+export interface AdventurePayload extends BasePayload {
+    type: 'adventure-updated';
+    data: {
+        activeAdventureId: string | null;
+    };
+}
+
+export type WSPayload = SyncPayload | FolderPayload | ImagesPayload | ImageUploadedPayload | FitModePayload | BackgroundPayload | AdventurePayload;
