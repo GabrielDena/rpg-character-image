@@ -54,6 +54,8 @@ const createError = ref<string | null>(null);
 const avatarBlob = ref<Blob | null>(null);
 const avatarPreviewUrl = ref<string | null>(null);
 const avatarInputRef = ref<HTMLInputElement>();
+const showCropModal = ref(false);
+const pendingCropFile = ref<File | null>(null);
 const imagesInputRef = ref<HTMLInputElement>();
 const removeBgInputRef = ref<HTMLInputElement>();
 
@@ -123,10 +125,15 @@ watch(
 function handleAvatarSelect(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    if (avatarPreviewUrl.value) URL.revokeObjectURL(avatarPreviewUrl.value);
-    avatarBlob.value = file;
-    avatarPreviewUrl.value = URL.createObjectURL(file);
+    pendingCropFile.value = file;
+    showCropModal.value = true;
     (e.target as HTMLInputElement).value = '';
+}
+
+function onCropConfirm(blob: Blob) {
+    if (avatarPreviewUrl.value?.startsWith('blob:')) URL.revokeObjectURL(avatarPreviewUrl.value);
+    avatarBlob.value = blob;
+    avatarPreviewUrl.value = URL.createObjectURL(blob);
 }
 
 function addToPending(file: File) {
@@ -175,10 +182,11 @@ function setPendingDefault(uid: string) {
 function removePending(uid: string) {
     const idx = imagesPreviews.value.findIndex((img) => img.uid === uid);
     if (idx === -1) return;
-    const [removed] = imagesPreviews.value.splice(idx, 1);
+    const removed = imagesPreviews.value.splice(idx, 1)[0];
+    if (!removed) return;
     URL.revokeObjectURL(removed.previewUrl);
     if (removed.isDefault && imagesPreviews.value.length > 0) {
-        imagesPreviews.value[0].isDefault = true;
+        imagesPreviews.value[0]!.isDefault = true;
     }
 }
 
@@ -209,7 +217,7 @@ async function deleteExistingImage(img: ExistingImage) {
         const idx = existingImages.value.findIndex((i) => i.id === img.id);
         if (idx !== -1) existingImages.value.splice(idx, 1);
         if (img.isProfile && existingImages.value.length > 0) {
-            existingImages.value[0].isProfile = true;
+            existingImages.value[0]!.isProfile = true;
         }
     } catch {
         toast.add({ title: 'Failed to delete image', color: 'error' });
@@ -224,7 +232,9 @@ async function uploadAvatarAndImages(characterId: string) {
         fd.append('adventureId', props.adventureId);
         fd.append('systemId', props.systemId);
         fd.append('password', getPassword());
-        await $fetch(`/api/characters/${characterId}/avatar`, { method: 'POST', body: fd }).catch(() => {});
+        await $fetch(`/api/characters/${characterId}/avatar`, { method: 'POST', body: fd }).catch(
+            () => {}
+        );
     }
     for (const img of imagesPreviews.value) {
         const fd = new FormData();
@@ -258,7 +268,11 @@ async function createCharacter() {
         await uploadAvatarAndImages(character.id);
         emit('update:open', false);
         emit('created');
-        toast.add({ title: 'Character created', color: 'success', icon: 'i-heroicons-check-circle' });
+        toast.add({
+            title: 'Character created',
+            color: 'success',
+            icon: 'i-heroicons-check-circle',
+        });
     } catch (e: unknown) {
         createError.value = e instanceof Error ? e.message : 'Could not create character';
     } finally {
@@ -285,7 +299,11 @@ async function editCharacter() {
         await uploadAvatarAndImages(props.character.id);
         emit('update:open', false);
         emit('updated');
-        toast.add({ title: 'Character updated', color: 'success', icon: 'i-heroicons-check-circle' });
+        toast.add({
+            title: 'Character updated',
+            color: 'success',
+            icon: 'i-heroicons-check-circle',
+        });
     } catch (e: unknown) {
         createError.value = e instanceof Error ? e.message : 'Could not update character';
     } finally {
@@ -389,9 +407,7 @@ async function editCharacter() {
                             >
                                 {{ avatarPreviewUrl ? 'Change avatar' : 'Upload avatar' }}
                             </UButton>
-                            <p class="text-xs text-gray-500">
-                                Will be cropped to a square
-                            </p>
+                            <p class="text-xs text-gray-500">Click to upload and crop</p>
                         </div>
                         <input
                             ref="avatarInputRef"
@@ -424,7 +440,11 @@ async function editCharacter() {
                             >
                                 <div
                                     class="size-18 overflow-hidden rounded-lg"
-                                    :class="img.isProfile ? 'ring-2 ring-violet-500' : 'ring-1 ring-gray-700'"
+                                    :class="
+                                        img.isProfile
+                                            ? 'ring-2 ring-violet-500'
+                                            : 'ring-1 ring-gray-700'
+                                    "
                                 >
                                     <img
                                         v-if="img.url"
@@ -435,7 +455,11 @@ async function editCharacter() {
                                 </div>
                                 <div
                                     class="absolute -top-1.5 -left-1.5 flex size-5 cursor-pointer items-center justify-center rounded-full"
-                                    :class="img.isProfile ? 'bg-violet-500' : 'bg-gray-700 opacity-0 group-hover:opacity-100'"
+                                    :class="
+                                        img.isProfile
+                                            ? 'bg-violet-500'
+                                            : 'bg-gray-700 opacity-0 group-hover:opacity-100'
+                                    "
                                     :title="img.isProfile ? 'Default image' : 'Set as default'"
                                     @click="setExistingDefault(img)"
                                 >
@@ -463,7 +487,11 @@ async function editCharacter() {
                             >
                                 <div
                                     class="size-18 overflow-hidden rounded-lg"
-                                    :class="img.isDefault ? 'ring-2 ring-violet-500' : 'ring-1 ring-gray-700'"
+                                    :class="
+                                        img.isDefault
+                                            ? 'ring-2 ring-violet-500'
+                                            : 'ring-1 ring-gray-700'
+                                    "
                                 >
                                     <img
                                         :src="img.previewUrl"
@@ -473,7 +501,11 @@ async function editCharacter() {
                                 </div>
                                 <div
                                     class="absolute -top-1.5 -left-1.5 flex size-5 cursor-pointer items-center justify-center rounded-full"
-                                    :class="img.isDefault ? 'bg-violet-500' : 'bg-gray-700 opacity-0 group-hover:opacity-100'"
+                                    :class="
+                                        img.isDefault
+                                            ? 'bg-violet-500'
+                                            : 'bg-gray-700 opacity-0 group-hover:opacity-100'
+                                    "
                                     :title="img.isDefault ? 'Default image' : 'Set as default'"
                                     @click="setPendingDefault(img.uid)"
                                 >
@@ -572,4 +604,10 @@ async function editCharacter() {
         </template>
     </UModal>
 
+    <AvatarCropModal
+        v-model:open="showCropModal"
+        :file="pendingCropFile"
+        @confirm="onCropConfirm"
+    />
 </template>
+
