@@ -22,6 +22,13 @@
       "when": 1779404513061,
       "tag": "0002_tiny_lila_cheney",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779651078516,
+      "tag": "0003_elite_norman_osborn",
+      "breakpoints": true
     }
   ]
 }

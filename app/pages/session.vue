@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Adventure, System } from '#shared/types/models';
+import type { BackgroundWithUrl } from '~/components/AdventureBackgroundsTab.vue';
 import type { CharacterWithUrl } from '~/components/CharacterCreateModal.vue';
 
 function getPassword() {
@@ -110,6 +111,51 @@ async function onSceneUpdated(ids: string[]) {
     }
 }
 
+// ── Backgrounds ───────────────────────────────────────────────────────────────────────
+const allBackgrounds = ref<BackgroundWithUrl[]>([]);
+const loadingBackgrounds = ref(false);
+const selectedBackground = ref<BackgroundWithUrl | null>(null);
+const savingBackground = ref(false);
+
+async function fetchBackgrounds(adventureId: string) {
+    loadingBackgrounds.value = true;
+    try {
+        const { backgrounds } = await $fetch<{ backgrounds: BackgroundWithUrl[] }>(
+            '/api/backgrounds',
+            {
+                query: { adventureId },
+            }
+        );
+        allBackgrounds.value = backgrounds;
+    } catch (e: unknown) {
+        toast.add({
+            title: 'Failed to load backgrounds',
+            color: 'error',
+            description: e instanceof Error ? e.message : 'Unknown error',
+        });
+    } finally {
+        loadingBackgrounds.value = false;
+    }
+}
+
+async function onBackgroundSelected(backgroundId: string) {
+    savingBackground.value = true;
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: { selectedBackgroundId: backgroundId, password: getPassword() },
+        });
+    } catch (e: unknown) {
+        toast.add({
+            title: 'Failed to update scene',
+            color: 'error',
+            description: e instanceof Error ? e.message : 'Unknown error',
+        });
+    } finally {
+        savingBackground.value = false;
+    }
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────────
 onMounted(async () => {
     const state = await $fetch<{
@@ -118,6 +164,8 @@ onMounted(async () => {
         system: System | null;
         activeCharacterIds: string[];
         activeCharacters: CharacterWithUrl[];
+        selectedBackgroundId: string | null;
+        selectedBackground: BackgroundWithUrl | null;
     }>('/api/display-state');
 
     if (state.activeAdventureId && state.adventure && state.system) {
@@ -129,6 +177,8 @@ onMounted(async () => {
         activeCharacters.value = allCharacters.value.filter((c) =>
             state.activeCharacterIds.includes(c.id)
         );
+        await fetchBackgrounds(state.activeAdventureId);
+        selectedBackground.value = state.selectedBackground;
     }
 });
 </script>
@@ -151,9 +201,19 @@ onMounted(async () => {
             />
         </div>
 
+        <div class="shrink-0 px-4 pt-4">
+            <SessionBackgroundSelector
+                :backgrounds="allBackgrounds"
+                :selected-background="selectedBackground"
+                :loading="loadingBackgrounds"
+                :saving-background="savingBackground"
+                @select="onBackgroundSelected"
+            />
+        </div>
+
         <div
             v-if="activeAdventure"
-            class="min-h-0 flex-1 flex gap-3 p-4"
+            class="flex min-h-0 flex-1 gap-3 p-4"
         >
             <SessionPlayerList
                 :characters="pcCharacters"

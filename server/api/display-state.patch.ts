@@ -6,6 +6,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody<{
         activeAdventureId?: string | null;
         activeCharacterIds?: string[];
+        selectedBackgroundId?: string | null;
         password: string;
     }>(event);
 
@@ -18,6 +19,8 @@ export default defineEventHandler(async (event) => {
     const patch: Partial<typeof displayState.$inferInsert> = { updatedAt: new Date() };
     if ('activeAdventureId' in body) patch.activeAdventureId = body.activeAdventureId ?? null;
     if ('activeCharacterIds' in body) patch.activeCharacterIds = body.activeCharacterIds ?? [];
+    if ('selectedBackgroundId' in body)
+        patch.selectedBackgroundId = body.selectedBackgroundId ?? null;
 
     if (rows.length === 0) {
         await db.insert(displayState).values({
