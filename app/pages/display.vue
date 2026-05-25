@@ -42,6 +42,22 @@ const cols = computed(() => {
     return Math.min(count.value, maxCols);
 });
 
+// ── Lightbox ────────────────────────────────────────────────────────────────
+const focusedCharacter = ref<DisplayCharacter | null>(null);
+
+function openLightbox(character: DisplayCharacter) {
+    focusedCharacter.value = character;
+}
+
+function closeLightbox() {
+    focusedCharacter.value = null;
+}
+
+const focusedSrc = computed(
+    () => focusedCharacter.value?.profileImageUrl ?? focusedCharacter.value?.avatarUrl ?? undefined
+);
+
+// ── Image style ──────────────────────────────────────────────────────────────
 const imageStyle = computed<CSSProperties>(() => {
     if (!containerHeight.value) return {};
     const rows = Math.ceil(count.value / cols.value);
@@ -96,8 +112,24 @@ const imageStyle = computed<CSSProperties>(() => {
                     :key="character.id"
                     :src="character.profileImageUrl ?? character.avatarUrl ?? undefined"
                     :alt="character.name"
-                    class="block w-full"
+                    class="block w-full cursor-pointer"
                     :style="imageStyle"
+                    @click="openLightbox(character)"
+                />
+            </div>
+        </Transition>
+        <!-- Lightbox -->
+        <Transition name="fade">
+            <div
+                v-if="focusedCharacter"
+                class="absolute inset-0 z-50 flex items-center justify-center bg-black/80 cursor-pointer"
+                @click="closeLightbox"
+            >
+                <img
+                    :src="focusedSrc"
+                    :alt="focusedCharacter.name"
+                    class="max-h-full max-w-full object-contain"
+                    @click.stop
                 />
             </div>
         </Transition>
