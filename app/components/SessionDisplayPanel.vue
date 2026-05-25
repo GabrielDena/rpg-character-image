@@ -3,7 +3,7 @@ const props = defineProps<{
     galleryFitMode: 'cover' | 'contain';
     savingFitMode: boolean;
     displayMode: 'scene' | 'table';
-    tableShape: 'round' | 'square';
+    tableShape: 'round' | 'square' | 'rectangle';
     tableSeats: number;
     savingTableConfig: boolean;
 }>();
@@ -11,12 +11,12 @@ const props = defineProps<{
 const emit = defineEmits<{
     toggleFitMode: [];
     setScene: [];
-    setTable: [config: { shape: 'round' | 'square'; seats: number }];
+    setTable: [config: { shape: 'round' | 'square' | 'rectangle'; seats: number }];
 }>();
 
 const showTableModal = ref(false);
 
-function onTableConfirm(config: { shape: 'round' | 'square'; seats: number }) {
+function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats: number }) {
     emit('setTable', config);
 }
 </script>

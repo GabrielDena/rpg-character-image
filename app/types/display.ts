@@ -11,7 +11,7 @@ export interface DisplayState {
     selectedBackground: (BackgroundWithUrl & { url: string }) | null;
     galleryFitMode: 'cover' | 'contain';
     displayMode: 'scene' | 'table';
-    tableShape: 'round' | 'square';
+    tableShape: 'round' | 'square' | 'rectangle';
     tableSeats: number;
     seatAssignments: (string | null)[];
 }

@@ -121,7 +121,7 @@ const savingFitMode = ref(false);
 
 // ── Table / display mode ───────────────────────────────────────────────────────────────
 const displayMode = ref<'scene' | 'table'>('scene');
-const tableShape = ref<'round' | 'square'>('round');
+const tableShape = ref<'round' | 'square' | 'rectangle'>('round');
 const tableSeats = ref(4);
 const savingTableConfig = ref(false);
 
@@ -139,7 +139,7 @@ async function onSetScene() {
     }
 }
 
-async function onSetTable(config: { shape: 'round' | 'square'; seats: number }) {
+async function onSetTable(config: { shape: 'round' | 'square' | 'rectangle'; seats: number }) {
     savingTableConfig.value = true;
     try {
         await $fetch('/api/display-state', {
@@ -244,7 +244,7 @@ watch(
                 selectedBackground: BackgroundWithUrl | null;
                 galleryFitMode: 'cover' | 'contain';
                 displayMode: 'scene' | 'table';
-                tableShape: 'round' | 'square';
+                tableShape: 'round' | 'square' | 'rectangle';
                 tableSeats: number;
             }>('/api/display-state');
             activeCharacterIds.value = state.activeCharacterIds;
@@ -273,7 +273,7 @@ onMounted(async () => {
         selectedBackground: BackgroundWithUrl | null;
         galleryFitMode: 'cover' | 'contain';
         displayMode: 'scene' | 'table';
-        tableShape: 'round' | 'square';
+        tableShape: 'round' | 'square' | 'rectangle';
         tableSeats: number;
     }>('/api/display-state');
 
@@ -284,9 +284,9 @@ onMounted(async () => {
             activeSystem.value = state.system;
             activeCharacterIds.value = state.activeCharacterIds;
             await fetchCharacters(state.activeAdventureId);
-            activeCharacters.value = allCharacters.value.filter((c) =>
-                state.activeCharacterIds.includes(c.id)
-            );
+            activeCharacters.value = allCharacters.value
+                .filter((c) => state.activeCharacterIds.includes(c.id))
+                .sort((a, b) => a.name.localeCompare(b.name));
             await fetchBackgrounds(state.activeAdventureId);
             selectedBackground.value = state.selectedBackground;
         }

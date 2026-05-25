@@ -11,18 +11,20 @@ function reconcileSeatAssignments(
     const activeSet = new Set(activeIds);
     const placed = new Set<string>();
 
-    if (raw) {
-        for (let i = 0; i < Math.min(seatCount, raw.length); i++) {
-            const id = raw[i];
+    const hasExplicitAssignments = raw && raw.some((id) => id !== null);
+
+    if (hasExplicitAssignments) {
+        // Trust stored assignments — null slots are intentional (character is standing)
+        for (let i = 0; i < Math.min(seatCount, raw!.length); i++) {
+            const id = raw![i];
             if (id && activeSet.has(id) && !placed.has(id)) {
                 result[i] = id;
                 placed.add(id);
             }
         }
-    }
-
-    for (const id of activeIds) {
-        if (!placed.has(id)) {
+    } else {
+        // No assignments yet — auto-seat everyone in order
+        for (const id of activeIds) {
             const slot = result.indexOf(null);
             if (slot !== -1) {
                 result[slot] = id;
@@ -47,7 +49,7 @@ export default defineEventHandler(async () => {
             selectedBackground: null,
             galleryFitMode: (rows[0]?.galleryFitMode ?? 'cover') as 'cover' | 'contain',
             displayMode: (rows[0]?.displayMode ?? 'scene') as 'scene' | 'table',
-            tableShape: (rows[0]?.tableShape ?? 'round') as 'round' | 'square',
+            tableShape: (rows[0]?.tableShape ?? 'round') as 'round' | 'square' | 'rectangle',
             tableSeats: rows[0]?.tableSeats ?? 4,
             seatAssignments: reconcileSeatAssignments(rows[0]?.seatAssignments, [], rows[0]?.tableSeats ?? 4),
         };
@@ -72,7 +74,7 @@ export default defineEventHandler(async () => {
             selectedBackground: null,
             galleryFitMode: (state.galleryFitMode ?? 'cover') as 'cover' | 'contain',
             displayMode: (state.displayMode ?? 'scene') as 'scene' | 'table',
-            tableShape: (state.tableShape ?? 'round') as 'round' | 'square',
+            tableShape: (state.tableShape ?? 'round') as 'round' | 'square' | 'rectangle',
             tableSeats: state.tableSeats ?? 4,
             seatAssignments: reconcileSeatAssignments(state.seatAssignments, [], state.tableSeats ?? 4),
         };
@@ -123,7 +125,7 @@ export default defineEventHandler(async () => {
         selectedBackground,
         galleryFitMode: (state.galleryFitMode ?? 'cover') as 'cover' | 'contain',
         displayMode: (state.displayMode ?? 'scene') as 'scene' | 'table',
-        tableShape: (state.tableShape ?? 'round') as 'round' | 'square',
+        tableShape: (state.tableShape ?? 'round') as 'round' | 'square' | 'rectangle',
         tableSeats: state.tableSeats ?? 4,
         seatAssignments: reconcileSeatAssignments(state.seatAssignments, ids, state.tableSeats ?? 4),
     };

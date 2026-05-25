@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
         selectedBackgroundId?: string | null;
         galleryFitMode?: 'cover' | 'contain';
         displayMode?: 'scene' | 'table';
-        tableShape?: 'round' | 'square';
+        tableShape?: 'round' | 'square' | 'rectangle';
         tableSeats?: number;
         seatAssignments?: (string | null)[] | null;
         password: string;

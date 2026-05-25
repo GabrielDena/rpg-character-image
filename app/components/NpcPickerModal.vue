@@ -31,7 +31,9 @@ async function fetchCharacters() {
         const { characters } = await $fetch<{ characters: CharacterWithUrl[] }>('/api/characters', {
             query: { adventureId: props.adventureId },
         });
-        allCharacters.value = characters.filter((c) => c.type === 'npc');
+        allCharacters.value = characters
+            .filter((c) => c.type === 'npc')
+            .sort((a, b) => a.name.localeCompare(b.name));
     } catch {
         // non-fatal
     } finally {

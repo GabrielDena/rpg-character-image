@@ -1,16 +1,16 @@
 <script setup lang="ts">
 const props = defineProps<{
     open: boolean;
-    shape?: 'round' | 'square';
+    shape?: 'round' | 'square' | 'rectangle';
     seats?: number;
 }>();
 
 const emit = defineEmits<{
     'update:open': [value: boolean];
-    confirm: [config: { shape: 'round' | 'square'; seats: number }];
+    confirm: [config: { shape: 'round' | 'square' | 'rectangle'; seats: number }];
 }>();
 
-const selectedShape = ref<'round' | 'square'>(props.shape ?? 'round');
+const selectedShape = ref<'round' | 'square' | 'rectangle'>(props.shape ?? 'round');
 const selectedSeats = ref(props.seats ?? 4);
 
 watch(
@@ -23,7 +23,16 @@ watch(
     }
 );
 
-function previewDots(n: number) {
+function previewDots(n: number, shape: 'round' | 'square' | 'rectangle') {
+    if (shape === 'rectangle') {
+        const top = Math.ceil(n / 2);
+        const bot = n - top;
+        const s = (k: number) => (k > 1 ? Math.min(22, 60 / (k - 1)) : 0);
+        return [
+            ...Array.from({ length: top }, (_, i) => ({ x: 50 + (i - (top - 1) / 2) * s(top), y: 20 })),
+            ...Array.from({ length: bot }, (_, i) => ({ x: 50 + (i - (bot - 1) / 2) * s(bot), y: 80 })),
+        ];
+    }
     return Array.from({ length: n }, (_, i) => {
         const angle = -Math.PI / 2 + (2 * Math.PI * i) / n;
         return { x: 50 + 33 * Math.cos(angle), y: 50 + 33 * Math.sin(angle) };
@@ -49,9 +58,9 @@ function confirm() {
                     <p class="text-xs font-semibold tracking-widest text-gray-500 uppercase">
                         Table Shape
                     </p>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-3 gap-3">
                         <button
-                            v-for="shapeOption in (['round', 'square'] as const)"
+                            v-for="shapeOption in (['round', 'square', 'rectangle'] as const)"
                             :key="shapeOption"
                             class="flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-colors"
                             :class="
@@ -68,26 +77,21 @@ function confirm() {
                             >
                                 <circle
                                     v-if="shapeOption === 'round'"
-                                    cx="50"
-                                    cy="50"
-                                    r="20"
-                                    fill="#7B4F2E"
-                                    stroke="#c08040"
-                                    stroke-width="1.5"
+                                    cx="50" cy="50" r="20"
+                                    fill="#7B4F2E" stroke="#c08040" stroke-width="1.5"
+                                />
+                                <rect
+                                    v-else-if="shapeOption === 'square'"
+                                    x="28" y="28" width="44" height="44" rx="5"
+                                    fill="#7B4F2E" stroke="#c08040" stroke-width="1.5"
                                 />
                                 <rect
                                     v-else
-                                    x="28"
-                                    y="28"
-                                    width="44"
-                                    height="44"
-                                    rx="5"
-                                    fill="#7B4F2E"
-                                    stroke="#c08040"
-                                    stroke-width="1.5"
+                                    x="18" y="34" width="64" height="32" rx="5"
+                                    fill="#7B4F2E" stroke="#c08040" stroke-width="1.5"
                                 />
                                 <circle
-                                    v-for="(dot, i) in previewDots(4)"
+                                    v-for="(dot, i) in previewDots(4, shapeOption)"
                                     :key="i"
                                     :cx="dot.x"
                                     :cy="dot.y"

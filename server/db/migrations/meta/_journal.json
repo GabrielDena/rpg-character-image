@@ -43,6 +43,13 @@
       "when": 1779731985441,
       "tag": "0005_many_hellfire_club",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779732918147,
+      "tag": "0006_good_gorilla_man",
+      "breakpoints": true
     }
   ]
 }
