@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { BackgroundWithUrl } from './AdventureBackgroundsTab.vue';
+import type { BackgroundWithUrl } from '~/types/background';
 
 const props = defineProps<{
     backgrounds: BackgroundWithUrl[];

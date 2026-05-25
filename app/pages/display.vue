@@ -1,18 +1,6 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue';
-import type { BackgroundWithUrl } from '~/components/AdventureBackgroundsTab.vue';
-import type { CharacterWithUrl } from '~/components/CharacterCreateModal.vue';
-
-interface DisplayCharacter extends CharacterWithUrl {
-    profileImageUrl: string | null;
-}
-
-interface DisplayState {
-    activeAdventureId: string | null;
-    activeCharacters: DisplayCharacter[];
-    selectedBackground: (BackgroundWithUrl & { url: string }) | null;
-    galleryFitMode: 'cover' | 'contain';
-}
+import type { DisplayCharacter, DisplayState } from '~/types/display';
 
 const state = ref<DisplayState>({
     activeAdventureId: null,
@@ -22,8 +10,8 @@ const state = ref<DisplayState>({
 });
 
 const container = ref<HTMLElement | null>(null);
-const containerWidth = ref(0);
-const containerHeight = ref(0);
+const containerWidth = ref(import.meta.client ? window.innerWidth : 1920);
+const containerHeight = ref(import.meta.client ? window.innerHeight : 1080);
 
 onMounted(() => {
     if (!container.value) return;
@@ -50,22 +38,8 @@ const count = computed(() => state.value.activeCharacters.length);
 
 const cols = computed(() => {
     if (count.value === 0) return 1;
-    const ratio =
-        containerWidth.value && containerHeight.value
-            ? containerWidth.value / containerHeight.value
-            : 16 / 9;
-
-    let best = 1;
-    let bestScore = Infinity;
-    for (let c = 1; c <= count.value; c++) {
-        const r = Math.ceil(count.value / c);
-        const score = Math.abs(c / r - ratio);
-        if (score < bestScore) {
-            bestScore = score;
-            best = c;
-        }
-    }
-    return best;
+    const maxCols = containerWidth.value > 1980 ? 5 : 3;
+    return Math.min(count.value, maxCols);
 });
 
 const imageStyle = computed<CSSProperties>(() => {

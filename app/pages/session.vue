@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Adventure, System } from '#shared/types/models';
-import type { BackgroundWithUrl } from '~/components/AdventureBackgroundsTab.vue';
-import type { CharacterWithUrl } from '~/components/CharacterCreateModal.vue';
+import type { BackgroundWithUrl } from '~/types/background';
+import type { CharacterWithUrl } from '~/types/character';
 
 function getPassword() {
     return localStorage.getItem('app_password') ?? '';

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CharacterWithUrl } from '~/components/CharacterCreateModal.vue';
+import type { CharacterWithUrl } from '~/types/character';
 
 const props = defineProps<{
     adventureId: string;
