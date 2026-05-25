@@ -1,3 +1,4 @@
+import type { CharacterUpdatedPayload } from '#shared/types/sync';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { characterImages, useDb } from '../../db';
@@ -19,6 +20,9 @@ export default defineEventHandler(async (event) => {
     if (!image) throw createError({ statusCode: 404, message: 'Image not found' });
 
     await supabaseAdmin().storage.from(STORAGE_BUCKET).remove([image.storagePath]);
+
+    const payload: CharacterUpdatedPayload = { type: 'character-updated', data: { characterId: image.characterId } };
+    broadcast(payload);
 
     return { success: true };
 });
