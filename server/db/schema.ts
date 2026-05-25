@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { boolean, integer, json, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 export const systems = pgTable('systems', {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -57,7 +57,11 @@ export const displayState = pgTable('display_state', {
     }),
     activeCharacterIds: uuid('active_character_ids').array().default([]).notNull(),
     selectedBackgroundId: uuid('selected_background_id').references(() => backgrounds.id),
-    galleryFitMode: varchar('gallery_fit_mode', { length: 10 }).default('cover').notNull(),
+    galleryFitMode: text('gallery_fit_mode').default('cover').notNull(),
+    displayMode: text('display_mode').default('scene').notNull(),
+    tableShape: text('table_shape').default('round').notNull(),
+    tableSeats: integer('table_seats').default(4).notNull(),
+    seatAssignments: json('seat_assignments').$type<(string | null)[]>(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 

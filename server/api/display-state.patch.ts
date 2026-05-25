@@ -8,6 +8,10 @@ export default defineEventHandler(async (event) => {
         activeCharacterIds?: string[];
         selectedBackgroundId?: string | null;
         galleryFitMode?: 'cover' | 'contain';
+        displayMode?: 'scene' | 'table';
+        tableShape?: 'round' | 'square' | 'rectangle';
+        tableSeats?: number;
+        seatAssignments?: (string | null)[] | null;
         password: string;
     }>(event);
 
@@ -24,6 +28,10 @@ export default defineEventHandler(async (event) => {
         patch.selectedBackgroundId = body.selectedBackgroundId ?? null;
     if ('galleryFitMode' in body && body.galleryFitMode)
         patch.galleryFitMode = body.galleryFitMode;
+    if ('displayMode' in body && body.displayMode) patch.displayMode = body.displayMode;
+    if ('tableShape' in body && body.tableShape) patch.tableShape = body.tableShape;
+    if ('tableSeats' in body && body.tableSeats != null) patch.tableSeats = body.tableSeats;
+    if ('seatAssignments' in body) patch.seatAssignments = body.seatAssignments ?? null;
 
     if (rows.length === 0) {
         await db.insert(displayState).values({

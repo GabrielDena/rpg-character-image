@@ -30,7 +30,7 @@ const bgSelectorOpen = ref<boolean>(false);
             />
         </template>
         <button
-            class="w-full border-gray-800 transition-colors"
+            class="h-full w-full border-gray-800 transition-colors"
             :class="savingBackground ? 'opacity-50' : 'hover:bg-gray-800'"
             :disabled="savingBackground"
             @click="bgSelectorOpen = true"

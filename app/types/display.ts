@@ -10,4 +10,8 @@ export interface DisplayState {
     activeCharacters: DisplayCharacter[];
     selectedBackground: (BackgroundWithUrl & { url: string }) | null;
     galleryFitMode: 'cover' | 'contain';
+    displayMode: 'scene' | 'table';
+    tableShape: 'round' | 'square' | 'rectangle';
+    tableSeats: number;
+    seatAssignments: (string | null)[];
 }
