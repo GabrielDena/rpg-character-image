@@ -50,17 +50,23 @@ const bgSelectorOpen = ref<boolean>(false);
             </div>
             <div
                 v-else
-                class="flex items-center gap-4 p-2"
+                class="flex items-center justify-between pr-3"
             >
-                <img
-                    v-if="selectedBackground.url"
-                    :src="selectedBackground.url"
-                    :alt="selectedBackground.name"
-                    class="size-16 object-cover"
+                <div class="flex items-center gap-4 p-2">
+                    <img
+                        v-if="selectedBackground.url"
+                        :src="selectedBackground.url"
+                        :alt="selectedBackground.name"
+                        class="size-16 object-cover"
+                    />
+                    <span class="text-sm">
+                        {{ selectedBackground.name }}
+                    </span>
+                </div>
+                <UIcon
+                    name="i-heroicons-chevron-right"
+                    class="size-5 text-gray-700"
                 />
-                <span class="text-sm">
-                    {{ selectedBackground.name }}
-                </span>
             </div>
         </button>
         <BackgroundPickerModal
