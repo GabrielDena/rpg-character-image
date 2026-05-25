@@ -29,6 +29,20 @@
       "when": 1779651078516,
       "tag": "0003_elite_norman_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1779730910869,
+      "tag": "0004_sleepy_harry_osborn",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1779731985441,
+      "tag": "0005_many_hellfire_club",
+      "breakpoints": true
     }
   ]
 }

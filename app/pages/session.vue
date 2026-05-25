@@ -66,7 +66,9 @@ const activeCharacterIds = ref<string[]>([]);
 const activeCharacters = ref<CharacterWithUrl[]>([]);
 const savingScene = ref(false);
 
-const pcCharacters = computed(() => allCharacters.value.filter((c) => c.type === 'pc'));
+const pcCharacters = computed(() =>
+    allCharacters.value.filter((c) => c.type === 'pc').sort((a, b) => a.name.localeCompare(b.name))
+);
 
 async function fetchCharacters(adventureId: string) {
     loadingCharacters.value = true;
@@ -116,6 +118,47 @@ async function onSceneUpdated(ids: string[]) {
 // ── Fit mode ───────────────────────────────────────────────────────────────────────────
 const galleryFitMode = ref<'cover' | 'contain'>('cover');
 const savingFitMode = ref(false);
+
+// ── Table / display mode ───────────────────────────────────────────────────────────────
+const displayMode = ref<'scene' | 'table'>('scene');
+const tableShape = ref<'round' | 'square'>('round');
+const tableSeats = ref(4);
+const savingTableConfig = ref(false);
+
+async function onSetScene() {
+    savingTableConfig.value = true;
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: { displayMode: 'scene', password: getPassword() },
+        });
+        displayMode.value = 'scene';
+    } catch {
+    } finally {
+        savingTableConfig.value = false;
+    }
+}
+
+async function onSetTable(config: { shape: 'round' | 'square'; seats: number }) {
+    savingTableConfig.value = true;
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: {
+                displayMode: 'table',
+                tableShape: config.shape,
+                tableSeats: config.seats,
+                password: getPassword(),
+            },
+        });
+        displayMode.value = 'table';
+        tableShape.value = config.shape;
+        tableSeats.value = config.seats;
+    } catch {
+    } finally {
+        savingTableConfig.value = false;
+    }
+}
 
 async function toggleFitMode() {
     const next = galleryFitMode.value === 'cover' ? 'contain' : 'cover';
@@ -185,7 +228,8 @@ const isSaving = computed(
         savingScene.value ||
         savingBackground.value ||
         savingFitMode.value ||
-        settingAdventure.value
+        settingAdventure.value ||
+        savingTableConfig.value
 );
 
 watch(
@@ -199,11 +243,17 @@ watch(
                 activeCharacters: CharacterWithUrl[];
                 selectedBackground: BackgroundWithUrl | null;
                 galleryFitMode: 'cover' | 'contain';
+                displayMode: 'scene' | 'table';
+                tableShape: 'round' | 'square';
+                tableSeats: number;
             }>('/api/display-state');
             activeCharacterIds.value = state.activeCharacterIds;
             activeCharacters.value = state.activeCharacters;
             selectedBackground.value = state.selectedBackground;
             galleryFitMode.value = state.galleryFitMode ?? 'cover';
+            displayMode.value = state.displayMode ?? 'scene';
+            tableShape.value = state.tableShape ?? 'round';
+            tableSeats.value = state.tableSeats ?? 4;
         } catch {
             // non-fatal
         }
@@ -222,6 +272,9 @@ onMounted(async () => {
         selectedBackgroundId: string | null;
         selectedBackground: BackgroundWithUrl | null;
         galleryFitMode: 'cover' | 'contain';
+        displayMode: 'scene' | 'table';
+        tableShape: 'round' | 'square';
+        tableSeats: number;
     }>('/api/display-state');
 
     try {
@@ -238,6 +291,9 @@ onMounted(async () => {
             selectedBackground.value = state.selectedBackground;
         }
         galleryFitMode.value = state.galleryFitMode ?? 'cover';
+        displayMode.value = state.displayMode ?? 'scene';
+        tableShape.value = state.tableShape ?? 'round';
+        tableSeats.value = state.tableSeats ?? 4;
     } catch {
     } finally {
         loadingState.value = false;
@@ -265,7 +321,7 @@ onMounted(async () => {
                 />
             </div>
 
-            <div class="shrink-0 flex gap-3 px-4 pt-4">
+            <div class="flex shrink-0 gap-3 px-4 pt-4">
                 <SessionBackgroundSelector
                     class="min-w-0 flex-1"
                     :backgrounds="allBackgrounds"
@@ -277,7 +333,13 @@ onMounted(async () => {
                 <SessionDisplayPanel
                     :gallery-fit-mode="galleryFitMode"
                     :saving-fit-mode="savingFitMode"
+                    :display-mode="displayMode"
+                    :table-shape="tableShape"
+                    :table-seats="tableSeats"
+                    :saving-table-config="savingTableConfig"
                     @toggle-fit-mode="toggleFitMode"
+                    @set-scene="onSetScene"
+                    @set-table="onSetTable"
                 />
             </div>
 

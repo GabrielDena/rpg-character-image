@@ -7,6 +7,10 @@ const state = ref<DisplayState>({
     activeCharacters: [],
     selectedBackground: null,
     galleryFitMode: 'cover',
+    displayMode: 'scene',
+    tableShape: 'round',
+    tableSeats: 4,
+    seatAssignments: [],
 });
 
 const container = ref<HTMLElement | null>(null);
@@ -42,8 +46,74 @@ const cols = computed(() => {
     return Math.min(count.value, maxCols);
 });
 
+// ── Display mode (derived from server state) ──────────────────────────────────
+const displayMode = computed(() => state.value.displayMode);
+
+// ── Table SVG layout ──────────────────────────────────────────────────────────
+const TABLE_CX = 960;
+const TABLE_CY = 540;
+const ORBIT_R = 350;
+const AVATAR_R = 52;
+
+const seatPositions = computed(() => {
+    const assignments = state.value.seatAssignments;
+    const charById = Object.fromEntries(state.value.activeCharacters.map((c) => [c.id, c]));
+    return Array.from({ length: state.value.tableSeats }, (_, i) => {
+        const angle = -Math.PI / 2 + (2 * Math.PI * i) / state.value.tableSeats;
+        const charId = assignments[i] ?? null;
+        return {
+            x: TABLE_CX + ORBIT_R * Math.cos(angle),
+            y: TABLE_CY + ORBIT_R * Math.sin(angle),
+            character: charId ? (charById[charId] ?? null) : null,
+        };
+    });
+});
+
 // ── Lightbox ────────────────────────────────────────────────────────────────
 const focusedCharacter = ref<DisplayCharacter | null>(null);
+
+// ── Seat interaction ──────────────────────────────────────────────────────────
+const selectedSeatIndex = ref<number | null>(null);
+const swapping = ref(false);
+
+watch(displayMode, () => {
+    focusedCharacter.value = null;
+    selectedSeatIndex.value = null;
+});
+
+function clickSeat(index: number) {
+    if (swapping.value) return;
+    if (selectedSeatIndex.value === null) {
+        if (seatPositions.value[index]?.character) selectedSeatIndex.value = index;
+    } else if (selectedSeatIndex.value === index) {
+        selectedSeatIndex.value = null;
+    } else {
+        const from = selectedSeatIndex.value;
+        selectedSeatIndex.value = null;
+        if (seatPositions.value[from]?.character) swapSeats(from, index);
+    }
+}
+
+async function swapSeats(from: number, to: number) {
+    swapping.value = true;
+    const assignments = [...state.value.seatAssignments];
+    [assignments[from], assignments[to]] = [assignments[to] ?? null, assignments[from] ?? null];
+
+    state.value = { ...state.value, seatAssignments: assignments };
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: {
+                seatAssignments: assignments,
+                password: localStorage.getItem('app_password') ?? '',
+            },
+        });
+    } catch {
+        await fetchState();
+    } finally {
+        swapping.value = false;
+    }
+}
 
 function openLightbox(character: DisplayCharacter) {
     focusedCharacter.value = character;
@@ -86,10 +156,10 @@ const imageStyle = computed<CSSProperties>(() => {
                 : {}
         "
     >
-        <!-- Empty state -->
+        <!-- Empty state (scene only) -->
         <Transition name="fade">
             <div
-                v-if="count === 0"
+                v-if="count === 0 && displayMode === 'scene'"
                 class="flex h-full flex-col items-center justify-center gap-3"
             >
                 <UIcon
@@ -100,10 +170,10 @@ const imageStyle = computed<CSSProperties>(() => {
             </div>
         </Transition>
 
-        <!-- Character images -->
+        <!-- Character images (scene only) -->
         <Transition name="fade">
             <div
-                v-if="count > 0"
+                v-if="count > 0 && displayMode === 'scene'"
                 class="h-full w-full overflow-hidden"
                 :style="{ columnCount: cols, columnGap: '4px' }"
             >
@@ -118,11 +188,12 @@ const imageStyle = computed<CSSProperties>(() => {
                 />
             </div>
         </Transition>
-        <!-- Lightbox -->
+
+        <!-- Lightbox (scene only) -->
         <Transition name="fade">
             <div
-                v-if="focusedCharacter"
-                class="absolute inset-0 z-50 flex items-center justify-center bg-black/80 cursor-pointer"
+                v-if="focusedCharacter && displayMode === 'scene'"
+                class="absolute inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/80"
                 @click="closeLightbox"
             >
                 <img
@@ -133,6 +204,245 @@ const imageStyle = computed<CSSProperties>(() => {
                 />
             </div>
         </Transition>
+
+        <!-- Table view -->
+        <Transition name="fade">
+            <div
+                v-if="displayMode === 'table'"
+                class="absolute inset-0"
+            >
+                <svg
+                    viewBox="0 0 1920 1080"
+                    class="h-full w-full"
+                    preserveAspectRatio="xMidYMid meet"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <defs>
+                        <radialGradient
+                            id="woodGradRound"
+                            cx="35%"
+                            cy="30%"
+                            r="70%"
+                        >
+                            <stop
+                                offset="0%"
+                                stop-color="#c8915a"
+                            />
+                            <stop
+                                offset="100%"
+                                stop-color="#4a2510"
+                            />
+                        </radialGradient>
+                        <linearGradient
+                            id="woodGradSquare"
+                            x1="0%"
+                            y1="0%"
+                            x2="100%"
+                            y2="100%"
+                        >
+                            <stop
+                                offset="0%"
+                                stop-color="#b87840"
+                            />
+                            <stop
+                                offset="100%"
+                                stop-color="#4a2510"
+                            />
+                        </linearGradient>
+                        <filter
+                            id="tableShadow"
+                            x="-40%"
+                            y="-40%"
+                            width="180%"
+                            height="180%"
+                        >
+                            <feDropShadow
+                                dx="0"
+                                dy="15"
+                                stdDeviation="25"
+                                flood-color="#000000"
+                                flood-opacity="0.65"
+                            />
+                        </filter>
+                        <template
+                            v-for="(seat, i) in seatPositions"
+                            :key="`cp-${i}`"
+                        >
+                            <clipPath :id="`seat-clip-${i}`">
+                                <circle
+                                    :cx="seat.x"
+                                    :cy="seat.y"
+                                    :r="AVATAR_R"
+                                />
+                            </clipPath>
+                        </template>
+                    </defs>
+
+        <!-- Round table surface -->
+                    <circle
+                        v-if="state.tableShape === 'round'"
+                        :cx="TABLE_CX"
+                        :cy="TABLE_CY"
+                        r="185"
+                        fill="url(#woodGradRound)"
+                        filter="url(#tableShadow)"
+                    />
+                    <circle
+                        v-if="state.tableShape === 'round'"
+                        :cx="TABLE_CX"
+                        :cy="TABLE_CY"
+                        r="185"
+                        fill="none"
+                        stroke="rgba(200,145,90,0.5)"
+                        stroke-width="4"
+                    />
+                    <circle
+                        v-if="state.tableShape === 'round'"
+                        :cx="TABLE_CX"
+                        :cy="TABLE_CY"
+                        r="170"
+                        fill="none"
+                        stroke="rgba(0,0,0,0.2)"
+                        stroke-width="6"
+                    />
+
+                    <!-- Square table surface -->
+                    <rect
+                        v-if="state.tableShape === 'square'"
+                        :x="TABLE_CX - 185"
+                        :y="TABLE_CY - 185"
+                        width="370"
+                        height="370"
+                        rx="14"
+                        fill="url(#woodGradSquare)"
+                        filter="url(#tableShadow)"
+                    />
+                    <rect
+                        v-if="state.tableShape === 'square'"
+                        :x="TABLE_CX - 185"
+                        :y="TABLE_CY - 185"
+                        width="370"
+                        height="370"
+                        rx="14"
+                        fill="none"
+                        stroke="rgba(200,145,90,0.5)"
+                        stroke-width="4"
+                    />
+                    <rect
+                        v-if="state.tableShape === 'square'"
+                        :x="TABLE_CX - 170"
+                        :y="TABLE_CY - 170"
+                        width="340"
+                        height="340"
+                        rx="10"
+                        fill="none"
+                        stroke="rgba(0,0,0,0.2)"
+                        stroke-width="6"
+                    />
+
+                    <!-- Seat slots -->
+                    <g
+                        v-for="(seat, i) in seatPositions"
+                        :key="`seat-${i}`"
+                        :style="{ cursor: seat.character || selectedSeatIndex !== null ? 'pointer' : 'default' }"
+                        @click="clickSeat(i)"
+                    >
+                        <!-- Selection ring -->
+                        <circle
+                            v-if="selectedSeatIndex === i"
+                            :cx="seat.x"
+                            :cy="seat.y"
+                            :r="AVATAR_R + 10"
+                            fill="none"
+                            stroke="#f59e0b"
+                            stroke-width="3"
+                            class="seat-selection-ring"
+                        />
+
+                        <!-- Empty seat ring -->
+                        <circle
+                            v-if="!seat.character"
+                            :cx="seat.x"
+                            :cy="seat.y"
+                            :r="AVATAR_R"
+                            :fill="selectedSeatIndex !== null ? 'rgba(245,158,11,0.12)' : 'rgba(30,30,40,0.55)'"
+                            :stroke="selectedSeatIndex !== null ? '#f59e0b' : '#4b5563'"
+                            stroke-width="2"
+                            stroke-dasharray="10 5"
+                        />
+
+                        <!-- Avatar background -->
+                        <circle
+                            v-if="seat.character"
+                            :cx="seat.x"
+                            :cy="seat.y"
+                            :r="AVATAR_R + 4"
+                            fill="#1f2937"
+                        />
+
+                        <!-- Avatar image -->
+                        <image
+                            v-if="seat.character?.avatarUrl"
+                            :href="seat.character.avatarUrl"
+                            :x="seat.x - AVATAR_R"
+                            :y="seat.y - AVATAR_R"
+                            :width="AVATAR_R * 2"
+                            :height="AVATAR_R * 2"
+                            :clip-path="`url(#seat-clip-${i})`"
+                            preserveAspectRatio="xMidYMid slice"
+                        />
+
+                        <!-- Placeholder when character has no avatar -->
+                        <circle
+                            v-else-if="seat.character"
+                            :cx="seat.x"
+                            :cy="seat.y"
+                            :r="AVATAR_R"
+                            fill="#374151"
+                        />
+
+                        <!-- Avatar border ring -->
+                        <circle
+                            v-if="seat.character"
+                            :cx="seat.x"
+                            :cy="seat.y"
+                            :r="AVATAR_R + 4"
+                            fill="none"
+                            stroke="rgba(255,255,255,0.25)"
+                            stroke-width="2"
+                        />
+
+                        <!-- Character name -->
+                        <text
+                            v-if="seat.character"
+                            :x="seat.x"
+                            :y="seat.y + AVATAR_R + 26"
+                            text-anchor="middle"
+                            font-size="22"
+                            font-weight="600"
+                            font-family="ui-sans-serif, system-ui, sans-serif"
+                            fill="white"
+                            paint-order="stroke"
+                            stroke="#000000"
+                            stroke-width="5"
+                            stroke-linejoin="round"
+                        >
+                            {{ seat.character.name }}
+                        </text>
+
+                        <!-- Transparent hitbox — last element so it sits on top of avatar image and captures all clicks -->
+                        <circle
+                            :cx="seat.x"
+                            :cy="seat.y"
+                            :r="AVATAR_R + 12"
+                            fill="transparent"
+                            pointer-events="all"
+                        />
+                    </g>
+                </svg>
+            </div>
+        </Transition>
+
     </div>
 </template>
 
@@ -144,6 +454,15 @@ const imageStyle = computed<CSSProperties>(() => {
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
+}
+
+.seat-selection-ring {
+    animation: seat-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes seat-pulse {
+    0%, 100% { opacity: 1; stroke-width: 3; }
+    50% { opacity: 0.4; stroke-width: 5; }
 }
 </style>
 
