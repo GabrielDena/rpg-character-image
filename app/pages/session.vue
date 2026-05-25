@@ -8,6 +8,7 @@ function getPassword() {
 }
 
 const toast = useToast();
+const store = useAppStore();
 const loadingState = ref(false);
 
 // ── Active campaign ────────────────────────────────────────────────────────────
@@ -177,6 +178,37 @@ async function onBackgroundSelected(backgroundId: string | null) {
         savingBackground.value = false;
     }
 }
+
+// ── WS sync ────────────────────────────────────────────────────────────────────
+const isSaving = computed(
+    () =>
+        savingScene.value ||
+        savingBackground.value ||
+        savingFitMode.value ||
+        settingAdventure.value
+);
+
+watch(
+    () => store.displayStateVersion,
+    async () => {
+        if (isSaving.value || !activeAdventureId.value) return;
+        try {
+            const state = await $fetch<{
+                activeAdventureId: string | null;
+                activeCharacterIds: string[];
+                activeCharacters: CharacterWithUrl[];
+                selectedBackground: BackgroundWithUrl | null;
+                galleryFitMode: 'cover' | 'contain';
+            }>('/api/display-state');
+            activeCharacterIds.value = state.activeCharacterIds;
+            activeCharacters.value = state.activeCharacters;
+            selectedBackground.value = state.selectedBackground;
+            galleryFitMode.value = state.galleryFitMode ?? 'cover';
+        } catch {
+            // non-fatal
+        }
+    }
+);
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 onMounted(async () => {

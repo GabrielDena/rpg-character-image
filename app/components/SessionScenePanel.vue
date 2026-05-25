@@ -31,6 +31,16 @@ function toggleEditCharacter(character: CharacterWithUrl) {
     >
         <template #action>
             <UButton
+                v-if="activeCharacters.length"
+                size="xs"
+                label="Clear"
+                color="error"
+                variant="ghost"
+                icon="i-heroicons-trash"
+                :loading="saving"
+                @click="emit('update', [])"
+            />
+            <UButton
                 size="xs"
                 color="neutral"
                 variant="ghost"
