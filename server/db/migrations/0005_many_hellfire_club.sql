@@ -1,0 +1,1 @@
+ALTER TABLE "display_state" ADD COLUMN "seat_assignments" json;

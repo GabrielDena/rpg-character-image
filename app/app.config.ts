@@ -16,7 +16,7 @@ export default defineAppConfig({
             ],
         },
         colors: {
-            primary: 'gray',
+            primary: 'violet',
         },
         card: {
             variants: {

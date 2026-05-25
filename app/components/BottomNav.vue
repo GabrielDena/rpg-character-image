@@ -2,13 +2,14 @@
 const route = useRoute()
 
 const tabs = [
-  { label: 'Folder', icon: 'i-heroicons-folder', activeIcon: 'i-heroicons-folder-open', to: '/' },
-  { label: 'Select', icon: 'i-heroicons-photo', activeIcon: 'i-heroicons-photo', to: '/select' },
-  { label: 'Gallery', icon: 'i-heroicons-squares-2x2', activeIcon: 'i-heroicons-squares-2x2', to: '/gallery' },
+  { label: 'Systems', icon: 'i-heroicons-book-open', activeIcon: 'i-heroicons-book-open', to: '/' },
+  { label: 'Session', icon: 'i-heroicons-play', activeIcon: 'i-heroicons-play-solid', to: '/session' },
+  { label: 'Display', icon: 'i-heroicons-tv', activeIcon: 'i-heroicons-tv', to: '/display' },
 ]
 
-function isActive(path: string) {
-  return route.path === path
+function isActive(tab: { to: string }) {
+  if (tab.to === '/') return route.path === '/' || route.path.startsWith('/systems')
+  return route.path === tab.to
 }
 </script>
 
@@ -20,14 +21,14 @@ function isActive(path: string) {
         :key="tab.to"
         :to="tab.to"
         class="flex flex-1 flex-col items-center justify-center gap-1 transition-colors duration-150"
-        :class="isActive(tab.to) ? 'text-white' : 'text-gray-500 hover:text-gray-400'"
+        :class="isActive(tab) ? 'text-white' : 'text-gray-500 hover:text-gray-400'"
       >
         <div
           class="flex items-center justify-center rounded-xl px-3 py-1 transition-colors duration-150"
-          :class="isActive(tab.to) ? 'bg-gray-800' : ''"
+          :class="isActive(tab) ? 'bg-gray-800' : ''"
         >
           <UIcon
-            :name="isActive(tab.to) ? tab.activeIcon : tab.icon"
+            :name="isActive(tab) ? tab.activeIcon : tab.icon"
             class="size-5"
           />
         </div>
