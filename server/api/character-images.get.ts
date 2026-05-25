@@ -16,5 +16,5 @@ export default defineEventHandler(async (event) => {
 
     if (rows.length === 0) return { images: [] };
 
-    return { images: rows.map((r) => ({ ...r, url: `/api/images/${r.storagePath}` })) };
+    return { images: rows.map((r) => ({ ...r, url: getPublicUrl(r.storagePath) })) };
 });

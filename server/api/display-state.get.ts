@@ -1,5 +1,6 @@
 import { and, eq, inArray } from 'drizzle-orm';
 import { adventures, backgrounds, characterImages, characters, displayState, systems, useDb } from '../db';
+import { getPublicUrl, getPublicUrl } from '../utils/storage';
 
 export default defineEventHandler(async () => {
     const db = useDb();
@@ -11,6 +12,7 @@ export default defineEventHandler(async () => {
             system: null,
             activeCharacterIds: [],
             activeCharacters: [],
+            selectedBackground: null,
             galleryFitMode: (rows[0]?.galleryFitMode ?? 'cover') as 'cover' | 'contain',
         };
     }
@@ -31,6 +33,7 @@ export default defineEventHandler(async () => {
             system: null,
             activeCharacterIds: [],
             activeCharacters: [],
+            selectedBackground: null,
             galleryFitMode: (state.galleryFitMode ?? 'cover') as 'cover' | 'contain',
         };
     }
@@ -45,13 +48,13 @@ export default defineEventHandler(async () => {
         : [];
 
     const profileImageByCharacterId = Object.fromEntries(
-        profileImages.map((img) => [img.characterId, `/api/images/${img.storagePath}`])
+        profileImages.map((img) => [img.characterId, getPublicUrl(img.storagePath)])
     );
 
     const activeCharacters = ids.length
         ? (await db.select().from(characters).where(inArray(characters.id, ids))).map((c) => ({
               ...c,
-              avatarUrl: c.avatarPath ? `/api/images/${c.avatarPath}` : null,
+              avatarUrl: c.avatarPath ? getPublicUrl(c.avatarPath) : null,
               profileImageUrl: profileImageByCharacterId[c.id] ?? null,
           }))
         : [];
@@ -65,7 +68,7 @@ export default defineEventHandler(async () => {
                   .limit(1)
           ).map((bg) => ({
               ...bg,
-              url: `/api/images/${bg.storagePath}`,
+              url: getPublicUrl(bg.storagePath),
           }))[0]
         : null;
 

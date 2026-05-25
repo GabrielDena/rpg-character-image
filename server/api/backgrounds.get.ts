@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
     return {
         backgrounds: rows.map((bg) => ({
             ...bg,
-            url: `/api/images/${bg.storagePath}`,
+            url: getPublicUrl(bg.storagePath),
         })),
     };
 });
