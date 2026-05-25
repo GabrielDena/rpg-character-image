@@ -15,6 +15,6 @@ export default defineEventHandler(async (event) => {
         .orderBy(asc(characters.createdAt));
 
     return {
-        characters: rows.map((c) => ({ ...c, avatarUrl: c.avatarPath ? `/api/images/${c.avatarPath}` : null })),
+        characters: rows.map((c) => ({ ...c, avatarUrl: c.avatarPath ? getPublicUrl(c.avatarPath) : null })),
     };
 });

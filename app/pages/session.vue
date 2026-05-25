@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import type { Adventure, System } from '#shared/types/models';
-import type { BackgroundWithUrl } from '~/components/AdventureBackgroundsTab.vue';
-import type { CharacterWithUrl } from '~/components/CharacterCreateModal.vue';
+import type { BackgroundWithUrl } from '~/types/background';
+import type { CharacterWithUrl } from '~/types/character';
 
 function getPassword() {
     return localStorage.getItem('app_password') ?? '';
 }
 
 const toast = useToast();
+const store = useAppStore();
 const loadingState = ref(false);
 
 // ── Active campaign ────────────────────────────────────────────────────────────
@@ -112,6 +113,26 @@ async function onSceneUpdated(ids: string[]) {
     }
 }
 
+// ── Fit mode ───────────────────────────────────────────────────────────────────────────
+const galleryFitMode = ref<'cover' | 'contain'>('cover');
+const savingFitMode = ref(false);
+
+async function toggleFitMode() {
+    const next = galleryFitMode.value === 'cover' ? 'contain' : 'cover';
+    savingFitMode.value = true;
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: { galleryFitMode: next, password: getPassword() },
+        });
+        galleryFitMode.value = next;
+    } catch {
+        // non-fatal
+    } finally {
+        savingFitMode.value = false;
+    }
+}
+
 // ── Backgrounds ───────────────────────────────────────────────────────────────────────
 const allBackgrounds = ref<BackgroundWithUrl[]>([]);
 const loadingBackgrounds = ref(false);
@@ -158,6 +179,37 @@ async function onBackgroundSelected(backgroundId: string | null) {
     }
 }
 
+// ── WS sync ────────────────────────────────────────────────────────────────────
+const isSaving = computed(
+    () =>
+        savingScene.value ||
+        savingBackground.value ||
+        savingFitMode.value ||
+        settingAdventure.value
+);
+
+watch(
+    () => store.displayStateVersion,
+    async () => {
+        if (isSaving.value || !activeAdventureId.value) return;
+        try {
+            const state = await $fetch<{
+                activeAdventureId: string | null;
+                activeCharacterIds: string[];
+                activeCharacters: CharacterWithUrl[];
+                selectedBackground: BackgroundWithUrl | null;
+                galleryFitMode: 'cover' | 'contain';
+            }>('/api/display-state');
+            activeCharacterIds.value = state.activeCharacterIds;
+            activeCharacters.value = state.activeCharacters;
+            selectedBackground.value = state.selectedBackground;
+            galleryFitMode.value = state.galleryFitMode ?? 'cover';
+        } catch {
+            // non-fatal
+        }
+    }
+);
+
 // ── Init ───────────────────────────────────────────────────────────────────────
 onMounted(async () => {
     loadingState.value = true;
@@ -169,6 +221,7 @@ onMounted(async () => {
         activeCharacters: CharacterWithUrl[];
         selectedBackgroundId: string | null;
         selectedBackground: BackgroundWithUrl | null;
+        galleryFitMode: 'cover' | 'contain';
     }>('/api/display-state');
 
     try {
@@ -184,6 +237,7 @@ onMounted(async () => {
             await fetchBackgrounds(state.activeAdventureId);
             selectedBackground.value = state.selectedBackground;
         }
+        galleryFitMode.value = state.galleryFitMode ?? 'cover';
     } catch {
     } finally {
         loadingState.value = false;
@@ -211,13 +265,19 @@ onMounted(async () => {
                 />
             </div>
 
-            <div class="shrink-0 px-4 pt-4">
+            <div class="shrink-0 flex gap-3 px-4 pt-4">
                 <SessionBackgroundSelector
+                    class="min-w-0 flex-1"
                     :backgrounds="allBackgrounds"
                     :selected-background="selectedBackground"
                     :loading="loadingBackgrounds"
                     :saving-background="savingBackground"
                     @select="onBackgroundSelected"
+                />
+                <SessionDisplayPanel
+                    :gallery-fit-mode="galleryFitMode"
+                    :saving-fit-mode="savingFitMode"
+                    @toggle-fit-mode="toggleFitMode"
                 />
             </div>
 

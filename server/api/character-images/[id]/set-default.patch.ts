@@ -1,3 +1,4 @@
+import type { CharacterUpdatedPayload } from '#shared/types/sync';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { characterImages, useDb } from '../../../db';
@@ -34,6 +35,9 @@ export default defineEventHandler(async (event) => {
         .returning();
     const image = rows[0];
     if (!image) throw createError({ statusCode: 404, message: 'Image not found' });
+
+    const payload: CharacterUpdatedPayload = { type: 'character-updated', data: { characterId } };
+    broadcast(payload);
 
     return { image };
 });

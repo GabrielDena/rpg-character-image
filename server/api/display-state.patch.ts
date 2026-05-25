@@ -7,6 +7,7 @@ export default defineEventHandler(async (event) => {
         activeAdventureId?: string | null;
         activeCharacterIds?: string[];
         selectedBackgroundId?: string | null;
+        galleryFitMode?: 'cover' | 'contain';
         password: string;
     }>(event);
 
@@ -21,6 +22,8 @@ export default defineEventHandler(async (event) => {
     if ('activeCharacterIds' in body) patch.activeCharacterIds = body.activeCharacterIds ?? [];
     if ('selectedBackgroundId' in body)
         patch.selectedBackgroundId = body.selectedBackgroundId ?? null;
+    if ('galleryFitMode' in body && body.galleryFitMode)
+        patch.galleryFitMode = body.galleryFitMode;
 
     if (rows.length === 0) {
         await db.insert(displayState).values({

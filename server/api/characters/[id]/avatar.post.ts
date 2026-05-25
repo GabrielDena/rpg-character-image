@@ -1,3 +1,4 @@
+import type { CharacterUpdatedPayload } from '#shared/types/sync';
 import { eq } from 'drizzle-orm';
 import { characters, useDb } from '../../../db';
 
@@ -37,6 +38,9 @@ export default defineEventHandler(async (event) => {
         .returning();
     const character = rows[0];
     if (!character) throw createError({ statusCode: 404, message: 'Character not found' });
+
+    const payload: CharacterUpdatedPayload = { type: 'character-updated', data: { characterId: id } };
+    broadcast(payload);
 
     return { character };
 });

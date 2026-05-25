@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CharacterWithUrl } from '~/components/CharacterCreateModal.vue';
+import type { CharacterWithUrl } from '~/types/character';
 
 const props = defineProps<{
     adventureId: string;
@@ -30,6 +30,16 @@ function toggleEditCharacter(character: CharacterWithUrl) {
         class="w-full"
     >
         <template #action>
+            <UButton
+                v-if="activeCharacters.length"
+                size="xs"
+                label="Clear"
+                color="error"
+                variant="ghost"
+                icon="i-heroicons-trash"
+                :loading="saving"
+                @click="emit('update', [])"
+            />
             <UButton
                 size="xs"
                 color="neutral"
