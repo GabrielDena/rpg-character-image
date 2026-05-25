@@ -1,5 +1,5 @@
-import { eq, inArray } from 'drizzle-orm';
-import { adventures, backgrounds, characters, displayState, systems, useDb } from '../db';
+import { and, eq, inArray } from 'drizzle-orm';
+import { adventures, backgrounds, characterImages, characters, displayState, systems, useDb } from '../db';
 
 export default defineEventHandler(async () => {
     const db = useDb();
@@ -11,6 +11,7 @@ export default defineEventHandler(async () => {
             system: null,
             activeCharacterIds: [],
             activeCharacters: [],
+            galleryFitMode: (rows[0]?.galleryFitMode ?? 'cover') as 'cover' | 'contain',
         };
     }
 
@@ -30,14 +31,28 @@ export default defineEventHandler(async () => {
             system: null,
             activeCharacterIds: [],
             activeCharacters: [],
+            galleryFitMode: (state.galleryFitMode ?? 'cover') as 'cover' | 'contain',
         };
     }
 
     const ids = state.activeCharacterIds ?? [];
+
+    const profileImages = ids.length
+        ? await db
+              .select()
+              .from(characterImages)
+              .where(and(inArray(characterImages.characterId, ids), eq(characterImages.isProfile, true)))
+        : [];
+
+    const profileImageByCharacterId = Object.fromEntries(
+        profileImages.map((img) => [img.characterId, `/api/images/${img.storagePath}`])
+    );
+
     const activeCharacters = ids.length
         ? (await db.select().from(characters).where(inArray(characters.id, ids))).map((c) => ({
               ...c,
               avatarUrl: c.avatarPath ? `/api/images/${c.avatarPath}` : null,
+              profileImageUrl: profileImageByCharacterId[c.id] ?? null,
           }))
         : [];
 
@@ -61,6 +76,7 @@ export default defineEventHandler(async () => {
         activeCharacterIds: ids,
         activeCharacters,
         selectedBackground,
+        galleryFitMode: (state.galleryFitMode ?? 'cover') as 'cover' | 'contain',
     };
 });
 

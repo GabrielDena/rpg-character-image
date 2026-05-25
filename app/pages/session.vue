@@ -112,6 +112,26 @@ async function onSceneUpdated(ids: string[]) {
     }
 }
 
+// ── Fit mode ───────────────────────────────────────────────────────────────────────────
+const galleryFitMode = ref<'cover' | 'contain'>('cover');
+const savingFitMode = ref(false);
+
+async function toggleFitMode() {
+    const next = galleryFitMode.value === 'cover' ? 'contain' : 'cover';
+    savingFitMode.value = true;
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: { galleryFitMode: next, password: getPassword() },
+        });
+        galleryFitMode.value = next;
+    } catch {
+        // non-fatal
+    } finally {
+        savingFitMode.value = false;
+    }
+}
+
 // ── Backgrounds ───────────────────────────────────────────────────────────────────────
 const allBackgrounds = ref<BackgroundWithUrl[]>([]);
 const loadingBackgrounds = ref(false);
@@ -169,6 +189,7 @@ onMounted(async () => {
         activeCharacters: CharacterWithUrl[];
         selectedBackgroundId: string | null;
         selectedBackground: BackgroundWithUrl | null;
+        galleryFitMode: 'cover' | 'contain';
     }>('/api/display-state');
 
     try {
@@ -184,6 +205,7 @@ onMounted(async () => {
             await fetchBackgrounds(state.activeAdventureId);
             selectedBackground.value = state.selectedBackground;
         }
+        galleryFitMode.value = state.galleryFitMode ?? 'cover';
     } catch {
     } finally {
         loadingState.value = false;
@@ -211,13 +233,19 @@ onMounted(async () => {
                 />
             </div>
 
-            <div class="shrink-0 px-4 pt-4">
+            <div class="shrink-0 flex gap-3 px-4 pt-4">
                 <SessionBackgroundSelector
+                    class="min-w-0 flex-1"
                     :backgrounds="allBackgrounds"
                     :selected-background="selectedBackground"
                     :loading="loadingBackgrounds"
                     :saving-background="savingBackground"
                     @select="onBackgroundSelected"
+                />
+                <SessionDisplayPanel
+                    :gallery-fit-mode="galleryFitMode"
+                    :saving-fit-mode="savingFitMode"
+                    @toggle-fit-mode="toggleFitMode"
                 />
             </div>
 

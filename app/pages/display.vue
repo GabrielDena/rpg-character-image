@@ -3,16 +3,22 @@ import type { CSSProperties } from 'vue';
 import type { BackgroundWithUrl } from '~/components/AdventureBackgroundsTab.vue';
 import type { CharacterWithUrl } from '~/components/CharacterCreateModal.vue';
 
+interface DisplayCharacter extends CharacterWithUrl {
+    profileImageUrl: string | null;
+}
+
 interface DisplayState {
     activeAdventureId: string | null;
-    activeCharacters: CharacterWithUrl[];
+    activeCharacters: DisplayCharacter[];
     selectedBackground: (BackgroundWithUrl & { url: string }) | null;
+    galleryFitMode: 'cover' | 'contain';
 }
 
 const state = ref<DisplayState>({
     activeAdventureId: null,
     activeCharacters: [],
     selectedBackground: null,
+    galleryFitMode: 'cover',
 });
 
 const container = ref<HTMLElement | null>(null);
@@ -70,8 +76,8 @@ const imageStyle = computed<CSSProperties>(() => {
     return {
         maxHeight: `${maxH}px`,
         breakInside: 'avoid',
-        objectFit: 'contain' as const,
-        objectPosition: 'bottom',
+        objectFit: state.value.galleryFitMode,
+        objectPosition: state.value.galleryFitMode === 'cover' ? 'top' : 'center',
     };
 });
 </script>
@@ -114,7 +120,7 @@ const imageStyle = computed<CSSProperties>(() => {
                 <img
                     v-for="character in state.activeCharacters"
                     :key="character.id"
-                    :src="character.avatarUrl ?? undefined"
+                    :src="character.profileImageUrl ?? character.avatarUrl ?? undefined"
                     :alt="character.name"
                     class="block w-full"
                     :style="imageStyle"
