@@ -72,7 +72,7 @@ onMounted(fetchCharacters);
 
 <template>
     <div>
-        <div class="space-y-2 p-4 pb-2">
+        <div class="sticky top-0 z-10 space-y-2 bg-gray-900 p-4 pb-2">
             <div class="flex items-center justify-between">
                 <p class="text-xs text-gray-500">
                     {{ filtered.length }} character{{ filtered.length !== 1 ? 's' : '' }}
