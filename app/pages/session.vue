@@ -10,6 +10,7 @@ function getPassword() {
 const toast = useToast();
 const store = useAppStore();
 const loadingState = ref(false);
+const show = ref(true);
 
 // ── Active campaign ────────────────────────────────────────────────────────────
 const activeAdventureId = ref<string | null>(null);
@@ -348,6 +349,7 @@ onMounted(async () => {
 
             <div class="flex shrink-0 gap-3 px-4 pt-4">
                 <SessionBackgroundSelector
+                    v-model="show"
                     class="min-w-0 flex-1"
                     :backgrounds="allBackgrounds"
                     :selected-background="selectedBackground"
@@ -356,6 +358,7 @@ onMounted(async () => {
                     @select="onBackgroundSelected"
                 />
                 <SessionDisplayPanel
+                    v-model="show"
                     :gallery-fit-mode="galleryFitMode"
                     :saving-fit-mode="savingFitMode"
                     :display-mode="displayMode"

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { BackgroundWithUrl } from '~/types/background';
+const show = defineModel();
 
 const props = defineProps<{
     backgrounds: BackgroundWithUrl[];
@@ -22,6 +23,13 @@ const bgSelectorOpen = ref<boolean>(false);
     >
         <template #action>
             <UButton
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                :icon="show ? 'i-heroicons-eye' : 'i-heroicons-eye-slash'"
+                @click="show = !show"
+            />
+            <UButton
                 size="sm"
                 variant="outline"
                 label="Clear"
@@ -30,6 +38,7 @@ const bgSelectorOpen = ref<boolean>(false);
             />
         </template>
         <button
+            v-if="show"
             class="h-full w-full border-gray-800 transition-colors"
             :class="savingBackground ? 'opacity-50' : 'hover:bg-gray-800'"
             :disabled="savingBackground"
