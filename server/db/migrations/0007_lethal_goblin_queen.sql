@@ -1,0 +1,1 @@
+ALTER TABLE "display_state" ADD COLUMN "show_characters" boolean DEFAULT true NOT NULL;

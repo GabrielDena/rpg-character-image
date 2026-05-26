@@ -14,4 +14,5 @@ export interface DisplayState {
     tableShape: 'round' | 'square' | 'rectangle';
     tableSeats: number;
     seatAssignments: (string | null)[];
+    showCharacters: boolean;
 }

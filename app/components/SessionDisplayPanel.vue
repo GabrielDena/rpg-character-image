@@ -6,12 +6,15 @@ const props = defineProps<{
     tableShape: 'round' | 'square' | 'rectangle';
     tableSeats: number;
     savingTableConfig: boolean;
+    showCharacters: boolean;
+    savingShowCharacters: boolean;
 }>();
 
 const emit = defineEmits<{
     toggleFitMode: [];
     setScene: [];
     setTable: [config: { shape: 'round' | 'square' | 'rectangle'; seats: number }];
+    toggleShowCharacters: [];
 }>();
 
 const showTableModal = ref(false);
@@ -24,6 +27,16 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
 <template>
     <SessionCard title="Display" class="w-36 shrink-0">
         <div class="flex flex-col gap-1 p-2">
+            <UButton
+                size="sm"
+                color="neutral"
+                variant="ghost"
+                :icon="props.showCharacters ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
+                :label="props.showCharacters ? 'Hide Chars' : 'Show Chars'"
+                :loading="props.savingShowCharacters"
+                class="w-full justify-start"
+                @click="emit('toggleShowCharacters')"
+            />
             <UButton
                 size="sm"
                 color="neutral"

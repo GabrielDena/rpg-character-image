@@ -11,6 +11,7 @@ const state = ref<DisplayState>({
     tableShape: 'round' as 'round' | 'square' | 'rectangle',
     tableSeats: 4,
     seatAssignments: [],
+    showCharacters: true,
 });
 
 const container = ref<HTMLElement | null>(null);
@@ -35,9 +36,12 @@ async function fetchState() {
 onMounted(fetchState);
 
 const store = useAppStore();
-watch(() => store.displayStateVersion, () => {
-    if (!swapping.value) fetchState();
-});
+watch(
+    () => store.displayStateVersion,
+    () => {
+        if (!swapping.value) fetchState();
+    }
+);
 
 // ── Layout computation ──────────────────────────────────────────────────────
 const count = computed(() => state.value.activeCharacters.length);
@@ -81,7 +85,10 @@ const seatPositions = computed(() => {
     } else {
         coords = Array.from({ length: seats }, (_, i) => {
             const angle = -Math.PI / 2 + (2 * Math.PI * i) / seats;
-            return { x: TABLE_CX + ORBIT_R * Math.cos(angle), y: TABLE_CY + ORBIT_R * Math.sin(angle) };
+            return {
+                x: TABLE_CX + ORBIT_R * Math.cos(angle),
+                y: TABLE_CY + ORBIT_R * Math.sin(angle),
+            };
         });
     }
 
@@ -115,7 +122,9 @@ const standingLayout = computed(() => {
 // ── Seat interaction ──────────────────────────────────────────────────────────
 const selectedSeatIndex = ref<number | null>(null);
 const selectedStandingId = ref<string | null>(null);
-const isAnythingSelected = computed(() => selectedSeatIndex.value !== null || selectedStandingId.value !== null);
+const isAnythingSelected = computed(
+    () => selectedSeatIndex.value !== null || selectedStandingId.value !== null
+);
 const swapping = ref(false);
 
 watch(displayMode, () => {
@@ -126,7 +135,10 @@ watch(displayMode, () => {
 
 function clickSeat(index: number) {
     if (swapping.value) return;
-    if (selectedSeatIndex.value === index) { selectedSeatIndex.value = null; return; }
+    if (selectedSeatIndex.value === index) {
+        selectedSeatIndex.value = null;
+        return;
+    }
     if (selectedStandingId.value !== null) {
         const charId = selectedStandingId.value;
         selectedStandingId.value = null;
@@ -144,7 +156,10 @@ function clickSeat(index: number) {
 
 function clickStanding(charId: string) {
     if (swapping.value) return;
-    if (selectedStandingId.value === charId) { selectedStandingId.value = null; return; }
+    if (selectedStandingId.value === charId) {
+        selectedStandingId.value = null;
+        return;
+    }
     if (selectedSeatIndex.value !== null) {
         const seatIdx = selectedSeatIndex.value;
         selectedSeatIndex.value = null;
@@ -169,7 +184,10 @@ async function swapSeats(from: number, to: number) {
     try {
         await $fetch('/api/display-state', {
             method: 'PATCH',
-            body: { seatAssignments: assignments, password: localStorage.getItem('app_password') ?? '' },
+            body: {
+                seatAssignments: assignments,
+                password: localStorage.getItem('app_password') ?? '',
+            },
         });
     } catch {
         await fetchState();
@@ -188,7 +206,10 @@ async function placeInSeat(characterId: string, seatIndex: number) {
     try {
         await $fetch('/api/display-state', {
             method: 'PATCH',
-            body: { seatAssignments: assignments, password: localStorage.getItem('app_password') ?? '' },
+            body: {
+                seatAssignments: assignments,
+                password: localStorage.getItem('app_password') ?? '',
+            },
         });
     } catch {
         await fetchState();
@@ -205,7 +226,10 @@ async function ejectFromSeat(seatIndex: number) {
     try {
         await $fetch('/api/display-state', {
             method: 'PATCH',
-            body: { seatAssignments: assignments, password: localStorage.getItem('app_password') ?? '' },
+            body: {
+                seatAssignments: assignments,
+                password: localStorage.getItem('app_password') ?? '',
+            },
         });
     } catch {
         await fetchState();
@@ -258,7 +282,7 @@ const imageStyle = computed<CSSProperties>(() => {
         <!-- Empty state (scene only) -->
         <Transition name="fade">
             <div
-                v-if="count === 0 && displayMode === 'scene'"
+                v-if="count === 0 && displayMode === 'scene' && state.showCharacters"
                 class="flex h-full flex-col items-center justify-center gap-3"
             >
                 <UIcon
@@ -272,7 +296,7 @@ const imageStyle = computed<CSSProperties>(() => {
         <!-- Character images (scene only) -->
         <Transition name="fade">
             <div
-                v-if="count > 0 && displayMode === 'scene'"
+                v-if="count > 0 && displayMode === 'scene' && state.showCharacters"
                 class="h-full w-full overflow-hidden"
                 :style="{ columnCount: cols, columnGap: '4px' }"
             >
@@ -291,7 +315,7 @@ const imageStyle = computed<CSSProperties>(() => {
         <!-- Lightbox (scene only) -->
         <Transition name="fade">
             <div
-                v-if="focusedCharacter && displayMode === 'scene'"
+                v-if="focusedCharacter && displayMode === 'scene' && state.showCharacters"
                 class="absolute inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/80"
                 @click="closeLightbox"
             >
@@ -307,7 +331,7 @@ const imageStyle = computed<CSSProperties>(() => {
         <!-- Table view -->
         <Transition name="fade">
             <div
-                v-if="displayMode === 'table'"
+                v-if="displayMode === 'table' && state.showCharacters"
                 class="absolute inset-0"
             >
                 <svg
@@ -380,7 +404,11 @@ const imageStyle = computed<CSSProperties>(() => {
                             :key="`scp-${si}`"
                         >
                             <clipPath :id="`standing-clip-${si}`">
-                                <circle :cx="s.x" :cy="s.y" :r="STANDING_R" />
+                                <circle
+                                    :cx="s.x"
+                                    :cy="s.y"
+                                    :r="STANDING_R"
+                                />
                             </clipPath>
                         </template>
                     </defs>
@@ -388,25 +416,37 @@ const imageStyle = computed<CSSProperties>(() => {
                     <!-- Rectangle table surface -->
                     <g v-if="state.tableShape === 'rectangle'">
                         <rect
-                            x="700" y="425" width="520" height="230" rx="14"
+                            x="700"
+                            y="425"
+                            width="520"
+                            height="230"
+                            rx="14"
                             fill="url(#woodGradSquare)"
                             filter="url(#tableShadow)"
                         />
                         <rect
-                            x="700" y="425" width="520" height="230" rx="14"
+                            x="700"
+                            y="425"
+                            width="520"
+                            height="230"
+                            rx="14"
                             fill="none"
                             stroke="rgba(184,120,64,0.5)"
                             stroke-width="3"
                         />
                         <rect
-                            x="710" y="435" width="500" height="210" rx="10"
+                            x="710"
+                            y="435"
+                            width="500"
+                            height="210"
+                            rx="10"
                             fill="none"
                             stroke="rgba(0,0,0,0.2)"
                             stroke-width="6"
                         />
                     </g>
 
-        <!-- Round table surface -->
+                    <!-- Round table surface -->
                     <circle
                         v-if="state.tableShape === 'round'"
                         :cx="TABLE_CX"
@@ -472,7 +512,9 @@ const imageStyle = computed<CSSProperties>(() => {
                     <g
                         v-for="(seat, i) in seatPositions"
                         :key="`seat-${i}`"
-                        :style="{ cursor: seat.character || isAnythingSelected ? 'pointer' : 'default' }"
+                        :style="{
+                            cursor: seat.character || isAnythingSelected ? 'pointer' : 'default',
+                        }"
                         @click="clickSeat(i)"
                     >
                         <!-- Selection ring -->
@@ -493,7 +535,9 @@ const imageStyle = computed<CSSProperties>(() => {
                             :cx="seat.x"
                             :cy="seat.y"
                             :r="AVATAR_R"
-                            :fill="isAnythingSelected ? 'rgba(245,158,11,0.12)' : 'rgba(30,30,40,0.55)'"
+                            :fill="
+                                isAnythingSelected ? 'rgba(245,158,11,0.12)' : 'rgba(30,30,40,0.55)'
+                            "
                             :stroke="isAnythingSelected ? '#f59e0b' : '#4b5563'"
                             stroke-width="2"
                             stroke-dasharray="10 5"
@@ -569,22 +613,38 @@ const imageStyle = computed<CSSProperties>(() => {
                     </g>
                     <!-- Standing area panel -->
                     <rect
-                        x="1545" y="80" width="330" height="920" rx="14"
+                        x="1545"
+                        y="80"
+                        width="330"
+                        height="920"
+                        rx="14"
                         fill="rgba(10,15,25,0.6)"
                     />
                     <text
-                        x="1710" y="120"
-                        text-anchor="middle" font-size="15" font-weight="600"
-                        fill="rgba(156,163,175,0.6)" letter-spacing="4"
+                        x="1710"
+                        y="120"
+                        text-anchor="middle"
+                        font-size="15"
+                        font-weight="600"
+                        fill="rgba(156,163,175,0.6)"
+                        letter-spacing="4"
                         font-family="ui-sans-serif, system-ui, sans-serif"
-                    >STANDING</text>
+                    >
+                        STANDING
+                    </text>
 
                     <!-- Eject zone (shown when a seat is selected) -->
                     <rect
                         v-if="selectedSeatIndex !== null"
-                        x="1545" y="80" width="330" height="920" rx="14"
+                        x="1545"
+                        y="80"
+                        width="330"
+                        height="920"
+                        rx="14"
                         fill="rgba(245,158,11,0.06)"
-                        stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="8 4"
+                        stroke="#f59e0b"
+                        stroke-width="1.5"
+                        stroke-dasharray="8 4"
                         style="cursor: pointer"
                         @click="clickStandingZone()"
                     />
@@ -599,45 +659,81 @@ const imageStyle = computed<CSSProperties>(() => {
                         <!-- Selection ring -->
                         <circle
                             v-if="selectedStandingId === s.character.id"
-                            :cx="s.x" :cy="s.y" :r="STANDING_R + 10"
-                            fill="none" stroke="#f59e0b" stroke-width="3"
+                            :cx="s.x"
+                            :cy="s.y"
+                            :r="STANDING_R + 10"
+                            fill="none"
+                            stroke="#f59e0b"
+                            stroke-width="3"
                             class="seat-selection-ring"
                         />
 
                         <!-- Avatar background -->
-                        <circle :cx="s.x" :cy="s.y" :r="STANDING_R + 3" fill="#1f2937" />
+                        <circle
+                            :cx="s.x"
+                            :cy="s.y"
+                            :r="STANDING_R + 3"
+                            fill="#1f2937"
+                        />
 
                         <!-- Avatar image -->
                         <image
                             v-if="s.character.avatarUrl"
                             :href="s.character.avatarUrl"
-                            :x="s.x - STANDING_R" :y="s.y - STANDING_R"
-                            :width="STANDING_R * 2" :height="STANDING_R * 2"
+                            :x="s.x - STANDING_R"
+                            :y="s.y - STANDING_R"
+                            :width="STANDING_R * 2"
+                            :height="STANDING_R * 2"
                             :clip-path="`url(#standing-clip-${si})`"
                             preserveAspectRatio="xMidYMid slice"
                         />
-                        <circle v-else :cx="s.x" :cy="s.y" :r="STANDING_R" fill="#374151" />
+                        <circle
+                            v-else
+                            :cx="s.x"
+                            :cy="s.y"
+                            :r="STANDING_R"
+                            fill="#374151"
+                        />
 
                         <!-- Border ring -->
-                        <circle :cx="s.x" :cy="s.y" :r="STANDING_R + 3" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
+                        <circle
+                            :cx="s.x"
+                            :cy="s.y"
+                            :r="STANDING_R + 3"
+                            fill="none"
+                            stroke="rgba(255,255,255,0.2)"
+                            stroke-width="2"
+                        />
 
                         <!-- Name -->
                         <text
-                            :x="s.x" :y="s.y + STANDING_R + 20"
-                            text-anchor="middle" font-size="17" font-weight="600"
-                            fill="white" paint-order="stroke" stroke="#000"
-                            stroke-width="4" stroke-linejoin="round"
+                            :x="s.x"
+                            :y="s.y + STANDING_R + 20"
+                            text-anchor="middle"
+                            font-size="17"
+                            font-weight="600"
+                            fill="white"
+                            paint-order="stroke"
+                            stroke="#000"
+                            stroke-width="4"
+                            stroke-linejoin="round"
                             font-family="ui-sans-serif, system-ui, sans-serif"
-                        >{{ s.character.name }}</text>
+                        >
+                            {{ s.character.name }}
+                        </text>
 
                         <!-- Hitbox -->
-                        <circle :cx="s.x" :cy="s.y" :r="STANDING_R + 14" fill="transparent" pointer-events="all" />
+                        <circle
+                            :cx="s.x"
+                            :cy="s.y"
+                            :r="STANDING_R + 14"
+                            fill="transparent"
+                            pointer-events="all"
+                        />
                     </g>
-
                 </svg>
             </div>
         </Transition>
-
     </div>
 </template>
 
@@ -656,8 +752,15 @@ const imageStyle = computed<CSSProperties>(() => {
 }
 
 @keyframes seat-pulse {
-    0%, 100% { opacity: 1; stroke-width: 3; }
-    50% { opacity: 0.4; stroke-width: 5; }
+    0%,
+    100% {
+        opacity: 1;
+        stroke-width: 3;
+    }
+    50% {
+        opacity: 0.4;
+        stroke-width: 5;
+    }
 }
 </style>
 
