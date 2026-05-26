@@ -48,7 +48,7 @@ const count = computed(() => state.value.activeCharacters.length);
 
 const cols = computed(() => {
     if (count.value === 0) return 1;
-    const maxCols = containerWidth.value > 1980 ? 5 : 3;
+    const maxCols = containerWidth.value > 1980 ? 4 : 3;
     return Math.min(count.value, maxCols);
 });
 
