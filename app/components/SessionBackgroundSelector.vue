@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { BackgroundWithUrl } from '~/types/background';
+const show = defineModel();
 
 const props = defineProps<{
     backgrounds: BackgroundWithUrl[];
@@ -13,7 +14,6 @@ const emit = defineEmits<{
 }>();
 
 const bgSelectorOpen = ref<boolean>(false);
-const show = ref(false);
 </script>
 
 <template>

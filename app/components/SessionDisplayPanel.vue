@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const show = defineModel();
+
 const props = defineProps<{
     galleryFitMode: 'cover' | 'contain';
     savingFitMode: boolean;
@@ -18,7 +20,6 @@ const emit = defineEmits<{
 }>();
 
 const showTableModal = ref(false);
-const show = ref(true);
 
 function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats: number }) {
     emit('setTable', config);
