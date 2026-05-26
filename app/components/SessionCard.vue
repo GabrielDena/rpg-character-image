@@ -13,7 +13,7 @@ defineProps<{
             <h2 class="text-xs font-semibold tracking-widest text-gray-500 uppercase">
                 {{ title }}
             </h2>
-            <div>
+            <div class="flex items-center gap-1">
                 <slot name="action" />
             </div>
         </div>

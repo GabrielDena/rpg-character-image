@@ -18,6 +18,7 @@ const emit = defineEmits<{
 }>();
 
 const showTableModal = ref(false);
+const show = ref(true);
 
 function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats: number }) {
     emit('setTable', config);
@@ -25,8 +26,23 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
 </script>
 
 <template>
-    <SessionCard title="Display" class="w-36 shrink-0">
-        <div class="flex flex-col gap-1 p-2">
+    <SessionCard
+        title="Display"
+        class="w-36 shrink-0"
+    >
+        <template #action>
+            <UButton
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                :icon="show ? 'i-heroicons-eye' : 'i-heroicons-eye-slash'"
+                @click="show = !show"
+            />
+        </template>
+        <div
+            v-if="show"
+            class="flex flex-col gap-1 p-2"
+        >
             <UButton
                 size="sm"
                 color="neutral"
@@ -41,7 +57,11 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
                 size="sm"
                 color="neutral"
                 variant="ghost"
-                :icon="props.galleryFitMode === 'cover' ? 'i-heroicons-arrows-pointing-out' : 'i-heroicons-arrows-pointing-in'"
+                :icon="
+                    props.galleryFitMode === 'cover'
+                        ? 'i-heroicons-arrows-pointing-out'
+                        : 'i-heroicons-arrows-pointing-in'
+                "
                 :label="props.galleryFitMode === 'cover' ? 'Show Full' : 'Zoom Fill'"
                 :loading="props.savingFitMode"
                 class="w-full justify-start"
@@ -90,3 +110,4 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
         @confirm="onTableConfirm"
     />
 </template>
+
