@@ -50,6 +50,13 @@
       "when": 1779732918147,
       "tag": "0006_good_gorilla_man",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779799347356,
+      "tag": "0007_lethal_goblin_queen",
+      "breakpoints": true
     }
   ]
 }

@@ -52,6 +52,7 @@ export default defineEventHandler(async () => {
             tableShape: (rows[0]?.tableShape ?? 'round') as 'round' | 'square' | 'rectangle',
             tableSeats: rows[0]?.tableSeats ?? 4,
             seatAssignments: reconcileSeatAssignments(rows[0]?.seatAssignments, [], rows[0]?.tableSeats ?? 4),
+            showCharacters: rows[0]?.showCharacters ?? true,
         };
     }
 
@@ -77,6 +78,7 @@ export default defineEventHandler(async () => {
             tableShape: (state.tableShape ?? 'round') as 'round' | 'square' | 'rectangle',
             tableSeats: state.tableSeats ?? 4,
             seatAssignments: reconcileSeatAssignments(state.seatAssignments, [], state.tableSeats ?? 4),
+            showCharacters: state.showCharacters ?? true,
         };
     }
 
@@ -128,6 +130,7 @@ export default defineEventHandler(async () => {
         tableShape: (state.tableShape ?? 'round') as 'round' | 'square' | 'rectangle',
         tableSeats: state.tableSeats ?? 4,
         seatAssignments: reconcileSeatAssignments(state.seatAssignments, ids, state.tableSeats ?? 4),
+        showCharacters: state.showCharacters ?? true,
     };
 });
 
