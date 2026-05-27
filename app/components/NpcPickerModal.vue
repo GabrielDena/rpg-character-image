@@ -69,7 +69,7 @@ function confirm() {
     <UModal
         :open="open"
         title="Add NPC to Scene"
-        :ui="{ content: 'sm:max-w-md' }"
+        :ui="{ content: 'sm:max-w-200' }"
         @update:open="emit('update:open', $event)"
     >
         <template #body>
@@ -108,14 +108,14 @@ function confirm() {
 
                 <ul
                     v-else
-                    class="max-h-72 space-y-0.5 overflow-y-auto"
+                    class="grid max-h-72 grid-cols-5 space-y-0.5 overflow-y-auto"
                 >
                     <li
                         v-for="character in filtered"
                         :key="character.id"
                     >
                         <button
-                            class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-colors"
+                            class="relative flex w-full flex-col items-center gap-3 rounded-xl px-3 py-2.5 transition-colors"
                             :class="
                                 selected.has(character.id)
                                     ? 'bg-violet-500/15 ring-1 ring-violet-500/40'
@@ -154,7 +154,7 @@ function confirm() {
                             <UIcon
                                 v-if="selected.has(character.id)"
                                 name="i-heroicons-check-circle-solid"
-                                class="size-5 shrink-0 text-violet-400"
+                                class="absolute top-2 right-2 size-5 shrink-0 text-violet-400"
                             />
                         </button>
                     </li>
