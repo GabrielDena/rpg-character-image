@@ -440,7 +440,8 @@ async function editCharacter() {
                                         v-if="img.url"
                                         :src="img.url"
                                         alt="Character image"
-                                        class="size-full object-cover"
+                                        class="size-full cursor-pointer object-cover"
+                                        @click="setExistingDefault(img)"
                                     />
                                 </div>
                                 <div
@@ -459,7 +460,7 @@ async function editCharacter() {
                                     />
                                 </div>
                                 <button
-                                    class="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-red-500 opacity-0 transition-opacity group-hover:opacity-100"
+                                    class="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-red-500 2xl:opacity-0 2xl:transition-opacity 2xl:group-hover:opacity-100"
                                     @click="deleteExistingImage(img)"
                                 >
                                     <UIcon
@@ -486,7 +487,8 @@ async function editCharacter() {
                                     <img
                                         :src="img.previewUrl"
                                         :alt="img.file.name"
-                                        class="size-full object-cover"
+                                        class="size-full cursor-pointer object-cover"
+                                        @click="setPendingDefault(img.uid)"
                                     />
                                 </div>
                                 <div
@@ -505,7 +507,7 @@ async function editCharacter() {
                                     />
                                 </div>
                                 <button
-                                    class="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-red-500 opacity-0 transition-opacity group-hover:opacity-100"
+                                    class="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-red-500 2xl:opacity-0 2xl:transition-opacity 2xl:group-hover:opacity-100"
                                     @click="removePending(img.uid)"
                                 >
                                     <UIcon
