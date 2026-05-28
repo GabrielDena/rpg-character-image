@@ -54,6 +54,10 @@ const existingImages = ref<ExistingImage[]>([]);
 const loadingImages = ref(false);
 const removingBg = ref(false);
 
+const showDeleteModal = ref(false);
+const imageToDelete = ref<ExistingImage | null>(null);
+const deletingImage = ref(false);
+
 function getPassword() {
     return localStorage.getItem('app_password') ?? '';
 }
@@ -198,19 +202,37 @@ async function setExistingDefault(img: ExistingImage) {
     }
 }
 
-async function deleteExistingImage(img: ExistingImage) {
+function promptDeleteImage(img: ExistingImage) {
+    imageToDelete.value = img;
+    showDeleteModal.value = true;
+}
+
+async function confirmDeleteImage() {
+    if (!imageToDelete.value) return;
+
+    deletingImage.value = true;
+    const img = imageToDelete.value;
+
     try {
         await $fetch(`/api/character-images/${img.id}`, {
             method: 'DELETE',
             body: { password: getPassword() },
         });
+
         const idx = existingImages.value.findIndex((i) => i.id === img.id);
         if (idx !== -1) existingImages.value.splice(idx, 1);
+
         if (img.isProfile && existingImages.value.length > 0) {
             existingImages.value[0]!.isProfile = true;
         }
+
+        // Close modal and clear state on success
+        showDeleteModal.value = false;
+        imageToDelete.value = null;
     } catch {
         toast.add({ title: 'Failed to delete image', color: 'error' });
+    } finally {
+        deletingImage.value = false;
     }
 }
 
@@ -440,7 +462,8 @@ async function editCharacter() {
                                         v-if="img.url"
                                         :src="img.url"
                                         alt="Character image"
-                                        class="size-full object-cover"
+                                        class="size-full cursor-pointer object-cover"
+                                        @click="setExistingDefault(img)"
                                     />
                                 </div>
                                 <div
@@ -459,8 +482,8 @@ async function editCharacter() {
                                     />
                                 </div>
                                 <button
-                                    class="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-red-500 opacity-0 transition-opacity group-hover:opacity-100"
-                                    @click="deleteExistingImage(img)"
+                                    class="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-red-500 2xl:opacity-0 2xl:transition-opacity 2xl:group-hover:opacity-100"
+                                    @click="promptDeleteImage(img)"
                                 >
                                     <UIcon
                                         name="i-heroicons-x-mark"
@@ -486,7 +509,8 @@ async function editCharacter() {
                                     <img
                                         :src="img.previewUrl"
                                         :alt="img.file.name"
-                                        class="size-full object-cover"
+                                        class="size-full cursor-pointer object-cover"
+                                        @click="setPendingDefault(img.uid)"
                                     />
                                 </div>
                                 <div
@@ -505,7 +529,7 @@ async function editCharacter() {
                                     />
                                 </div>
                                 <button
-                                    class="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-red-500 opacity-0 transition-opacity group-hover:opacity-100"
+                                    class="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-red-500 2xl:opacity-0 2xl:transition-opacity 2xl:group-hover:opacity-100"
                                     @click="removePending(img.uid)"
                                 >
                                     <UIcon
@@ -599,5 +623,38 @@ async function editCharacter() {
         :file="pendingCropFile"
         @confirm="onCropConfirm"
     />
+
+    <UModal
+        :open="showDeleteModal"
+        title="Delete Image"
+        :ui="{ content: 'sm:max-w-sm' }"
+        @update:open="showDeleteModal = $event"
+    >
+        <template #body>
+            <p class="text-sm text-gray-300">
+                Are you sure you want to delete this image? This action cannot be undone.
+            </p>
+        </template>
+
+        <template #footer>
+            <div class="flex justify-end gap-2">
+                <UButton
+                    color="neutral"
+                    variant="ghost"
+                    :disabled="deletingImage"
+                    @click="showDeleteModal = false"
+                >
+                    Cancel
+                </UButton>
+                <UButton
+                    color="error"
+                    :loading="deletingImage"
+                    @click="confirmDeleteImage"
+                >
+                    Delete
+                </UButton>
+            </div>
+        </template>
+    </UModal>
 </template>
 
