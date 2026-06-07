@@ -9,6 +9,7 @@ const props = defineProps<{
     displayMode: 'scene' | 'table';
     tableShape: 'round' | 'square' | 'rectangle';
     tableSeats: number;
+    tableSideSeats: number;
     savingTableConfig: boolean;
     showCharacters: boolean;
     savingShowCharacters: boolean;
@@ -17,13 +18,13 @@ const props = defineProps<{
 const emit = defineEmits<{
     toggleFitMode: [];
     setScene: [];
-    setTable: [config: { shape: 'round' | 'square' | 'rectangle'; seats: number }];
+    setTable: [config: { shape: 'round' | 'square' | 'rectangle'; seats: number; sideSeats: number }];
     toggleShowCharacters: [];
 }>();
 
 const showTableModal = ref(false);
 
-function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats: number }) {
+function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats: number; sideSeats: number }) {
     emit('setTable', config);
 }
 </script>
@@ -109,6 +110,7 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
         :open="showTableModal"
         :shape="props.tableShape"
         :seats="props.tableSeats"
+        :side-seats="props.tableSideSeats"
         @update:open="showTableModal = $event"
         @confirm="onTableConfirm"
     />

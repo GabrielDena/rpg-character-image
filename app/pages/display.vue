@@ -10,6 +10,7 @@ const state = ref<DisplayState>({
     displayMode: 'scene',
     tableShape: 'round' as 'round' | 'square' | 'rectangle',
     tableSeats: 4,
+    tableSideSeats: 0,
     seatAssignments: [],
     showCharacters: true,
 });
@@ -67,11 +68,15 @@ const seatPositions = computed(() => {
     const seats = state.value.tableSeats;
     const shape = state.value.tableShape;
 
+    const sideSeats = state.value.tableSideSeats ?? 0;
+
     let coords: { x: number; y: number }[];
     if (shape === 'rectangle') {
-        const top = Math.ceil(seats / 2);
-        const bot = seats - top;
+        const longCount = Math.max(0, seats - 2 * sideSeats);
+        const top = Math.ceil(longCount / 2);
+        const bot = longCount - top;
         const gap = (k: number) => (k > 1 ? Math.min(155, 420 / (k - 1)) : 0);
+        const sideGap = (k: number) => (k > 1 ? Math.min(130, 220 / (k - 1)) : 0);
         coords = [
             ...Array.from({ length: top }, (_, i) => ({
                 x: TABLE_CX + (i - (top - 1) / 2) * gap(top),
@@ -80,6 +85,14 @@ const seatPositions = computed(() => {
             ...Array.from({ length: bot }, (_, i) => ({
                 x: TABLE_CX + (i - (bot - 1) / 2) * gap(bot),
                 y: 750,
+            })),
+            ...Array.from({ length: sideSeats }, (_, i) => ({
+                x: 630,
+                y: TABLE_CY + (i - (sideSeats - 1) / 2) * sideGap(sideSeats),
+            })),
+            ...Array.from({ length: sideSeats }, (_, i) => ({
+                x: 1290,
+                y: TABLE_CY + (i - (sideSeats - 1) / 2) * sideGap(sideSeats),
             })),
         ];
     } else {

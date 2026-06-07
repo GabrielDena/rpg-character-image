@@ -121,7 +121,7 @@ async function onApplyScene(scene: SavedScene) {
     await onSceneUpdated(scene.characterIds);
     await onBackgroundSelected(scene.backgroundId);
     if (scene.displayMode === 'table') {
-        await onSetTable({ shape: scene.tableShape, seats: scene.tableSeats });
+        await onSetTable({ shape: scene.tableShape, seats: scene.tableSeats, sideSeats: scene.tableSideSeats });
     } else {
         await onSetScene();
     }
@@ -155,6 +155,7 @@ async function toggleShowCharacters() {
 const displayMode = ref<'scene' | 'table'>('scene');
 const tableShape = ref<'round' | 'square' | 'rectangle'>('round');
 const tableSeats = ref(4);
+const tableSideSeats = ref(0);
 const savingTableConfig = ref(false);
 
 async function onSetScene() {
@@ -171,7 +172,7 @@ async function onSetScene() {
     }
 }
 
-async function onSetTable(config: { shape: 'round' | 'square' | 'rectangle'; seats: number }) {
+async function onSetTable(config: { shape: 'round' | 'square' | 'rectangle'; seats: number; sideSeats: number }) {
     savingTableConfig.value = true;
     try {
         await $fetch('/api/display-state', {
@@ -180,12 +181,14 @@ async function onSetTable(config: { shape: 'round' | 'square' | 'rectangle'; sea
                 displayMode: 'table',
                 tableShape: config.shape,
                 tableSeats: config.seats,
+                tableSideSeats: config.sideSeats,
                 password: getPassword(),
             },
         });
         displayMode.value = 'table';
         tableShape.value = config.shape;
         tableSeats.value = config.seats;
+        tableSideSeats.value = config.sideSeats;
     } catch {
     } finally {
         savingTableConfig.value = false;
@@ -279,6 +282,7 @@ watch(
                 displayMode: 'scene' | 'table';
                 tableShape: 'round' | 'square' | 'rectangle';
                 tableSeats: number;
+                tableSideSeats: number;
                 showCharacters: boolean;
             }>('/api/display-state');
             activeCharacterIds.value = state.activeCharacterIds;
@@ -288,6 +292,7 @@ watch(
             displayMode.value = state.displayMode ?? 'scene';
             tableShape.value = state.tableShape ?? 'round';
             tableSeats.value = state.tableSeats ?? 4;
+            tableSideSeats.value = state.tableSideSeats ?? 0;
             showCharacters.value = state.showCharacters ?? true;
         } catch {
             // non-fatal
@@ -310,6 +315,7 @@ onMounted(async () => {
         displayMode: 'scene' | 'table';
         tableShape: 'round' | 'square' | 'rectangle';
         tableSeats: number;
+        tableSideSeats: number;
         showCharacters: boolean;
     }>('/api/display-state');
 
@@ -330,6 +336,7 @@ onMounted(async () => {
         displayMode.value = state.displayMode ?? 'scene';
         tableShape.value = state.tableShape ?? 'round';
         tableSeats.value = state.tableSeats ?? 4;
+        tableSideSeats.value = state.tableSideSeats ?? 0;
         showCharacters.value = state.showCharacters ?? true;
     } catch {
     } finally {
@@ -375,6 +382,7 @@ onMounted(async () => {
                     :display-mode="displayMode"
                     :table-shape="tableShape"
                     :table-seats="tableSeats"
+                    :table-side-seats="tableSideSeats"
                     :saving-table-config="savingTableConfig"
                     :show-characters="showCharacters"
                     :saving-show-characters="savingShowCharacters"
@@ -414,6 +422,7 @@ onMounted(async () => {
                     :display-mode="displayMode"
                     :table-shape="tableShape"
                     :table-seats="tableSeats"
+                    :table-side-seats="tableSideSeats"
                     :all-characters="allCharacters"
                     :all-backgrounds="allBackgrounds"
                     class="w-40 shrink-0"

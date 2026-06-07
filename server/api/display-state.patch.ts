@@ -11,6 +11,7 @@ export default defineEventHandler(async (event) => {
         displayMode?: 'scene' | 'table';
         tableShape?: 'round' | 'square' | 'rectangle';
         tableSeats?: number;
+        tableSideSeats?: number;
         seatAssignments?: (string | null)[] | null;
         showCharacters?: boolean;
         password: string;
@@ -32,6 +33,7 @@ export default defineEventHandler(async (event) => {
     if ('displayMode' in body && body.displayMode) patch.displayMode = body.displayMode;
     if ('tableShape' in body && body.tableShape) patch.tableShape = body.tableShape;
     if ('tableSeats' in body && body.tableSeats != null) patch.tableSeats = body.tableSeats;
+    if ('tableSideSeats' in body && body.tableSideSeats != null) patch.tableSideSeats = body.tableSideSeats;
     if ('seatAssignments' in body) patch.seatAssignments = body.seatAssignments ?? null;
     if ('showCharacters' in body && body.showCharacters != null) patch.showCharacters = body.showCharacters;
 

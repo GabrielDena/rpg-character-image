@@ -72,6 +72,7 @@ export const displayState = pgTable('display_state', {
     tableSeats: integer('table_seats').default(4).notNull(),
     seatAssignments: json('seat_assignments').$type<(string | null)[]>(),
     showCharacters: boolean('show_characters').default(true).notNull(),
+    tableSideSeats: integer('table_side_seats').default(0).notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
@@ -103,6 +104,7 @@ export const savedScenes = pgTable('saved_scenes', {
     displayMode: text('display_mode').default('scene').notNull(),
     tableShape: text('table_shape').default('round').notNull(),
     tableSeats: integer('table_seats').default(4).notNull(),
+    tableSideSeats: integer('table_side_seats').default(0).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

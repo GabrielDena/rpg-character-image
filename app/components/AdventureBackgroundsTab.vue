@@ -41,21 +41,43 @@ async function fetchBackgrounds() {
 
 async function handleFileSelect(event: Event) {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
+    const files = Array.from(input.files ?? []);
+    if (!files.length) return;
+
     uploading.value = true;
     try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('adventureId', props.adventureId);
-        formData.append('systemId', props.systemId);
-        formData.append('name', file.name.replace(/\.[^.]+$/, ''));
-        formData.append('password', getPassword());
-        await $fetch('/api/backgrounds', { method: 'POST', body: formData });
+        const results = await Promise.allSettled(
+            files.map((file) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('adventureId', props.adventureId);
+                formData.append('systemId', props.systemId);
+                formData.append('name', file.name.replace(/\.[^.]+$/, ''));
+                formData.append('password', getPassword());
+                return $fetch('/api/backgrounds', { method: 'POST', body: formData });
+            })
+        );
+
+        const failed = results.filter((r) => r.status === 'rejected').length;
+        const succeeded = results.length - failed;
+
         await fetchBackgrounds();
-        toast.add({ title: 'Background uploaded', color: 'success', icon: 'i-heroicons-check-circle' });
-    } catch (e: unknown) {
-        toast.add({ title: 'Upload failed', color: 'error', description: e instanceof Error ? e.message : 'Unknown error' });
+
+        if (failed === 0) {
+            toast.add({
+                title: succeeded === 1 ? 'Background uploaded' : `${succeeded} backgrounds uploaded`,
+                color: 'success',
+                icon: 'i-heroicons-check-circle',
+            });
+        } else if (succeeded === 0) {
+            toast.add({ title: 'Upload failed', color: 'error' });
+        } else {
+            toast.add({
+                title: `${succeeded} uploaded, ${failed} failed`,
+                color: 'warning',
+                icon: 'i-heroicons-exclamation-triangle',
+            });
+        }
     } finally {
         uploading.value = false;
         input.value = '';
@@ -122,6 +144,7 @@ onMounted(fetchBackgrounds);
                     ref="fileInputRef"
                     type="file"
                     accept="image/*"
+                    multiple
                     class="hidden"
                     @change="handleFileSelect"
                 />

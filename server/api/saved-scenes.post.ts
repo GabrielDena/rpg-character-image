@@ -8,7 +8,8 @@ const bodySchema = z.object({
     backgroundId: z.string().uuid().nullable().default(null),
     displayMode: z.enum(['scene', 'table']).default('scene'),
     tableShape: z.enum(['round', 'square', 'rectangle']).default('round'),
-    tableSeats: z.number().int().min(2).max(8).default(4),
+    tableSeats: z.number().int().min(1).default(4),
+    tableSideSeats: z.number().int().min(0).default(0),
     password: z.string(),
 });
 

@@ -7,6 +7,7 @@ export interface SavedScene {
     displayMode: 'scene' | 'table';
     tableShape: 'round' | 'square' | 'rectangle';
     tableSeats: number;
+    tableSideSeats: number;
     createdAt: Date;
 }
 

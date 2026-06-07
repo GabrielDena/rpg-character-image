@@ -10,6 +10,7 @@ const props = defineProps<{
     displayMode: 'scene' | 'table';
     tableShape: 'round' | 'square' | 'rectangle';
     tableSeats: number;
+    tableSideSeats: number;
     allCharacters: CharacterWithUrl[];
     allBackgrounds: BackgroundWithUrl[];
 }>();
@@ -66,6 +67,7 @@ async function saveCurrentScene() {
                 displayMode: props.displayMode,
                 tableShape: props.tableShape,
                 tableSeats: props.tableSeats,
+                tableSideSeats: props.tableSideSeats,
                 password: getPassword(),
             },
         });
