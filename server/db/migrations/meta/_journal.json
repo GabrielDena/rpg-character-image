@@ -57,6 +57,13 @@
       "when": 1779799347356,
       "tag": "0007_lethal_goblin_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1780862499501,
+      "tag": "0008_curious_trauma",
+      "breakpoints": true
     }
   ]
 }

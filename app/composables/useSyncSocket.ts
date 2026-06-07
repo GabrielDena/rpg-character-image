@@ -10,6 +10,9 @@ export const useSyncSocket = () => {
             case 'character-updated':
                 store.notifyDisplayStateUpdated();
                 break;
+            case 'scene-updated':
+                store.notifyScenesUpdated();
+                break;
             default:
                 console.warn('Unknown message type:', (message as any).type);
         }

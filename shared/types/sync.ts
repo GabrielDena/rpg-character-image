@@ -1,4 +1,8 @@
-export type PayloadTypes = 'background-updated' | 'adventure-updated' | 'character-updated';
+export type PayloadTypes =
+    | 'background-updated'
+    | 'adventure-updated'
+    | 'character-updated'
+    | 'scene-updated';
 
 interface BasePayload {
     type: PayloadTypes;
@@ -28,4 +32,16 @@ export interface CharacterUpdatedPayload extends BasePayload {
     };
 }
 
-export type WSPayload = BackgroundPayload | AdventurePayload | CharacterUpdatedPayload;
+export interface SceneUpdatedPayload extends BasePayload {
+    type: 'scene-updated';
+    data: {
+        adventureId: string;
+    };
+}
+
+export type WSPayload =
+    | BackgroundPayload
+    | AdventurePayload
+    | CharacterUpdatedPayload
+    | SceneUpdatedPayload;
+
