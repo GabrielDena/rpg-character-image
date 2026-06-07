@@ -13,6 +13,7 @@ export interface DisplayState {
     displayMode: 'scene' | 'table';
     tableShape: 'round' | 'square' | 'rectangle';
     tableSeats: number;
+    tableSideSeats: number;
     seatAssignments: (string | null)[];
     showCharacters: boolean;
 }

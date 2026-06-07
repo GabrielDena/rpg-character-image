@@ -58,6 +58,7 @@ async function createSystem() {
     <UModal
         :open="open"
         title="New System"
+        :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
         @update:open="emit('update:open', $event)"
     >
         <template #body>

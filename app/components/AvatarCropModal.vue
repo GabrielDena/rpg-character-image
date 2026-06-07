@@ -163,6 +163,7 @@ onUnmounted(() => {
         title="Crop Avatar"
         description="Drag to reposition · Scroll or pinch to zoom"
         :ui="{ content: 'sm:max-w-sm' }"
+        :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
         @update:open="emit('update:open', $event)"
     >
         <template #body>

@@ -70,6 +70,7 @@ function confirm() {
         :open="open"
         title="Add NPC to Scene"
         :ui="{ content: 'sm:max-w-200' }"
+        :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
         @update:open="emit('update:open', $event)"
     >
         <template #body>
@@ -78,7 +79,6 @@ function confirm() {
                     v-model="search"
                     placeholder="Search NPCs…"
                     leading-icon="i-heroicons-magnifying-glass"
-                    autofocus
                 />
 
                 <div

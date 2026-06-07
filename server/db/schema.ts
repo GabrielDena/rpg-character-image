@@ -1,4 +1,13 @@
-import { boolean, integer, json, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import {
+    boolean,
+    integer,
+    json,
+    pgTable,
+    text,
+    timestamp,
+    uuid,
+    varchar,
+} from 'drizzle-orm/pg-core';
 
 export const systems = pgTable('systems', {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -63,6 +72,7 @@ export const displayState = pgTable('display_state', {
     tableSeats: integer('table_seats').default(4).notNull(),
     seatAssignments: json('seat_assignments').$type<(string | null)[]>(),
     showCharacters: boolean('show_characters').default(true).notNull(),
+    tableSideSeats: integer('table_side_seats').default(0).notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
@@ -82,4 +92,22 @@ export type CharacterImage = typeof characterImages.$inferSelect;
 export type NewCharacterImage = typeof characterImages.$inferInsert;
 
 export type DisplayState = typeof displayState.$inferSelect;
+
+export const savedScenes = pgTable('saved_scenes', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    adventureId: uuid('adventure_id')
+        .notNull()
+        .references(() => adventures.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    characterIds: uuid('character_ids').array().default([]).notNull(),
+    backgroundId: uuid('background_id').references(() => backgrounds.id, { onDelete: 'set null' }),
+    displayMode: text('display_mode').default('scene').notNull(),
+    tableShape: text('table_shape').default('round').notNull(),
+    tableSeats: integer('table_seats').default(4).notNull(),
+    tableSideSeats: integer('table_side_seats').default(0).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type SavedSceneRow = typeof savedScenes.$inferSelect;
+export type NewSavedScene = typeof savedScenes.$inferInsert;
 
