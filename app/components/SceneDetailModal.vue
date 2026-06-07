@@ -54,6 +54,7 @@ function deleteScene() {
     <UModal
         :open="open"
         :ui="{ content: 'sm:max-w-md' }"
+        :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
         @update:open="emit('update:open', $event)"
     >
         <template #title>

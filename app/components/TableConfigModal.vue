@@ -50,6 +50,7 @@ function confirm() {
         :open="open"
         title="Table Setup"
         :ui="{ content: 'sm:max-w-sm' }"
+        :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
         @update:open="emit('update:open', $event)"
     >
         <template #body>

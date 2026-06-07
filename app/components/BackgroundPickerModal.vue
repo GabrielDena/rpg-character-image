@@ -40,6 +40,7 @@ function confirm(id: string) {
         :open="open"
         title="Select Scene Background"
         :ui="{ content: 'sm:max-w-md' }"
+        :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
         @update:open="emit('update:open', $event)"
     >
         <template #body>

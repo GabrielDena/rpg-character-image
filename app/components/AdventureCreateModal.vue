@@ -60,6 +60,7 @@ async function createAdventure() {
     <UModal
         :open="open"
         title="New Adventure"
+        :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
         @update:open="emit('update:open', $event)"
     >
         <template #body>

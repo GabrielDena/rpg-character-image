@@ -329,6 +329,7 @@ async function editCharacter() {
         :open="open"
         :title="isEditing ? 'Edit Character' : 'New Character'"
         :ui="{ content: 'sm:max-w-lg' }"
+        :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
         @update:open="emit('update:open', $event)"
     >
         <template #body>
@@ -628,6 +629,7 @@ async function editCharacter() {
         :open="showDeleteModal"
         title="Delete Image"
         :ui="{ content: 'sm:max-w-sm' }"
+        :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
         @update:open="showDeleteModal = $event"
     >
         <template #body>
