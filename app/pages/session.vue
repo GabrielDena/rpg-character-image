@@ -2,6 +2,7 @@
 import type { Adventure, System } from '#shared/types/models';
 import type { BackgroundWithUrl } from '~/types/background';
 import type { CharacterWithUrl } from '~/types/character';
+import type { SavedScene } from '~/types/scene';
 
 function getPassword() {
     return localStorage.getItem('app_password') ?? '';
@@ -113,6 +114,16 @@ async function onSceneUpdated(ids: string[]) {
         });
     } finally {
         savingScene.value = false;
+    }
+}
+
+async function onApplyScene(scene: SavedScene) {
+    await onSceneUpdated(scene.characterIds);
+    await onBackgroundSelected(scene.backgroundId);
+    if (scene.displayMode === 'table') {
+        await onSetTable({ shape: scene.tableShape, seats: scene.tableSeats });
+    } else {
+        await onSetScene();
     }
 }
 
@@ -367,6 +378,7 @@ onMounted(async () => {
                     :saving-table-config="savingTableConfig"
                     :show-characters="showCharacters"
                     :saving-show-characters="savingShowCharacters"
+                    class="w-40 shrink-0"
                     @toggle-fit-mode="toggleFitMode"
                     @set-scene="onSetScene"
                     @set-table="onSetTable"
@@ -392,8 +404,20 @@ onMounted(async () => {
                     :active-ids="activeCharacterIds"
                     :loading="loadingCharacters"
                     :saving="savingScene"
-                    class="min-w-0 flex-1"
+                    class="min-w-0 flex-1 shrink-0"
                     @update="onSceneUpdated"
+                />
+                <SavedScenesPanel
+                    :adventure-id="activeAdventure.id"
+                    :active-character-ids="activeCharacterIds"
+                    :selected-background-id="selectedBackground?.id ?? null"
+                    :display-mode="displayMode"
+                    :table-shape="tableShape"
+                    :table-seats="tableSeats"
+                    :all-characters="allCharacters"
+                    :all-backgrounds="allBackgrounds"
+                    class="w-40 shrink-0"
+                    @apply-scene="onApplyScene"
                 />
             </div>
         </template>

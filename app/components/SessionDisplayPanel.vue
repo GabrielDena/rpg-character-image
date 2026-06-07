@@ -1,4 +1,6 @@
 <script setup lang="ts">
+defineOptions({ inheritAttrs: false });
+
 const show = defineModel();
 
 const props = defineProps<{
@@ -29,7 +31,7 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
 <template>
     <SessionCard
         title="Display"
-        class="w-36 shrink-0"
+        v-bind="$attrs"
     >
         <template #action>
             <UButton
