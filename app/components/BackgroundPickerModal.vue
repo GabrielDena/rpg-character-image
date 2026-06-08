@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import type { Location } from '#shared/types/models';
 import type { BackgroundWithUrl } from '~/types/background';
 
 const props = defineProps<{
     open: boolean;
     allBackgrounds: BackgroundWithUrl[];
+    locations: Location[];
 }>();
 
 const emit = defineEmits<{
@@ -12,12 +14,19 @@ const emit = defineEmits<{
 }>();
 
 const search = ref('');
+const locationFilter = ref('all');
 const loading = ref(false);
 
 const filtered = computed(() => {
+    let result = props.allBackgrounds;
+    if (locationFilter.value === 'none') {
+        result = result.filter((b) => !b.locationId);
+    } else if (locationFilter.value !== 'all') {
+        result = result.filter((b) => b.locationId === locationFilter.value);
+    }
     const q = search.value.trim().toLowerCase();
-    if (!q) return props.allBackgrounds;
-    return props.allBackgrounds.filter((c) => c.name.toLowerCase().includes(q));
+    if (q) result = result.filter((b) => b.name.toLowerCase().includes(q));
+    return result;
 });
 
 watch(
@@ -25,6 +34,7 @@ watch(
     (val) => {
         if (val) {
             search.value = '';
+            locationFilter.value = 'all';
         }
     }
 );
@@ -51,6 +61,22 @@ function confirm(id: string) {
                     leading-icon="i-heroicons-magnifying-glass"
                     autofocus
                 />
+
+                <div
+                    v-if="locations.length > 0"
+                    class="flex flex-wrap gap-2"
+                >
+                    <button
+                        v-for="tag in [{ value: 'all', label: 'All' }, { value: 'none', label: 'None' }, ...locations.map(l => ({ value: l.id, label: l.name }))]"
+                        :key="tag.value"
+                        type="button"
+                        class="rounded-full border px-3 py-1 text-xs font-medium transition-colors"
+                        :class="locationFilter === tag.value ? 'border-violet-500 bg-violet-500/10 text-violet-300' : 'border-gray-700 text-gray-400 hover:border-gray-600'"
+                        @click="locationFilter = tag.value"
+                    >
+                        {{ tag.label }}
+                    </button>
+                </div>
 
                 <div
                     v-if="loading"

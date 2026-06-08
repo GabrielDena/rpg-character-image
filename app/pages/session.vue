@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Adventure, System } from '#shared/types/models';
+import type { Adventure, Location, System } from '#shared/types/models';
 import type { BackgroundWithUrl } from '~/types/background';
 import type { CharacterWithUrl } from '~/types/character';
 import type { SavedScene } from '~/types/scene';
@@ -213,9 +213,21 @@ async function toggleFitMode() {
 
 // ── Backgrounds ───────────────────────────────────────────────────────────────────────
 const allBackgrounds = ref<BackgroundWithUrl[]>([]);
+const allLocations = ref<Location[]>([]);
 const loadingBackgrounds = ref(false);
 const selectedBackground = ref<BackgroundWithUrl | null>(null);
 const savingBackground = ref(false);
+
+async function fetchLocations(adventureId: string) {
+    try {
+        const { locations } = await $fetch<{ locations: Location[] }>('/api/locations', {
+            query: { adventureId },
+        });
+        allLocations.value = locations;
+    } catch {
+        // non-fatal
+    }
+}
 
 async function fetchBackgrounds(adventureId: string) {
     loadingBackgrounds.value = true;
@@ -330,6 +342,7 @@ onMounted(async () => {
                 .filter((c) => state.activeCharacterIds.includes(c.id))
                 .sort((a, b) => a.name.localeCompare(b.name));
             await fetchBackgrounds(state.activeAdventureId);
+            await fetchLocations(state.activeAdventureId);
             selectedBackground.value = state.selectedBackground;
         }
         galleryFitMode.value = state.galleryFitMode ?? 'cover';
@@ -370,6 +383,7 @@ onMounted(async () => {
                     v-model="show"
                     class="min-w-0 flex-1"
                     :backgrounds="allBackgrounds"
+                    :locations="allLocations"
                     :selected-background="selectedBackground"
                     :loading="loadingBackgrounds"
                     :saving-background="savingBackground"
