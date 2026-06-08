@@ -8,10 +8,11 @@ const adventureId = String(route.params.adventureId);
 const adventure = ref<Adventure | null>(null);
 const loading = ref(false);
 const fetchError = ref<string | null>(null);
-const activeTab = ref<'characters' | 'backgrounds'>('characters');
+const activeTab = ref<'characters' | 'locations' | 'backgrounds'>('characters');
 
 const tabs = [
     { key: 'characters' as const, label: 'Characters', icon: 'i-heroicons-user-group' },
+    { key: 'locations' as const, label: 'Locations', icon: 'i-heroicons-map-pin' },
     { key: 'backgrounds' as const, label: 'Backgrounds', icon: 'i-heroicons-photo' },
 ];
 
@@ -94,6 +95,11 @@ onMounted(fetchAdventure);
             <template v-else>
                 <AdventureCharactersTab
                     v-show="activeTab === 'characters'"
+                    :adventure-id="adventureId"
+                    :system-id="systemId"
+                />
+                <AdventureLocationsTab
+                    v-show="activeTab === 'locations'"
                     :adventure-id="adventureId"
                     :system-id="systemId"
                 />

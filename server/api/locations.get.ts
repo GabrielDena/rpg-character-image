@@ -1,5 +1,5 @@
 import { asc, eq } from 'drizzle-orm';
-import { backgrounds, useDb } from '../db';
+import { locations, useDb } from '../db';
 
 export default defineEventHandler(async (event) => {
     const { adventureId } = getQuery(event);
@@ -10,14 +10,9 @@ export default defineEventHandler(async (event) => {
     const db = useDb();
     const rows = await db
         .select()
-        .from(backgrounds)
-        .where(eq(backgrounds.adventureId, adventureId))
-        .orderBy(asc(backgrounds.name));
+        .from(locations)
+        .where(eq(locations.adventureId, adventureId))
+        .orderBy(asc(locations.name));
 
-    return {
-        backgrounds: rows.map((bg) => ({
-            ...bg,
-            url: getPublicUrl(bg.storagePath),
-        })),
-    };
+    return { locations: rows };
 });

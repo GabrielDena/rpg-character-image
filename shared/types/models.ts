@@ -32,6 +32,13 @@ export interface Character {
     createdAt: Date;
 }
 
+export interface Location {
+    id: string;
+    adventureId: string;
+    name: string;
+    createdAt: Date;
+}
+
 export interface CharacterImage {
     id: string;
     characterId: string;

@@ -93,6 +93,18 @@ export type NewCharacterImage = typeof characterImages.$inferInsert;
 
 export type DisplayState = typeof displayState.$inferSelect;
 
+export const locations = pgTable('locations', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    adventureId: uuid('adventure_id')
+        .notNull()
+        .references(() => adventures.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type Location = typeof locations.$inferSelect;
+export type NewLocation = typeof locations.$inferInsert;
+
 export const savedScenes = pgTable('saved_scenes', {
     id: uuid('id').defaultRandom().primaryKey(),
     adventureId: uuid('adventure_id')
