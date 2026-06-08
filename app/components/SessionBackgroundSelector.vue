@@ -1,9 +1,11 @@
 <script lang="ts" setup>
+import type { Location } from '#shared/types/models';
 import type { BackgroundWithUrl } from '~/types/background';
 const show = defineModel();
 
 const props = defineProps<{
     backgrounds: BackgroundWithUrl[];
+    locations: Location[];
     selectedBackground: BackgroundWithUrl | null;
     savingBackground: boolean;
     loading: boolean;
@@ -81,6 +83,7 @@ const bgSelectorOpen = ref<boolean>(false);
         <BackgroundPickerModal
             v-model:open="bgSelectorOpen"
             :all-backgrounds="backgrounds"
+            :locations="locations"
             @confirm="emit('select', $event)"
         />
     </SessionCard>

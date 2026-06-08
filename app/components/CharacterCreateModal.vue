@@ -28,6 +28,7 @@ const emit = defineEmits<{
     'update:open': [value: boolean];
     created: [];
     updated: [];
+    deleted: [];
 }>();
 
 const isEditing = computed(() => !!props.character);
@@ -57,6 +58,8 @@ const removingBg = ref(false);
 const showDeleteModal = ref(false);
 const imageToDelete = ref<ExistingImage | null>(null);
 const deletingImage = ref(false);
+const showDeleteCharacterModal = ref(false);
+const deletingCharacter = ref(false);
 
 function getPassword() {
     return localStorage.getItem('app_password') ?? '';
@@ -257,6 +260,25 @@ async function uploadAvatarAndImages(characterId: string) {
         fd.append('isProfile', String(img.isDefault));
         fd.append('password', getPassword());
         await $fetch('/api/character-images', { method: 'POST', body: fd }).catch(() => {});
+    }
+}
+
+async function confirmDeleteCharacter() {
+    if (!props.character) return;
+    deletingCharacter.value = true;
+    try {
+        await $fetch(`/api/characters/${props.character.id}`, {
+            method: 'DELETE',
+            body: { password: getPassword() },
+        });
+        emit('deleted');
+        emit('update:open', false);
+        toast.add({ title: 'Character deleted', color: 'success', icon: 'i-heroicons-check-circle' });
+    } catch {
+        toast.add({ title: 'Failed to delete character', color: 'error' });
+    } finally {
+        deletingCharacter.value = false;
+        showDeleteCharacterModal.value = false;
     }
 }
 
@@ -600,21 +622,36 @@ async function editCharacter() {
         </template>
 
         <template #footer>
-            <div class="flex justify-end gap-2">
+            <div class="flex items-center justify-between gap-2">
                 <UButton
-                    color="neutral"
+                    v-if="isEditing"
+                    color="error"
                     variant="ghost"
-                    @click="emit('update:open', false)"
+                    leading-icon="i-heroicons-trash"
+                    @click="showDeleteCharacterModal = true"
                 >
-                    Cancel
+                    Delete
                 </UButton>
-                <UButton
-                    :loading="creating"
-                    :disabled="!formName.trim()"
-                    @click="isEditing ? editCharacter() : createCharacter()"
-                >
-                    {{ isEditing ? 'Save' : 'Create' }}
-                </UButton>
+                <div
+                    v-else
+                    class="flex-1"
+                />
+                <div class="flex gap-2">
+                    <UButton
+                        color="neutral"
+                        variant="ghost"
+                        @click="emit('update:open', false)"
+                    >
+                        Cancel
+                    </UButton>
+                    <UButton
+                        :loading="creating"
+                        :disabled="!formName.trim()"
+                        @click="isEditing ? editCharacter() : createCharacter()"
+                    >
+                        {{ isEditing ? 'Save' : 'Create' }}
+                    </UButton>
+                </div>
             </div>
         </template>
     </UModal>
@@ -652,6 +689,39 @@ async function editCharacter() {
                     color="error"
                     :loading="deletingImage"
                     @click="confirmDeleteImage"
+                >
+                    Delete
+                </UButton>
+            </div>
+        </template>
+    </UModal>
+
+    <UModal
+        :open="showDeleteCharacterModal"
+        title="Delete Character"
+        :ui="{ content: 'sm:max-w-sm' }"
+        :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
+        @update:open="showDeleteCharacterModal = $event"
+    >
+        <template #body>
+            <p class="text-sm text-gray-300">
+                Are you sure you want to delete <span class="font-medium text-gray-100">{{ props.character?.name }}</span>? All images will be permanently removed.
+            </p>
+        </template>
+        <template #footer>
+            <div class="flex justify-end gap-2">
+                <UButton
+                    color="neutral"
+                    variant="ghost"
+                    :disabled="deletingCharacter"
+                    @click="showDeleteCharacterModal = false"
+                >
+                    Cancel
+                </UButton>
+                <UButton
+                    color="error"
+                    :loading="deletingCharacter"
+                    @click="confirmDeleteCharacter"
                 >
                     Delete
                 </UButton>

@@ -16,6 +16,7 @@ export interface Adventure {
 export interface Background {
     id: string;
     adventureId: string;
+    locationId: string | null;
     name: string;
     storagePath: string;
     createdAt: Date;
@@ -29,6 +30,13 @@ export interface Character {
     playbook: string | null;
     description: string | null;
     avatarPath: string | null;
+    createdAt: Date;
+}
+
+export interface Location {
+    id: string;
+    adventureId: string;
+    name: string;
     createdAt: Date;
 }
 

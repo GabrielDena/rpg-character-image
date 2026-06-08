@@ -207,6 +207,7 @@ onMounted(fetchCharacters);
             :character="editingCharacter"
             @created="fetchCharacters"
             @updated="fetchCharacters"
+            @deleted="fetchCharacters"
         />
     </div>
 </template>

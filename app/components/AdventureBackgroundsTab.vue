@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Location } from '#shared/types/models';
 import type { BackgroundWithUrl } from '~/types/background';
 
 const props = defineProps<{
@@ -6,24 +7,38 @@ const props = defineProps<{
     systemId: string;
 }>();
 
-const toast = useToast();
-
 const list = ref<BackgroundWithUrl[]>([]);
+const locations = ref<Location[]>([]);
 const loading = ref(false);
-const uploading = ref(false);
-const fileInputRef = ref<HTMLInputElement>();
-const editingId = ref<string | null>(null);
-const editingName = ref('');
+const showModal = ref(false);
+const editingBackground = ref<BackgroundWithUrl | null>(null);
 const search = ref('');
+const locationFilter = ref<string>('all');
+
+const locationFilterOptions = computed(() => [
+    { value: 'all', label: 'All locations' },
+    { value: 'none', label: 'No location' },
+    ...locations.value.map((l) => ({ value: l.id, label: l.name })),
+]);
 
 const filtered = computed(() => {
     const q = search.value.trim().toLowerCase();
-    if (!q) return list.value;
-    return list.value.filter((bg) => bg.name.toLowerCase().includes(q));
+    let result = list.value;
+
+    if (locationFilter.value === 'none') {
+        result = result.filter((bg) => !bg.locationId);
+    } else if (locationFilter.value !== 'all') {
+        result = result.filter((bg) => bg.locationId === locationFilter.value);
+    }
+
+    if (q) result = result.filter((bg) => bg.name.toLowerCase().includes(q));
+
+    return result;
 });
 
-function getPassword() {
-    return localStorage.getItem('app_password') ?? '';
+function locationName(locationId: string | null) {
+    if (!locationId) return null;
+    return locations.value.find((l) => l.id === locationId)?.name ?? null;
 }
 
 async function fetchBackgrounds() {
@@ -39,90 +54,42 @@ async function fetchBackgrounds() {
     }
 }
 
-async function handleFileSelect(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const files = Array.from(input.files ?? []);
-    if (!files.length) return;
-
-    uploading.value = true;
-    try {
-        const results = await Promise.allSettled(
-            files.map((file) => {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('adventureId', props.adventureId);
-                formData.append('systemId', props.systemId);
-                formData.append('name', file.name.replace(/\.[^.]+$/, ''));
-                formData.append('password', getPassword());
-                return $fetch('/api/backgrounds', { method: 'POST', body: formData });
-            })
-        );
-
-        const failed = results.filter((r) => r.status === 'rejected').length;
-        const succeeded = results.length - failed;
-
-        await fetchBackgrounds();
-
-        if (failed === 0) {
-            toast.add({
-                title: succeeded === 1 ? 'Background uploaded' : `${succeeded} backgrounds uploaded`,
-                color: 'success',
-                icon: 'i-heroicons-check-circle',
-            });
-        } else if (succeeded === 0) {
-            toast.add({ title: 'Upload failed', color: 'error' });
-        } else {
-            toast.add({
-                title: `${succeeded} uploaded, ${failed} failed`,
-                color: 'warning',
-                icon: 'i-heroicons-exclamation-triangle',
-            });
-        }
-    } finally {
-        uploading.value = false;
-        input.value = '';
-    }
+async function fetchLocations() {
+    const { locations: rows } = await $fetch<{ locations: Location[] }>('/api/locations', {
+        query: { adventureId: props.adventureId },
+    });
+    locations.value = rows;
 }
 
-function startEdit(bg: BackgroundWithUrl) {
-    editingId.value = bg.id;
-    editingName.value = bg.name;
+function openCreate() {
+    editingBackground.value = null;
+    showModal.value = true;
 }
 
-function cancelEdit() {
-    editingId.value = null;
-    editingName.value = '';
+function openEdit(bg: BackgroundWithUrl) {
+    editingBackground.value = bg;
+    showModal.value = true;
 }
 
-async function saveEdit(bg: BackgroundWithUrl) {
-    const name = editingName.value.trim();
-    if (!name) return;
-    try {
-        await $fetch(`/api/backgrounds/${bg.id}`, {
-            method: 'PATCH',
-            body: { name, password: getPassword() },
-        });
-        bg.name = name;
-        editingId.value = null;
-    } catch (e: unknown) {
-        toast.add({ title: 'Rename failed', color: 'error', description: e instanceof Error ? e.message : 'Unknown error' });
-    }
+function onCreated(background: BackgroundWithUrl) {
+    list.value.push(background);
+    list.value.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-async function deleteBackground(bg: BackgroundWithUrl) {
-    try {
-        await $fetch(`/api/backgrounds/${bg.id}`, {
-            method: 'DELETE',
-            body: { password: getPassword() },
-        });
-        list.value = list.value.filter((b) => b.id !== bg.id);
-        toast.add({ title: 'Background deleted', color: 'success' });
-    } catch (e: unknown) {
-        toast.add({ title: 'Delete failed', color: 'error', description: e instanceof Error ? e.message : 'Unknown error' });
-    }
+function onUpdated(background: BackgroundWithUrl) {
+    const idx = list.value.findIndex((b) => b.id === background.id);
+    if (idx !== -1) list.value[idx] = background;
+    list.value.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-onMounted(fetchBackgrounds);
+function onDeleted(id: string) {
+    list.value = list.value.filter((b) => b.id !== id);
+}
+
+onMounted(() => {
+    fetchBackgrounds();
+    fetchLocations();
+});
 </script>
 
 <template>
@@ -134,28 +101,27 @@ onMounted(fetchBackgrounds);
                 </p>
                 <UButton
                     size="sm"
-                    leading-icon="i-heroicons-arrow-up-tray"
-                    :loading="uploading"
-                    @click="fileInputRef?.click()"
+                    leading-icon="i-heroicons-plus"
+                    @click="openCreate"
                 >
-                    Upload
+                    Add
                 </UButton>
-                <input
-                    ref="fileInputRef"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    class="hidden"
-                    @change="handleFileSelect"
+            </div>
+            <div class="flex gap-2">
+                <UInput
+                    v-model="search"
+                    placeholder="Search backgrounds…"
+                    leading-icon="i-heroicons-magnifying-glass"
+                    size="sm"
+                    class="flex-1"
+                />
+                <USelect
+                    v-model="locationFilter"
+                    :items="locationFilterOptions"
+                    size="sm"
+                    class="w-40 shrink-0"
                 />
             </div>
-            <UInput
-                v-model="search"
-                placeholder="Search backgrounds…"
-                leading-icon="i-heroicons-magnifying-glass"
-                size="sm"
-                :ui="{ root: 'w-full' }"
-            />
         </div>
 
         <div
@@ -179,88 +145,67 @@ onMounted(fetchBackgrounds);
             />
             <div class="text-center">
                 <p class="text-sm font-medium text-gray-400">No backgrounds yet</p>
-                <p class="mt-1 text-xs text-gray-600">Upload images to use as backgrounds</p>
+                <p class="mt-1 text-xs text-gray-600">Add images to use as backgrounds</p>
             </div>
         </div>
 
         <p
-            v-else-if="search && !filtered.length"
+            v-else-if="!filtered.length"
             class="px-4 py-8 text-center text-sm text-gray-500"
         >
-            No backgrounds match "{{ search }}"
+            No backgrounds match your filters
         </p>
 
         <ul
             v-else
-            class="space-y-px p-2"
+            class="space-y-0.5 p-2"
         >
             <li
                 v-for="bg in filtered"
                 :key="bg.id"
-                class="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-gray-800"
             >
-                <div class="size-14 shrink-0 overflow-hidden rounded-lg bg-gray-800">
-                    <img
-                        v-if="bg.url"
-                        :src="bg.url"
-                        :alt="bg.name"
-                        class="size-full object-cover"
-                    />
-                </div>
+                <button
+                    class="flex w-full items-center gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-gray-800 active:bg-gray-700"
+                    @click="openEdit(bg)"
+                >
+                    <div class="size-14 shrink-0 overflow-hidden rounded-lg bg-gray-800">
+                        <img
+                            v-if="bg.url"
+                            :src="bg.url"
+                            :alt="bg.name"
+                            class="size-full object-cover"
+                        />
+                    </div>
 
-                <div class="min-w-0 flex-1">
-                    <input
-                        v-if="editingId === bg.id"
-                        v-model="editingName"
-                        autofocus
-                        class="w-full rounded-md bg-gray-700 px-2 py-1 text-sm text-gray-100 ring-1 ring-violet-500 outline-none"
-                        @keyup.enter="saveEdit(bg)"
-                        @keyup.escape="cancelEdit"
-                        @blur="cancelEdit"
-                    />
-                    <p
-                        v-else
-                        class="truncate text-sm text-gray-200"
-                    >
-                        {{ bg.name }}
-                    </p>
-                </div>
+                    <div class="min-w-0 flex-1 text-left">
+                        <p class="truncate text-sm text-gray-200">{{ bg.name }}</p>
+                        <UBadge
+                            v-if="locationName(bg.locationId)"
+                            :label="locationName(bg.locationId)!"
+                            size="xs"
+                            variant="subtle"
+                            color="violet"
+                            class="mt-0.5"
+                        />
+                    </div>
 
-                <div class="flex shrink-0 items-center gap-1">
-                    <template v-if="editingId === bg.id">
-                        <UButton
-                            size="xs"
-                            variant="ghost"
-                            color="neutral"
-                            icon="i-heroicons-check"
-                            @mousedown.prevent="saveEdit(bg)"
-                        />
-                        <UButton
-                            size="xs"
-                            variant="ghost"
-                            color="neutral"
-                            icon="i-heroicons-x-mark"
-                            @mousedown.prevent="cancelEdit"
-                        />
-                    </template>
-                    <template v-else>
-                        <UButton
-                            size="xs"
-                            variant="ghost"
-                            color="neutral"
-                            icon="i-heroicons-pencil"
-                            @click="startEdit(bg)"
-                        />
-                        <UButton
-                            size="xs"
-                            variant="ghost"
-                            color="error"
-                            icon="i-heroicons-trash"
-                            @click="deleteBackground(bg)"
-                        />
-                    </template>
-                </div>
+                    <UIcon
+                        name="i-heroicons-pencil"
+                        class="size-4 shrink-0 text-gray-600"
+                    />
+                </button>
             </li>
         </ul>
+
+        <BackgroundCreateEditModal
+            v-model:open="showModal"
+            :adventure-id="adventureId"
+            :system-id="systemId"
+            :locations="locations"
+            :background="editingBackground"
+            @created="onCreated"
+            @updated="onUpdated"
+            @deleted="onDeleted"
+        />
     </div>
 </template>

@@ -11,6 +11,8 @@ export default defineEventHandler(async (event) => {
     const systemId = find('systemId')?.data.toString();
     const name = find('name')?.data.toString().trim();
     const password = find('password')?.data.toString();
+    const locationIdRaw = find('locationId')?.data.toString();
+    const locationId = locationIdRaw || null;
 
     if (!fileField?.data || !adventureId || !systemId || !name || !password) {
         throw createError({ statusCode: 400, message: 'Missing required fields' });
@@ -31,9 +33,9 @@ export default defineEventHandler(async (event) => {
     if (uploadError) throw createError({ statusCode: 500, message: uploadError.message });
 
     const db = useDb();
-    const rows = await db.insert(backgrounds).values({ adventureId, name, storagePath }).returning();
+    const rows = await db.insert(backgrounds).values({ adventureId, locationId, name, storagePath }).returning();
     const background = rows[0];
     if (!background) throw createError({ statusCode: 500, message: 'Failed to create record' });
 
-    return { background };
+    return { background: { ...background, url: getPublicUrl(background.storagePath) } };
 });
