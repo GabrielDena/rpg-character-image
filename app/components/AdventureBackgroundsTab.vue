@@ -7,8 +7,6 @@ const props = defineProps<{
     systemId: string;
 }>();
 
-const toast = useToast();
-
 const list = ref<BackgroundWithUrl[]>([]);
 const locations = ref<Location[]>([]);
 const loading = ref(false);
@@ -84,17 +82,8 @@ function onUpdated(background: BackgroundWithUrl) {
     list.value.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-async function deleteBackground(bg: BackgroundWithUrl) {
-    try {
-        await $fetch(`/api/backgrounds/${bg.id}`, {
-            method: 'DELETE',
-            body: { password: localStorage.getItem('app_password') ?? '' },
-        });
-        list.value = list.value.filter((b) => b.id !== bg.id);
-        toast.add({ title: 'Background deleted', color: 'success' });
-    } catch (e: unknown) {
-        toast.add({ title: 'Delete failed', color: 'error', description: e instanceof Error ? e.message : 'Unknown error' });
-    }
+function onDeleted(id: string) {
+    list.value = list.value.filter((b) => b.id !== id);
 }
 
 onMounted(() => {
@@ -200,13 +189,9 @@ onMounted(() => {
                         />
                     </div>
 
-                    <UButton
-                        size="xs"
-                        variant="ghost"
-                        color="error"
-                        icon="i-heroicons-trash"
-                        class="shrink-0"
-                        @click.stop="deleteBackground(bg)"
+                    <UIcon
+                        name="i-heroicons-pencil"
+                        class="size-4 shrink-0 text-gray-600"
                     />
                 </button>
             </li>
@@ -220,6 +205,7 @@ onMounted(() => {
             :background="editingBackground"
             @created="onCreated"
             @updated="onUpdated"
+            @deleted="onDeleted"
         />
     </div>
 </template>

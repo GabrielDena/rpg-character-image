@@ -14,6 +14,7 @@ const emit = defineEmits<{
     'update:open': [value: boolean];
     created: [background: BackgroundWithUrl];
     updated: [background: BackgroundWithUrl];
+    deleted: [id: string];
 }>();
 
 const toast = useToast();
@@ -27,6 +28,8 @@ const previewUrl = ref<string | null>(null);
 const fileInputRef = ref<HTMLInputElement>();
 const saving = ref(false);
 const saveError = ref<string | null>(null);
+const showDeleteConfirm = ref(false);
+const deleting = ref(false);
 
 watch(
     () => props.open,
@@ -96,6 +99,25 @@ async function save() {
         saveError.value = e instanceof Error ? e.message : 'Something went wrong';
     } finally {
         saving.value = false;
+    }
+}
+
+async function confirmDelete() {
+    if (!props.background) return;
+    deleting.value = true;
+    try {
+        await $fetch(`/api/backgrounds/${props.background.id}`, {
+            method: 'DELETE',
+            body: { password: getPassword() },
+        });
+        emit('deleted', props.background.id);
+        emit('update:open', false);
+        toast.add({ title: 'Background deleted', color: 'success' });
+    } catch (e: unknown) {
+        saveError.value = e instanceof Error ? e.message : 'Delete failed';
+    } finally {
+        deleting.value = false;
+        showDeleteConfirm.value = false;
     }
 }
 
@@ -193,20 +215,68 @@ function close() {
         </template>
 
         <template #footer>
+            <div class="flex items-center justify-between gap-2">
+                <UButton
+                    v-if="isEditing"
+                    color="error"
+                    variant="ghost"
+                    leading-icon="i-heroicons-trash"
+                    @click="showDeleteConfirm = true"
+                >
+                    Delete
+                </UButton>
+                <div
+                    v-else
+                    class="flex-1"
+                />
+                <div class="flex gap-2">
+                    <UButton
+                        color="neutral"
+                        variant="ghost"
+                        @click="close"
+                    >
+                        Cancel
+                    </UButton>
+                    <UButton
+                        :loading="saving"
+                        :disabled="!formName.trim() || (!isEditing && !selectedFile)"
+                        @click="save"
+                    >
+                        {{ isEditing ? 'Save' : 'Create' }}
+                    </UButton>
+                </div>
+            </div>
+        </template>
+    </UModal>
+
+    <UModal
+        :open="showDeleteConfirm"
+        title="Delete Background"
+        :ui="{ content: 'sm:max-w-sm' }"
+        :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
+        @update:open="showDeleteConfirm = $event"
+    >
+        <template #body>
+            <p class="text-sm text-gray-300">
+                Are you sure you want to delete <span class="font-medium text-gray-100">{{ props.background?.name }}</span>? This action cannot be undone.
+            </p>
+        </template>
+        <template #footer>
             <div class="flex justify-end gap-2">
                 <UButton
                     color="neutral"
                     variant="ghost"
-                    @click="close"
+                    :disabled="deleting"
+                    @click="showDeleteConfirm = false"
                 >
                     Cancel
                 </UButton>
                 <UButton
-                    :loading="saving"
-                    :disabled="!formName.trim() || (!isEditing && !selectedFile)"
-                    @click="save"
+                    color="error"
+                    :loading="deleting"
+                    @click="confirmDelete"
                 >
-                    {{ isEditing ? 'Save' : 'Create' }}
+                    Delete
                 </UButton>
             </div>
         </template>
