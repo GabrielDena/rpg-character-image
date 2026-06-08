@@ -190,19 +190,26 @@ function close() {
 
                 <!-- Location -->
                 <UFormField label="Location">
-                    <select
-                        v-model="formLocationId"
-                        class="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-gray-100 outline-none focus:ring-1 focus:ring-primary-500"
-                    >
-                        <option value="">None</option>
-                        <option
+                    <div class="flex flex-wrap gap-2">
+                        <button
+                            type="button"
+                            class="rounded-full border px-3 py-1 text-xs font-medium transition-colors"
+                            :class="formLocationId === '' ? 'border-violet-500 bg-violet-500/10 text-violet-300' : 'border-gray-700 text-gray-400 hover:border-gray-600'"
+                            @click="formLocationId = ''"
+                        >
+                            None
+                        </button>
+                        <button
                             v-for="loc in props.locations"
                             :key="loc.id"
-                            :value="loc.id"
+                            type="button"
+                            class="rounded-full border px-3 py-1 text-xs font-medium transition-colors"
+                            :class="formLocationId === loc.id ? 'border-violet-500 bg-violet-500/10 text-violet-300' : 'border-gray-700 text-gray-400 hover:border-gray-600'"
+                            @click="formLocationId = loc.id"
                         >
                             {{ loc.name }}
-                        </option>
-                    </select>
+                        </button>
+                    </div>
                 </UFormField>
 
                 <p
