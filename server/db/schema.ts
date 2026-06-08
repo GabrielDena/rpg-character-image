@@ -26,11 +26,21 @@ export const adventures = pgTable('adventures', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const locations = pgTable('locations', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    adventureId: uuid('adventure_id')
+        .notNull()
+        .references(() => adventures.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const backgrounds = pgTable('backgrounds', {
     id: uuid('id').defaultRandom().primaryKey(),
     adventureId: uuid('adventure_id')
         .notNull()
         .references(() => adventures.id, { onDelete: 'cascade' }),
+    locationId: uuid('location_id').references(() => locations.id, { onDelete: 'set null' }),
     name: varchar('name', { length: 255 }).notNull(),
     storagePath: text('storage_path').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -76,35 +86,6 @@ export const displayState = pgTable('display_state', {
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export type System = typeof systems.$inferSelect;
-export type NewSystem = typeof systems.$inferInsert;
-
-export type Adventure = typeof adventures.$inferSelect;
-export type NewAdventure = typeof adventures.$inferInsert;
-
-export type Background = typeof backgrounds.$inferSelect;
-export type NewBackground = typeof backgrounds.$inferInsert;
-
-export type Character = typeof characters.$inferSelect;
-export type NewCharacter = typeof characters.$inferInsert;
-
-export type CharacterImage = typeof characterImages.$inferSelect;
-export type NewCharacterImage = typeof characterImages.$inferInsert;
-
-export type DisplayState = typeof displayState.$inferSelect;
-
-export const locations = pgTable('locations', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    adventureId: uuid('adventure_id')
-        .notNull()
-        .references(() => adventures.id, { onDelete: 'cascade' }),
-    name: varchar('name', { length: 255 }).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export type Location = typeof locations.$inferSelect;
-export type NewLocation = typeof locations.$inferInsert;
-
 export const savedScenes = pgTable('saved_scenes', {
     id: uuid('id').defaultRandom().primaryKey(),
     adventureId: uuid('adventure_id')
@@ -120,6 +101,25 @@ export const savedScenes = pgTable('saved_scenes', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export type System = typeof systems.$inferSelect;
+export type NewSystem = typeof systems.$inferInsert;
+
+export type Adventure = typeof adventures.$inferSelect;
+export type NewAdventure = typeof adventures.$inferInsert;
+
+export type Location = typeof locations.$inferSelect;
+export type NewLocation = typeof locations.$inferInsert;
+
+export type Background = typeof backgrounds.$inferSelect;
+export type NewBackground = typeof backgrounds.$inferInsert;
+
+export type Character = typeof characters.$inferSelect;
+export type NewCharacter = typeof characters.$inferInsert;
+
+export type CharacterImage = typeof characterImages.$inferSelect;
+export type NewCharacterImage = typeof characterImages.$inferInsert;
+
+export type DisplayState = typeof displayState.$inferSelect;
+
 export type SavedSceneRow = typeof savedScenes.$inferSelect;
 export type NewSavedScene = typeof savedScenes.$inferInsert;
-

@@ -16,6 +16,7 @@ export interface Adventure {
 export interface Background {
     id: string;
     adventureId: string;
+    locationId: string | null;
     name: string;
     storagePath: string;
     createdAt: Date;
