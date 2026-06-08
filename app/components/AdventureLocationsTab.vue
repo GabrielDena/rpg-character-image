@@ -4,12 +4,18 @@ import type { Location } from '#shared/types/models';
 const props = defineProps<{
     adventureId: string;
     systemId: string;
+    locations: Location[];
+    loading: boolean;
+}>();
+
+const emit = defineEmits<{
+    'location-added': [location: Location];
+    'location-updated': [location: Location];
+    'location-deleted': [id: string];
 }>();
 
 const toast = useToast();
 
-const list = ref<Location[]>([]);
-const loading = ref(false);
 const editingId = ref<string | null>(null);
 const editingName = ref('');
 const search = ref('');
@@ -18,24 +24,12 @@ const newName = ref('');
 
 const filtered = computed(() => {
     const q = search.value.trim().toLowerCase();
-    if (!q) return list.value;
-    return list.value.filter((l) => l.name.toLowerCase().includes(q));
+    if (!q) return props.locations;
+    return props.locations.filter((l) => l.name.toLowerCase().includes(q));
 });
 
 function getPassword() {
     return localStorage.getItem('app_password') ?? '';
-}
-
-async function fetchLocations() {
-    loading.value = true;
-    try {
-        const { locations } = await $fetch<{ locations: Location[] }>('/api/locations', {
-            query: { adventureId: props.adventureId },
-        });
-        list.value = locations;
-    } finally {
-        loading.value = false;
-    }
 }
 
 async function addLocation() {
@@ -46,7 +40,7 @@ async function addLocation() {
             method: 'POST',
             body: { name, adventureId: props.adventureId, password: getPassword() },
         });
-        list.value.push(location);
+        emit('location-added', location);
         newName.value = '';
         adding.value = false;
     } catch (e: unknown) {
@@ -73,11 +67,11 @@ async function saveEdit(loc: Location) {
     const name = editingName.value.trim();
     if (!name) return;
     try {
-        await $fetch(`/api/locations/${loc.id}`, {
+        const { location } = await $fetch<{ location: Location }>(`/api/locations/${loc.id}`, {
             method: 'PATCH',
             body: { name, password: getPassword() },
         });
-        loc.name = name;
+        emit('location-updated', location);
         editingId.value = null;
     } catch (e: unknown) {
         toast.add({ title: 'Rename failed', color: 'error', description: e instanceof Error ? e.message : 'Unknown error' });
@@ -90,14 +84,12 @@ async function deleteLocation(loc: Location) {
             method: 'DELETE',
             body: { password: getPassword() },
         });
-        list.value = list.value.filter((l) => l.id !== loc.id);
+        emit('location-deleted', loc.id);
         toast.add({ title: 'Location deleted', color: 'success' });
     } catch (e: unknown) {
         toast.add({ title: 'Delete failed', color: 'error', description: e instanceof Error ? e.message : 'Unknown error' });
     }
 }
-
-onMounted(fetchLocations);
 </script>
 
 <template>
@@ -164,7 +156,7 @@ onMounted(fetchLocations);
         </div>
 
         <div
-            v-else-if="!list.length && !adding"
+            v-else-if="!locations.length && !adding"
             class="flex flex-col items-center justify-center gap-4 px-6 py-20"
         >
             <UIcon

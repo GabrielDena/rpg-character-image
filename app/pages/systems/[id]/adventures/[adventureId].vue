@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Adventure } from '#shared/types/models';
+import type { Adventure, Location } from '#shared/types/models';
 
 const route = useRoute();
 const systemId = String(route.params.id);
@@ -9,6 +9,9 @@ const adventure = ref<Adventure | null>(null);
 const loading = ref(false);
 const fetchError = ref<string | null>(null);
 const activeTab = ref<'characters' | 'locations' | 'backgrounds'>('characters');
+
+const locations = ref<Location[]>([]);
+const locationsLoading = ref(false);
 
 const tabs = [
     { key: 'characters' as const, label: 'Characters', icon: 'i-heroicons-user-group' },
@@ -29,7 +32,35 @@ async function fetchAdventure() {
     }
 }
 
-onMounted(fetchAdventure);
+async function fetchLocations() {
+    locationsLoading.value = true;
+    try {
+        const { locations: rows } = await $fetch<{ locations: Location[] }>('/api/locations', {
+            query: { adventureId },
+        });
+        locations.value = rows;
+    } finally {
+        locationsLoading.value = false;
+    }
+}
+
+function onLocationAdded(location: Location) {
+    locations.value.push(location);
+}
+
+function onLocationUpdated(location: Location) {
+    const idx = locations.value.findIndex((l) => l.id === location.id);
+    if (idx !== -1) locations.value[idx] = location;
+}
+
+function onLocationDeleted(id: string) {
+    locations.value = locations.value.filter((l) => l.id !== id);
+}
+
+onMounted(() => {
+    fetchAdventure();
+    fetchLocations();
+});
 </script>
 
 <template>
@@ -102,11 +133,17 @@ onMounted(fetchAdventure);
                     v-show="activeTab === 'locations'"
                     :adventure-id="adventureId"
                     :system-id="systemId"
+                    :locations="locations"
+                    :loading="locationsLoading"
+                    @location-added="onLocationAdded"
+                    @location-updated="onLocationUpdated"
+                    @location-deleted="onLocationDeleted"
                 />
                 <AdventureBackgroundsTab
                     v-show="activeTab === 'backgrounds'"
                     :adventure-id="adventureId"
                     :system-id="systemId"
+                    :locations="locations"
                 />
             </template>
         </div>

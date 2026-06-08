@@ -5,10 +5,10 @@ import type { BackgroundWithUrl } from '~/types/background';
 const props = defineProps<{
     adventureId: string;
     systemId: string;
+    locations: Location[];
 }>();
 
 const list = ref<BackgroundWithUrl[]>([]);
-const locations = ref<Location[]>([]);
 const loading = ref(false);
 const showModal = ref(false);
 const editingBackground = ref<BackgroundWithUrl | null>(null);
@@ -18,7 +18,7 @@ const locationFilter = ref<string>('all');
 const locationFilterOptions = computed(() => [
     { value: 'all', label: 'All locations' },
     { value: 'none', label: 'No location' },
-    ...locations.value.map((l) => ({ value: l.id, label: l.name })),
+    ...props.locations.map((l) => ({ value: l.id, label: l.name })),
 ]);
 
 const filtered = computed(() => {
@@ -38,7 +38,7 @@ const filtered = computed(() => {
 
 function locationName(locationId: string | null) {
     if (!locationId) return null;
-    return locations.value.find((l) => l.id === locationId)?.name ?? null;
+    return props.locations.find((l) => l.id === locationId)?.name ?? null;
 }
 
 async function fetchBackgrounds() {
@@ -52,13 +52,6 @@ async function fetchBackgrounds() {
     } finally {
         loading.value = false;
     }
-}
-
-async function fetchLocations() {
-    const { locations: rows } = await $fetch<{ locations: Location[] }>('/api/locations', {
-        query: { adventureId: props.adventureId },
-    });
-    locations.value = rows;
 }
 
 function openCreate() {
@@ -86,10 +79,7 @@ function onDeleted(id: string) {
     list.value = list.value.filter((b) => b.id !== id);
 }
 
-onMounted(() => {
-    fetchBackgrounds();
-    fetchLocations();
-});
+onMounted(fetchBackgrounds);
 </script>
 
 <template>
