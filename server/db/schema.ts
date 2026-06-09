@@ -43,6 +43,7 @@ export const backgrounds = pgTable('backgrounds', {
     locationId: uuid('location_id').references(() => locations.id, { onDelete: 'set null' }),
     name: varchar('name', { length: 255 }).notNull(),
     storagePath: text('storage_path').notNull(),
+    altStoragePath: text('alt_storage_path'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

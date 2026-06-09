@@ -13,7 +13,9 @@ export default defineEventHandler(async (event) => {
     const background = rows[0];
     if (!background) throw createError({ statusCode: 404, message: 'Background not found' });
 
-    await supabaseAdmin().storage.from(STORAGE_BUCKET).remove([background.storagePath]);
+    const pathsToRemove = [background.storagePath];
+    if (background.altStoragePath) pathsToRemove.push(background.altStoragePath);
+    await supabaseAdmin().storage.from(STORAGE_BUCKET).remove(pathsToRemove);
 
     await db.delete(backgrounds).where(eq(backgrounds.id, id));
 

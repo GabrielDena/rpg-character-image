@@ -116,6 +116,7 @@ export default defineEventHandler(async () => {
           ).map((bg) => ({
               ...bg,
               url: getPublicUrl(bg.storagePath),
+              altUrl: bg.altStoragePath ? getPublicUrl(bg.altStoragePath) : null,
           }))[0]
         : null;
 

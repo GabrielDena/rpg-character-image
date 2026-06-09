@@ -4,6 +4,8 @@ export interface BackgroundWithUrl {
     locationId: string | null;
     name: string;
     storagePath: string;
+    altStoragePath: string | null;
     createdAt: Date;
     url: string | null;
+    altUrl: string | null;
 }

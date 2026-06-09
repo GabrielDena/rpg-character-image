@@ -26,6 +26,10 @@ const formLocationId = ref<string>('');
 const selectedFile = ref<File | null>(null);
 const previewUrl = ref<string | null>(null);
 const fileInputRef = ref<HTMLInputElement>();
+const selectedAltFile = ref<File | null>(null);
+const altPreviewUrl = ref<string | null>(null);
+const altFileInputRef = ref<HTMLInputElement>();
+const clearAlt = ref(false);
 const saving = ref(false);
 const saveError = ref<string | null>(null);
 const showDeleteConfirm = ref(false);
@@ -39,6 +43,9 @@ watch(
             formLocationId.value = props.background?.locationId ?? '';
             selectedFile.value = null;
             previewUrl.value = props.background?.url ?? null;
+            selectedAltFile.value = null;
+            altPreviewUrl.value = props.background?.altUrl ?? null;
+            clearAlt.value = false;
             saveError.value = null;
         }
     }
@@ -50,6 +57,22 @@ function handleFileSelect(event: Event) {
     if (!file) return;
     selectedFile.value = file;
     previewUrl.value = URL.createObjectURL(file);
+}
+
+function handleAltFileSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    selectedAltFile.value = file;
+    altPreviewUrl.value = URL.createObjectURL(file);
+    clearAlt.value = false;
+}
+
+function removeAltImage() {
+    selectedAltFile.value = null;
+    altPreviewUrl.value = null;
+    clearAlt.value = true;
+    if (altFileInputRef.value) altFileInputRef.value.value = '';
 }
 
 function getPassword() {
@@ -73,6 +96,8 @@ async function save() {
 
         if (isEditing.value) {
             if (selectedFile.value) fd.append('file', selectedFile.value);
+            if (selectedAltFile.value) fd.append('altFile', selectedAltFile.value);
+            else if (clearAlt.value) fd.append('clearAlt', 'true');
             const { background } = await $fetch<{ background: BackgroundWithUrl }>(
                 `/api/backgrounds/${props.background!.id}`,
                 { method: 'PATCH', body: fd }
@@ -82,6 +107,7 @@ async function save() {
             fd.append('adventureId', props.adventureId);
             fd.append('systemId', props.systemId);
             fd.append('file', selectedFile.value!);
+            if (selectedAltFile.value) fd.append('altFile', selectedAltFile.value);
             const { background } = await $fetch<{ background: BackgroundWithUrl }>(
                 '/api/backgrounds',
                 { method: 'POST', body: fd }
@@ -135,44 +161,97 @@ function close() {
     >
         <template #body>
             <div class="space-y-4">
-                <!-- Image -->
-                <div class="flex flex-col items-center gap-3">
-                    <div
-                        class="relative h-40 w-full overflow-hidden rounded-xl bg-gray-800"
-                        :class="{ 'cursor-pointer': true }"
-                        @click="fileInputRef?.click()"
-                    >
-                        <img
-                            v-if="previewUrl"
-                            :src="previewUrl"
-                            class="size-full object-cover"
-                            alt="Background preview"
-                        />
+                <!-- Images -->
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Default image -->
+                    <div class="flex flex-col gap-1">
+                        <p class="text-xs font-medium text-gray-400">Default <span class="text-red-400">*</span></p>
                         <div
-                            v-else
-                            class="flex size-full flex-col items-center justify-center gap-2 text-gray-500"
+                            class="relative h-36 w-full cursor-pointer overflow-hidden rounded-xl bg-gray-800"
+                            @click="fileInputRef?.click()"
                         >
-                            <UIcon
-                                name="i-heroicons-photo"
-                                class="size-8"
+                            <img
+                                v-if="previewUrl"
+                                :src="previewUrl"
+                                class="size-full object-cover"
+                                alt="Default background preview"
                             />
-                            <p class="text-sm">Click to choose image</p>
+                            <div
+                                v-else
+                                class="flex size-full flex-col items-center justify-center gap-2 text-gray-500"
+                            >
+                                <UIcon
+                                    name="i-heroicons-photo"
+                                    class="size-8"
+                                />
+                                <p class="text-xs">Click to choose</p>
+                            </div>
+                            <div
+                                class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100"
+                            >
+                                <p class="text-xs font-medium text-white">
+                                    {{ previewUrl ? 'Replace' : 'Choose' }}
+                                </p>
+                            </div>
+                        </div>
+                        <input
+                            ref="fileInputRef"
+                            type="file"
+                            accept="image/*"
+                            class="hidden"
+                            @change="handleFileSelect"
+                        />
+                    </div>
+
+                    <!-- Alternative image -->
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center justify-between">
+                            <p class="text-xs font-medium text-gray-400">Alternative</p>
+                            <button
+                                v-if="altPreviewUrl"
+                                type="button"
+                                class="text-xs text-gray-500 hover:text-red-400"
+                                @click.stop="removeAltImage"
+                            >
+                                Remove
+                            </button>
                         </div>
                         <div
-                            class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100"
+                            class="relative h-36 w-full cursor-pointer overflow-hidden rounded-xl bg-gray-800"
+                            @click="altFileInputRef?.click()"
                         >
-                            <p class="text-sm font-medium text-white">
-                                {{ previewUrl ? 'Replace image' : 'Choose image' }}
-                            </p>
+                            <img
+                                v-if="altPreviewUrl"
+                                :src="altPreviewUrl"
+                                class="size-full object-cover"
+                                alt="Alternative background preview"
+                            />
+                            <div
+                                v-else
+                                class="flex size-full flex-col items-center justify-center gap-2 text-gray-500"
+                            >
+                                <UIcon
+                                    name="i-heroicons-photo"
+                                    class="size-8"
+                                />
+                                <p class="text-xs">Click to choose</p>
+                            </div>
+                            <div
+                                class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100"
+                            >
+                                <p class="text-xs font-medium text-white">
+                                    {{ altPreviewUrl ? 'Replace' : 'Choose' }}
+                                </p>
+                            </div>
                         </div>
+                        <input
+                            ref="altFileInputRef"
+                            type="file"
+                            accept="image/*"
+                            class="hidden"
+                            @change="handleAltFileSelect"
+                        />
                     </div>
-                    <input
-                        ref="fileInputRef"
-                        type="file"
-                        accept="image/*"
-                        class="hidden"
-                        @change="handleFileSelect"
-                    />
                 </div>
 
                 <!-- Name -->
