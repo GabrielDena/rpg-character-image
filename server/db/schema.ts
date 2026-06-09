@@ -100,6 +100,7 @@ export const savedScenes = pgTable('saved_scenes', {
     tableShape: text('table_shape').default('round').notNull(),
     tableSeats: integer('table_seats').default(4).notNull(),
     tableSideSeats: integer('table_side_seats').default(0).notNull(),
+    useAltBackground: boolean('use_alt_background').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

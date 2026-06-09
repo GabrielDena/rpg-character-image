@@ -120,6 +120,7 @@ async function onSceneUpdated(ids: string[]) {
 async function onApplyScene(scene: SavedScene) {
     await onSceneUpdated(scene.characterIds);
     await onBackgroundSelected(scene.backgroundId);
+    if (scene.useAltBackground !== useAltBackground.value) await onToggleAltBackground();
     if (scene.displayMode === 'table') {
         await onSetTable({ shape: scene.tableShape, seats: scene.tableSeats, sideSeats: scene.tableSideSeats });
     } else {
@@ -462,6 +463,7 @@ onMounted(async () => {
                     :adventure-id="activeAdventure.id"
                     :active-character-ids="activeCharacterIds"
                     :selected-background-id="selectedBackground?.id ?? null"
+                    :use-alt-background="useAltBackground"
                     :display-mode="displayMode"
                     :table-shape="tableShape"
                     :table-seats="tableSeats"
