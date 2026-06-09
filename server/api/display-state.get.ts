@@ -134,6 +134,7 @@ export default defineEventHandler(async () => {
         tableSideSeats: state.tableSideSeats ?? 0,
         seatAssignments: reconcileSeatAssignments(state.seatAssignments, ids, state.tableSeats ?? 4),
         showCharacters: state.showCharacters ?? true,
+        useAltBackground: state.useAltBackground ?? false,
     };
 });
 

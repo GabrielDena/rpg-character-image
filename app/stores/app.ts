@@ -1,6 +1,7 @@
 export const useAppStore = defineStore('app', () => {
     const displayStateVersion = ref(0);
     const scenesVersion = ref(0);
+    const altBackground = ref(false);
 
     function notifyDisplayStateUpdated() {
         displayStateVersion.value++;
@@ -10,11 +11,17 @@ export const useAppStore = defineStore('app', () => {
         scenesVersion.value++;
     }
 
+    function setAltBackground(value: boolean) {
+        altBackground.value = value;
+    }
+
     return {
         displayStateVersion,
         notifyDisplayStateUpdated,
         scenesVersion,
         notifyScenesUpdated,
+        altBackground,
+        setAltBackground,
     };
 });
 

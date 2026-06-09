@@ -13,6 +13,9 @@ export const useSyncSocket = () => {
             case 'scene-updated':
                 store.notifyScenesUpdated();
                 break;
+            case 'alt-background-toggled':
+                store.setAltBackground(message.data.useAltBackground === 'true');
+                break;
             default:
                 console.warn('Unknown message type:', (message as any).type);
         }

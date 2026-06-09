@@ -9,10 +9,12 @@ const props = defineProps<{
     selectedBackground: BackgroundWithUrl | null;
     savingBackground: boolean;
     loading: boolean;
+    useAltBackground: boolean;
 }>();
 
 const emit = defineEmits<{
     select: [id: string | null];
+    toggleAlt: [];
 }>();
 
 const bgSelectorOpen = ref<boolean>(false);
@@ -24,6 +26,14 @@ const bgSelectorOpen = ref<boolean>(false);
         class="overflow-hidden"
     >
         <template #action>
+            <UButton
+                v-if="selectedBackground?.altUrl"
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                :icon="useAltBackground ? 'i-heroicons-moon' : 'i-heroicons-sun'"
+                @click="emit('toggleAlt')"
+            />
             <UButton
                 size="xs"
                 color="neutral"

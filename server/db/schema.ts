@@ -84,6 +84,7 @@ export const displayState = pgTable('display_state', {
     seatAssignments: json('seat_assignments').$type<(string | null)[]>(),
     showCharacters: boolean('show_characters').default(true).notNull(),
     tableSideSeats: integer('table_side_seats').default(0).notNull(),
+    useAltBackground: boolean('use_alt_background').default(false).notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
