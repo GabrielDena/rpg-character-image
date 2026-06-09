@@ -24,4 +24,3 @@ export const useAppStore = defineStore('app', () => {
         setAltBackground,
     };
 });
-

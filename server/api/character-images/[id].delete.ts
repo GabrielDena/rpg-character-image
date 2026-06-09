@@ -12,7 +12,8 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event);
     const parsed = bodySchema.safeParse(body);
     if (!parsed.success) throw createError({ statusCode: 400, message: 'Invalid input' });
-    if (!checkPassword(parsed.data.password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
+    if (!checkPassword(parsed.data.password))
+        throw createError({ statusCode: 401, message: 'Unauthorized' });
 
     const db = useDb();
     const rows = await db.delete(characterImages).where(eq(characterImages.id, id)).returning();
@@ -21,7 +22,10 @@ export default defineEventHandler(async (event) => {
 
     await supabaseAdmin().storage.from(STORAGE_BUCKET).remove([image.storagePath]);
 
-    const payload: CharacterUpdatedPayload = { type: 'character-updated', data: { characterId: image.characterId } };
+    const payload: CharacterUpdatedPayload = {
+        type: 'character-updated',
+        data: { characterId: image.characterId },
+    };
     broadcast(payload);
 
     return { success: true };

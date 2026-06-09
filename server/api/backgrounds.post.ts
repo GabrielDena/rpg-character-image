@@ -40,12 +40,17 @@ export default defineEventHandler(async (event) => {
         altStoragePath = `${systemId}/${adventureId}/backgrounds/${altFilename}`;
         const { error: altUploadError } = await supabaseAdmin()
             .storage.from(STORAGE_BUCKET)
-            .upload(altStoragePath, altFileField.data, { contentType: altFileField.type ?? 'image/jpeg' });
+            .upload(altStoragePath, altFileField.data, {
+                contentType: altFileField.type ?? 'image/jpeg',
+            });
         if (altUploadError) throw createError({ statusCode: 500, message: altUploadError.message });
     }
 
     const db = useDb();
-    const rows = await db.insert(backgrounds).values({ adventureId, locationId, name, storagePath, altStoragePath }).returning();
+    const rows = await db
+        .insert(backgrounds)
+        .values({ adventureId, locationId, name, storagePath, altStoragePath })
+        .returning();
     const background = rows[0];
     if (!background) throw createError({ statusCode: 500, message: 'Failed to create record' });
 

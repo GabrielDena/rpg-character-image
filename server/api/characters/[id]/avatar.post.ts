@@ -39,7 +39,10 @@ export default defineEventHandler(async (event) => {
     const character = rows[0];
     if (!character) throw createError({ statusCode: 404, message: 'Character not found' });
 
-    const payload: CharacterUpdatedPayload = { type: 'character-updated', data: { characterId: id } };
+    const payload: CharacterUpdatedPayload = {
+        type: 'character-updated',
+        data: { characterId: id },
+    };
     broadcast(payload);
 
     return { character };

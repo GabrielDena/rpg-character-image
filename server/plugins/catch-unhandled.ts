@@ -2,7 +2,7 @@ export default defineNitroPlugin(() => {
     process.on('unhandledRejection', (reason: any, promise) => {
         if (reason && reason.code === 'ECONNRESET') {
             console.warn('⚠️ [Node TCP] Ignored an abrupt client disconnect (ECONNRESET).');
-            return; 
+            return;
         }
 
         console.error('Unhandled Rejection:', reason);
@@ -11,7 +11,7 @@ export default defineNitroPlugin(() => {
     process.on('uncaughtException', (err: any) => {
         if (err && err.code === 'ECONNRESET') {
             console.warn('⚠️ [Node TCP] Ignored an uncaught socket reset (ECONNRESET).');
-            return; 
+            return;
         }
 
         console.error('Uncaught Exception:', err);

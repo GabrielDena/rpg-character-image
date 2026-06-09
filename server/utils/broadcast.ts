@@ -16,4 +16,3 @@ export function broadcast(payload: WSPayload) {
         peer.send(message);
     }
 }
-

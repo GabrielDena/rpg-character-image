@@ -5,7 +5,9 @@ export default defineEventHandler(async (event) => {
     const storagePath = getRouterParams(event).path as string;
     if (!storagePath) throw createError({ statusCode: 400, message: 'Path required' });
 
-    const { data, error } = await supabaseAdmin().storage.from(STORAGE_BUCKET).download(storagePath);
+    const { data, error } = await supabaseAdmin()
+        .storage.from(STORAGE_BUCKET)
+        .download(storagePath);
     if (error || !data) throw createError({ statusCode: 404, message: 'Image not found' });
 
     const buffer = Buffer.from(await data.arrayBuffer());

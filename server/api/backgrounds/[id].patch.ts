@@ -56,7 +56,9 @@ export default defineEventHandler(async (event) => {
         const newAltPath = `${pathPrefix}/backgrounds/${altFilename}`;
         const { error: altUploadError } = await supabaseAdmin()
             .storage.from(STORAGE_BUCKET)
-            .upload(newAltPath, altFileField.data, { contentType: altFileField.type ?? 'image/jpeg' });
+            .upload(newAltPath, altFileField.data, {
+                contentType: altFileField.type ?? 'image/jpeg',
+            });
         if (altUploadError) throw createError({ statusCode: 500, message: altUploadError.message });
         if (background.altStoragePath) {
             await supabaseAdmin().storage.from(STORAGE_BUCKET).remove([background.altStoragePath]);

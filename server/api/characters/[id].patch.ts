@@ -18,7 +18,10 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event);
     const parsed = bodySchema.safeParse(body);
     if (!parsed.success) {
-        throw createError({ statusCode: 400, message: parsed.error.issues[0]?.message ?? 'Invalid input' });
+        throw createError({
+            statusCode: 400,
+            message: parsed.error.issues[0]?.message ?? 'Invalid input',
+        });
     }
 
     const { password, ...fields } = parsed.data;
@@ -29,7 +32,10 @@ export default defineEventHandler(async (event) => {
     const character = rows[0];
     if (!character) throw createError({ statusCode: 404, message: 'Character not found' });
 
-    const payload: CharacterUpdatedPayload = { type: 'character-updated', data: { characterId: id } };
+    const payload: CharacterUpdatedPayload = {
+        type: 'character-updated',
+        data: { characterId: id },
+    };
     broadcast(payload);
 
     return { character };

@@ -29,15 +29,17 @@ export default defineEventHandler(async (event) => {
     if ('activeCharacterIds' in body) patch.activeCharacterIds = body.activeCharacterIds ?? [];
     if ('selectedBackgroundId' in body)
         patch.selectedBackgroundId = body.selectedBackgroundId ?? null;
-    if ('galleryFitMode' in body && body.galleryFitMode)
-        patch.galleryFitMode = body.galleryFitMode;
+    if ('galleryFitMode' in body && body.galleryFitMode) patch.galleryFitMode = body.galleryFitMode;
     if ('displayMode' in body && body.displayMode) patch.displayMode = body.displayMode;
     if ('tableShape' in body && body.tableShape) patch.tableShape = body.tableShape;
     if ('tableSeats' in body && body.tableSeats != null) patch.tableSeats = body.tableSeats;
-    if ('tableSideSeats' in body && body.tableSideSeats != null) patch.tableSideSeats = body.tableSideSeats;
+    if ('tableSideSeats' in body && body.tableSideSeats != null)
+        patch.tableSideSeats = body.tableSideSeats;
     if ('seatAssignments' in body) patch.seatAssignments = body.seatAssignments ?? null;
-    if ('showCharacters' in body && body.showCharacters != null) patch.showCharacters = body.showCharacters;
-    if ('useAltBackground' in body && body.useAltBackground != null) patch.useAltBackground = body.useAltBackground;
+    if ('showCharacters' in body && body.showCharacters != null)
+        patch.showCharacters = body.showCharacters;
+    if ('useAltBackground' in body && body.useAltBackground != null)
+        patch.useAltBackground = body.useAltBackground;
 
     if (rows.length === 0) {
         await db.insert(displayState).values({
@@ -68,4 +70,3 @@ export default defineEventHandler(async (event) => {
         activeCharacterIds: body.activeCharacterIds ?? [],
     };
 });
-

@@ -1,1 +1,1 @@
-export const STORAGE_BUCKET = 'adventures'
+export const STORAGE_BUCKET = 'adventures';

@@ -11,7 +11,8 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event);
     const parsed = bodySchema.safeParse(body);
     if (!parsed.success) throw createError({ statusCode: 400, message: 'Invalid input' });
-    if (!checkPassword(parsed.data.password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
+    if (!checkPassword(parsed.data.password))
+        throw createError({ statusCode: 401, message: 'Unauthorized' });
 
     const db = useDb();
 
@@ -19,7 +20,10 @@ export default defineEventHandler(async (event) => {
     const character = charRows[0];
     if (!character) throw createError({ statusCode: 404, message: 'Character not found' });
 
-    const images = await db.select().from(characterImages).where(eq(characterImages.characterId, id));
+    const images = await db
+        .select()
+        .from(characterImages)
+        .where(eq(characterImages.characterId, id));
 
     const pathsToRemove: string[] = [];
     if (character.avatarPath) pathsToRemove.push(character.avatarPath);

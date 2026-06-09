@@ -11,4 +11,3 @@ export interface SavedScene {
     useAltBackground: boolean;
     createdAt: Date;
 }
-

@@ -6,4 +6,3 @@ export default defineEventHandler(async () => {
     const result = await db.select().from(systems).orderBy(desc(systems.createdAt));
     return { systems: result };
 });
-
