@@ -7,6 +7,7 @@ const props = defineProps<{
     adventureId: string;
     activeCharacterIds: string[];
     selectedBackgroundId: string | null;
+    useAltBackground: boolean;
     displayMode: 'scene' | 'table';
     tableShape: 'round' | 'square' | 'rectangle';
     tableSeats: number;
@@ -64,6 +65,7 @@ async function saveCurrentScene() {
                 name: `Scene ${scenes.value.length + 1}`,
                 characterIds: [...props.activeCharacterIds],
                 backgroundId: props.selectedBackgroundId,
+                useAltBackground: props.useAltBackground,
                 displayMode: props.displayMode,
                 tableShape: props.tableShape,
                 tableSeats: props.tableSeats,

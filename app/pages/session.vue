@@ -120,6 +120,7 @@ async function onSceneUpdated(ids: string[]) {
 async function onApplyScene(scene: SavedScene) {
     await onSceneUpdated(scene.characterIds);
     await onBackgroundSelected(scene.backgroundId);
+    if (scene.useAltBackground !== useAltBackground.value) await onToggleAltBackground();
     if (scene.displayMode === 'table') {
         await onSetTable({ shape: scene.tableShape, seats: scene.tableSeats, sideSeats: scene.tableSideSeats });
     } else {
@@ -217,6 +218,7 @@ const allLocations = ref<Location[]>([]);
 const loadingBackgrounds = ref(false);
 const selectedBackground = ref<BackgroundWithUrl | null>(null);
 const savingBackground = ref(false);
+const useAltBackground = ref(false);
 
 async function fetchLocations(adventureId: string) {
     try {
@@ -269,6 +271,28 @@ async function onBackgroundSelected(backgroundId: string | null) {
     }
 }
 
+async function onToggleAltBackground() {
+    const next = !useAltBackground.value;
+    useAltBackground.value = next;
+    store.setAltBackground(next);
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: { useAltBackground: next, password: getPassword() },
+        });
+    } catch {
+        useAltBackground.value = !next;
+        store.setAltBackground(!next);
+    }
+}
+
+watch(
+    () => store.altBackground,
+    (val) => {
+        useAltBackground.value = val;
+    }
+);
+
 // ── WS sync ────────────────────────────────────────────────────────────────────
 const isSaving = computed(
     () =>
@@ -296,6 +320,7 @@ watch(
                 tableSeats: number;
                 tableSideSeats: number;
                 showCharacters: boolean;
+                useAltBackground: boolean;
             }>('/api/display-state');
             activeCharacterIds.value = state.activeCharacterIds;
             activeCharacters.value = state.activeCharacters;
@@ -306,6 +331,7 @@ watch(
             tableSeats.value = state.tableSeats ?? 4;
             tableSideSeats.value = state.tableSideSeats ?? 0;
             showCharacters.value = state.showCharacters ?? true;
+            useAltBackground.value = state.useAltBackground ?? false;
         } catch {
             // non-fatal
         }
@@ -329,6 +355,7 @@ onMounted(async () => {
         tableSeats: number;
         tableSideSeats: number;
         showCharacters: boolean;
+        useAltBackground: boolean;
     }>('/api/display-state');
 
     try {
@@ -351,6 +378,7 @@ onMounted(async () => {
         tableSeats.value = state.tableSeats ?? 4;
         tableSideSeats.value = state.tableSideSeats ?? 0;
         showCharacters.value = state.showCharacters ?? true;
+        useAltBackground.value = state.useAltBackground ?? false;
     } catch {
     } finally {
         loadingState.value = false;
@@ -387,7 +415,9 @@ onMounted(async () => {
                     :selected-background="selectedBackground"
                     :loading="loadingBackgrounds"
                     :saving-background="savingBackground"
+                    :use-alt-background="useAltBackground"
                     @select="onBackgroundSelected"
+                    @toggle-alt="onToggleAltBackground"
                 />
                 <SessionDisplayPanel
                     v-model="show"
@@ -433,6 +463,7 @@ onMounted(async () => {
                     :adventure-id="activeAdventure.id"
                     :active-character-ids="activeCharacterIds"
                     :selected-background-id="selectedBackground?.id ?? null"
+                    :use-alt-background="useAltBackground"
                     :display-mode="displayMode"
                     :table-shape="tableShape"
                     :table-seats="tableSeats"

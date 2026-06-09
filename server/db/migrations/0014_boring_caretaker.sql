@@ -1,0 +1,1 @@
+ALTER TABLE "saved_scenes" ADD COLUMN "use_alt_background" boolean DEFAULT false NOT NULL;

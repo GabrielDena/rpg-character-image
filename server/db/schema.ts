@@ -43,6 +43,7 @@ export const backgrounds = pgTable('backgrounds', {
     locationId: uuid('location_id').references(() => locations.id, { onDelete: 'set null' }),
     name: varchar('name', { length: 255 }).notNull(),
     storagePath: text('storage_path').notNull(),
+    altStoragePath: text('alt_storage_path'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -83,6 +84,7 @@ export const displayState = pgTable('display_state', {
     seatAssignments: json('seat_assignments').$type<(string | null)[]>(),
     showCharacters: boolean('show_characters').default(true).notNull(),
     tableSideSeats: integer('table_side_seats').default(0).notNull(),
+    useAltBackground: boolean('use_alt_background').default(false).notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
@@ -98,6 +100,7 @@ export const savedScenes = pgTable('saved_scenes', {
     tableShape: text('table_shape').default('round').notNull(),
     tableSeats: integer('table_seats').default(4).notNull(),
     tableSideSeats: integer('table_side_seats').default(0).notNull(),
+    useAltBackground: boolean('use_alt_background').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

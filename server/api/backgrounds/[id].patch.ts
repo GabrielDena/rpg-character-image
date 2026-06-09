@@ -15,6 +15,8 @@ export default defineEventHandler(async (event) => {
     const locationIdRaw = find('locationId')?.data.toString();
     const locationId = locationIdRaw === '' ? null : (locationIdRaw ?? null);
     const fileField = find('file');
+    const altFileField = find('altFile');
+    const clearAlt = find('clearAlt')?.data.toString() === 'true';
 
     if (!name || !password) {
         throw createError({ statusCode: 400, message: 'Missing required fields' });
@@ -28,29 +30,52 @@ export default defineEventHandler(async (event) => {
     const background = existing[0];
     if (!background) throw createError({ statusCode: 404, message: 'Background not found' });
 
+    const ts = Date.now();
+    const pathPrefix = background.storagePath.split('/backgrounds/')[0];
+
     let storagePath = background.storagePath;
-
     if (fileField?.data) {
-        const pathPrefix = background.storagePath.split('/backgrounds/')[0];
-        const filename = `${Date.now()}-${fileField.filename ?? 'background'}`;
+        const filename = `${ts}-${fileField.filename ?? 'background'}`;
         const newPath = `${pathPrefix}/backgrounds/${filename}`;
-        const contentType = fileField.type ?? 'image/jpeg';
-
         const { error: uploadError } = await supabaseAdmin()
             .storage.from(STORAGE_BUCKET)
-            .upload(newPath, fileField.data, { contentType });
-
+            .upload(newPath, fileField.data, { contentType: fileField.type ?? 'image/jpeg' });
         if (uploadError) throw createError({ statusCode: 500, message: uploadError.message });
-
         await supabaseAdmin().storage.from(STORAGE_BUCKET).remove([background.storagePath]);
         storagePath = newPath;
     }
 
+    let altStoragePath = background.altStoragePath;
+    if (clearAlt) {
+        if (background.altStoragePath) {
+            await supabaseAdmin().storage.from(STORAGE_BUCKET).remove([background.altStoragePath]);
+        }
+        altStoragePath = null;
+    } else if (altFileField?.data) {
+        const altFilename = `${ts}-alt-${altFileField.filename ?? 'background'}`;
+        const newAltPath = `${pathPrefix}/backgrounds/${altFilename}`;
+        const { error: altUploadError } = await supabaseAdmin()
+            .storage.from(STORAGE_BUCKET)
+            .upload(newAltPath, altFileField.data, { contentType: altFileField.type ?? 'image/jpeg' });
+        if (altUploadError) throw createError({ statusCode: 500, message: altUploadError.message });
+        if (background.altStoragePath) {
+            await supabaseAdmin().storage.from(STORAGE_BUCKET).remove([background.altStoragePath]);
+        }
+        altStoragePath = newAltPath;
+    }
+
     const rows = await db
         .update(backgrounds)
-        .set({ name, locationId, storagePath })
+        .set({ name, locationId, storagePath, altStoragePath })
         .where(eq(backgrounds.id, id))
         .returning();
 
-    return { background: { ...rows[0], url: getPublicUrl(rows[0]!.storagePath) } };
+    const updated = rows[0]!;
+    return {
+        background: {
+            ...updated,
+            url: getPublicUrl(updated.storagePath),
+            altUrl: updated.altStoragePath ? getPublicUrl(updated.altStoragePath) : null,
+        },
+    };
 });

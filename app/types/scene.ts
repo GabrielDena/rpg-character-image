@@ -8,6 +8,7 @@ export interface SavedScene {
     tableShape: 'round' | 'square' | 'rectangle';
     tableSeats: number;
     tableSideSeats: number;
+    useAltBackground: boolean;
     createdAt: Date;
 }
 

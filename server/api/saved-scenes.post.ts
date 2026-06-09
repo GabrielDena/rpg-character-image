@@ -10,6 +10,7 @@ const bodySchema = z.object({
     tableShape: z.enum(['round', 'square', 'rectangle']).default('round'),
     tableSeats: z.number().int().min(1).default(4),
     tableSideSeats: z.number().int().min(0).default(0),
+    useAltBackground: z.boolean().default(false),
     password: z.string(),
 });
 

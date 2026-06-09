@@ -116,6 +116,7 @@ export default defineEventHandler(async () => {
           ).map((bg) => ({
               ...bg,
               url: getPublicUrl(bg.storagePath),
+              altUrl: bg.altStoragePath ? getPublicUrl(bg.altStoragePath) : null,
           }))[0]
         : null;
 
@@ -133,6 +134,7 @@ export default defineEventHandler(async () => {
         tableSideSeats: state.tableSideSeats ?? 0,
         seatAssignments: reconcileSeatAssignments(state.seatAssignments, ids, state.tableSeats ?? 4),
         showCharacters: state.showCharacters ?? true,
+        useAltBackground: state.useAltBackground ?? false,
     };
 });
 

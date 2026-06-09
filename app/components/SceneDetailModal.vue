@@ -112,9 +112,16 @@ function deleteScene() {
                     <p class="text-xs font-semibold tracking-widest text-gray-500 uppercase">
                         Background
                     </p>
-                    <p class="text-sm text-gray-300">
-                        {{ sceneBackground?.name ?? 'None' }}
-                    </p>
+                    <div class="flex items-center gap-2">
+                        <p class="text-sm text-gray-300">
+                            {{ sceneBackground?.name ?? 'None' }}
+                        </p>
+                        <UIcon
+                            v-if="sceneBackground && sceneBackground.altUrl"
+                            :name="scene.useAltBackground ? 'i-heroicons-moon' : 'i-heroicons-sun'"
+                            class="size-3.5 text-gray-500"
+                        />
+                    </div>
                 </div>
 
                 <div class="space-y-2">

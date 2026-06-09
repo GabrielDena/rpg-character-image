@@ -1,4 +1,4 @@
-import type { AdventurePayload } from '#shared/types/sync';
+import type { AdventurePayload, AltBackgroundToggledPayload } from '#shared/types/sync';
 import { eq } from 'drizzle-orm';
 import { displayState, useDb } from '../db';
 
@@ -14,6 +14,7 @@ export default defineEventHandler(async (event) => {
         tableSideSeats?: number;
         seatAssignments?: (string | null)[] | null;
         showCharacters?: boolean;
+        useAltBackground?: boolean;
         password: string;
     }>(event);
 
@@ -36,6 +37,7 @@ export default defineEventHandler(async (event) => {
     if ('tableSideSeats' in body && body.tableSideSeats != null) patch.tableSideSeats = body.tableSideSeats;
     if ('seatAssignments' in body) patch.seatAssignments = body.seatAssignments ?? null;
     if ('showCharacters' in body && body.showCharacters != null) patch.showCharacters = body.showCharacters;
+    if ('useAltBackground' in body && body.useAltBackground != null) patch.useAltBackground = body.useAltBackground;
 
     if (rows.length === 0) {
         await db.insert(displayState).values({
@@ -46,11 +48,20 @@ export default defineEventHandler(async (event) => {
         await db.update(displayState).set(patch).where(eq(displayState.id, rows[0]!.id));
     }
 
-    const payload: AdventurePayload = {
-        type: 'adventure-updated',
-        data: { activeAdventureId: body.activeAdventureId ?? null },
-    };
-    broadcast(payload);
+    if ('useAltBackground' in body && Object.keys(patch).length === 2) {
+        // Only useAltBackground changed — broadcast targeted payload to avoid full refetch
+        const payload: AltBackgroundToggledPayload = {
+            type: 'alt-background-toggled',
+            data: { useAltBackground: body.useAltBackground ? 'true' : 'false' },
+        };
+        broadcast(payload);
+    } else {
+        const payload: AdventurePayload = {
+            type: 'adventure-updated',
+            data: { activeAdventureId: body.activeAdventureId ?? null },
+        };
+        broadcast(payload);
+    }
 
     return {
         activeAdventureId: body.activeAdventureId ?? null,

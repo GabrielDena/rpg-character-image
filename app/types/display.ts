@@ -16,4 +16,5 @@ export interface DisplayState {
     tableSideSeats: number;
     seatAssignments: (string | null)[];
     showCharacters: boolean;
+    useAltBackground: boolean;
 }

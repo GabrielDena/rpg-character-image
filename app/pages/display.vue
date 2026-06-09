@@ -13,6 +13,7 @@ const state = ref<DisplayState>({
     tableSideSeats: 0,
     seatAssignments: [],
     showCharacters: true,
+    useAltBackground: false,
 });
 
 const container = ref<HTMLElement | null>(null);
@@ -32,6 +33,7 @@ onMounted(() => {
 async function fetchState() {
     const data = await $fetch<DisplayState>('/api/display-state');
     state.value = data;
+    store.setAltBackground(data.useAltBackground);
 }
 
 onMounted(fetchState);
@@ -41,6 +43,12 @@ watch(
     () => store.displayStateVersion,
     () => {
         if (!swapping.value) fetchState();
+    }
+);
+watch(
+    () => store.altBackground,
+    (val) => {
+        state.value.useAltBackground = val;
     }
 );
 
@@ -283,9 +291,9 @@ const imageStyle = computed<CSSProperties>(() => {
         ref="container"
         class="relative h-full w-full"
         :style="
-            state.selectedBackground?.url
+            state.selectedBackground
                 ? {
-                      backgroundImage: `url(${state.selectedBackground.url})`,
+                      backgroundImage: `url(${state.useAltBackground && state.selectedBackground.altUrl ? state.selectedBackground.altUrl : state.selectedBackground.url})`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                   }

@@ -18,6 +18,7 @@ export default defineEventHandler(async (event) => {
         backgrounds: rows.map((bg) => ({
             ...bg,
             url: getPublicUrl(bg.storagePath),
+            altUrl: bg.altStoragePath ? getPublicUrl(bg.altStoragePath) : null,
         })),
     };
 });
