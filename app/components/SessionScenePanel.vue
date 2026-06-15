@@ -77,7 +77,7 @@ function toggleEditCharacter(character: CharacterWithUrl) {
             class="flex flex-wrap gap-2 p-2"
         >
             <li
-                v-for="character in activeCharacters"
+                v-for="character in [...activeCharacters].sort((a, b) => a.name.localeCompare(b.name))"
                 :key="character.id"
             >
                 <SessionCard
