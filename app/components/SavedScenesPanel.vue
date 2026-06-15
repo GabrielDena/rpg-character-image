@@ -25,6 +25,8 @@ const store = useAppStore();
 const scenes = ref<SavedScene[]>([]);
 const loading = ref(false);
 const saving = ref(false);
+const deletingAll = ref(false);
+const showDeleteAllModal = ref(false);
 const showDetailModal = ref(false);
 const selectedScene = ref<SavedScene | null>(null);
 
@@ -115,6 +117,22 @@ async function onSceneApplied(scene: SavedScene) {
     await onSceneSaved(scene);
     emit('apply-scene', scene);
 }
+
+async function deleteAllScenes() {
+    deletingAll.value = true;
+    try {
+        await $fetch('/api/saved-scenes', {
+            method: 'DELETE',
+            body: { adventureId: props.adventureId, password: getPassword() },
+        });
+        scenes.value = [];
+        showDeleteAllModal.value = false;
+    } catch {
+        toast.add({ title: 'Failed to delete scenes', color: 'error' });
+    } finally {
+        deletingAll.value = false;
+    }
+}
 </script>
 
 <template>
@@ -172,6 +190,25 @@ async function onSceneApplied(scene: SavedScene) {
                         <span>Save scene</span>
                     </button>
                 </li>
+                <li v-if="scenes.length">
+                    <button
+                        class="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-800 hover:text-red-400"
+                        :disabled="deletingAll"
+                        @click="showDeleteAllModal = true"
+                    >
+                        <UIcon
+                            v-if="deletingAll"
+                            name="i-heroicons-arrow-path"
+                            class="size-3.5 shrink-0 animate-spin"
+                        />
+                        <UIcon
+                            v-else
+                            name="i-heroicons-trash"
+                            class="size-3.5 shrink-0"
+                        />
+                        <span>Delete all scenes</span>
+                    </button>
+                </li>
             </ul>
         </SessionCard>
 
@@ -185,6 +222,39 @@ async function onSceneApplied(scene: SavedScene) {
             @delete="onSceneDeleted"
             @apply="onSceneApplied"
         />
+
+        <UModal
+            :open="showDeleteAllModal"
+            title="Delete All Scenes"
+            :ui="{ content: 'sm:max-w-sm' }"
+            :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
+            @update:open="showDeleteAllModal = $event"
+        >
+            <template #body>
+                <p class="text-sm text-gray-300">
+                    Are you sure you want to delete all scenes? This action cannot be undone.
+                </p>
+            </template>
+            <template #footer>
+                <div class="flex justify-end gap-2">
+                    <UButton
+                        color="neutral"
+                        variant="ghost"
+                        :disabled="deletingAll"
+                        @click="showDeleteAllModal = false"
+                    >
+                        Cancel
+                    </UButton>
+                    <UButton
+                        color="error"
+                        :loading="deletingAll"
+                        @click="deleteAllScenes"
+                    >
+                        Delete All
+                    </UButton>
+                </div>
+            </template>
+        </UModal>
     </div>
 </template>
 
