@@ -2,45 +2,21 @@
 import type { Item } from '#shared/types/models';
 
 const props = defineProps<{
-    adventureId: string;
+    allItems: Item[];
+    activeIds: string[];
+    saving: boolean;
 }>();
 
-const allItems = ref<Item[]>([]);
-const activeItemIds = ref<string[]>([]);
+const emit = defineEmits<{
+    update: [ids: string[]];
+}>();
+
 const showPicker = ref(false);
 
 const activeItems = computed(() =>
-    activeItemIds.value
-        .map((id) => allItems.value.find((i) => i.id === id))
+    props.activeIds
+        .map((id) => props.allItems.find((i) => i.id === id))
         .filter((i): i is Item => !!i)
-);
-
-async function fetchItems() {
-    try {
-        const { items } = await $fetch<{ items: Item[] }>('/api/items', {
-            query: { adventureId: props.adventureId },
-        });
-        allItems.value = items;
-    } catch {
-        // non-fatal
-    }
-}
-
-function onPickerConfirm(ids: string[]) {
-    activeItemIds.value = ids;
-}
-
-function removeItem(id: string) {
-    activeItemIds.value = activeItemIds.value.filter((i) => i !== id);
-}
-
-watch(
-    () => props.adventureId,
-    () => {
-        activeItemIds.value = [];
-        fetchItems();
-    },
-    { immediate: true }
 );
 </script>
 
@@ -55,6 +31,7 @@ watch(
                 color="neutral"
                 variant="ghost"
                 icon="i-heroicons-plus"
+                :loading="saving"
                 @click="showPicker = true"
             />
         </template>
@@ -97,7 +74,7 @@ watch(
                     </div>
                 </div>
                 <span class="min-w-0 flex-1 truncate text-sm text-gray-300">{{ item.name }}</span>
-                <button @click="removeItem(item.id)">
+                <button @click="emit('update', activeIds.filter((i) => i !== item.id))">
                     <UIcon
                         name="i-heroicons-x-mark"
                         class="size-3.5 text-gray-500 hover:text-red-400"
@@ -108,9 +85,9 @@ watch(
 
         <ItemPickerModal
             v-model:open="showPicker"
-            :adventure-id="adventureId"
-            :active-ids="activeItemIds"
-            @confirm="onPickerConfirm"
+            :items="allItems"
+            :active-ids="activeIds"
+            @confirm="emit('update', $event)"
         />
     </SessionCard>
 </template>

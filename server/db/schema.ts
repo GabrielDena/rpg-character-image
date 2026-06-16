@@ -76,6 +76,7 @@ export const displayState = pgTable('display_state', {
         onDelete: 'set null',
     }),
     activeCharacterIds: uuid('active_character_ids').array().default([]).notNull(),
+    activeItemIds: uuid('active_item_ids').array().default([]).notNull(),
     selectedBackgroundId: uuid('selected_background_id').references(() => backgrounds.id),
     galleryFitMode: text('gallery_fit_mode').default('cover').notNull(),
     displayMode: text('display_mode').default('scene').notNull(),

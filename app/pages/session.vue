@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Adventure, Location, System } from '#shared/types/models';
+import type { Adventure, Item, Location, System } from '#shared/types/models';
 import type { BackgroundWithUrl } from '~/types/background';
 import type { CharacterWithUrl } from '~/types/character';
 import type { SavedScene } from '~/types/scene';
@@ -29,7 +29,8 @@ async function onAdventureSelected(adventure: Adventure, system: System) {
         activeAdventureId.value = adventure.id;
         activeAdventure.value = adventure;
         activeSystem.value = system;
-        await fetchCharacters(adventure.id);
+        activeItemIds.value = [];
+        await Promise.all([fetchCharacters(adventure.id), fetchItems(adventure.id)]);
     } catch (e: unknown) {
         toast.add({
             title: 'Failed to set campaign',
@@ -54,6 +55,8 @@ async function onAdventureCleared() {
         allCharacters.value = [];
         activeCharacterIds.value = [];
         activeCharacters.value = [];
+        allItems.value = [];
+        activeItemIds.value = [];
     } catch {
         // non-fatal
     } finally {
@@ -293,6 +296,41 @@ watch(
     }
 );
 
+// ── Items ─────────────────────────────────────────────────────────────────────
+const allItems = ref<Item[]>([]);
+const activeItemIds = ref<string[]>([]);
+const savingItems = ref(false);
+
+async function fetchItems(adventureId: string) {
+    try {
+        const { items } = await $fetch<{ items: Item[] }>('/api/items', {
+            query: { adventureId },
+        });
+        allItems.value = items;
+    } catch {
+        // non-fatal
+    }
+}
+
+async function onItemsUpdated(ids: string[]) {
+    savingItems.value = true;
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: { activeItemIds: ids, password: getPassword() },
+        });
+        activeItemIds.value = ids;
+    } catch (e: unknown) {
+        toast.add({
+            title: 'Failed to update items',
+            color: 'error',
+            description: e instanceof Error ? e.message : 'Unknown error',
+        });
+    } finally {
+        savingItems.value = false;
+    }
+}
+
 // ── WS sync ────────────────────────────────────────────────────────────────────
 const isSaving = computed(
     () =>
@@ -301,7 +339,8 @@ const isSaving = computed(
         savingFitMode.value ||
         settingAdventure.value ||
         savingTableConfig.value ||
-        savingShowCharacters.value
+        savingShowCharacters.value ||
+        savingItems.value
 );
 
 watch(
@@ -313,6 +352,7 @@ watch(
                 activeAdventureId: string | null;
                 activeCharacterIds: string[];
                 activeCharacters: CharacterWithUrl[];
+                activeItemIds: string[];
                 selectedBackground: BackgroundWithUrl | null;
                 galleryFitMode: 'cover' | 'contain';
                 displayMode: 'scene' | 'table';
@@ -324,6 +364,7 @@ watch(
             }>('/api/display-state');
             activeCharacterIds.value = state.activeCharacterIds;
             activeCharacters.value = state.activeCharacters;
+            activeItemIds.value = state.activeItemIds ?? [];
             selectedBackground.value = state.selectedBackground;
             galleryFitMode.value = state.galleryFitMode ?? 'cover';
             displayMode.value = state.displayMode ?? 'scene';
@@ -364,12 +405,16 @@ onMounted(async () => {
             activeAdventure.value = state.adventure;
             activeSystem.value = state.system;
             activeCharacterIds.value = state.activeCharacterIds;
-            await fetchCharacters(state.activeAdventureId);
+            activeItemIds.value = state.activeItemIds ?? [];
+            await Promise.all([
+                fetchCharacters(state.activeAdventureId),
+                fetchBackgrounds(state.activeAdventureId),
+                fetchLocations(state.activeAdventureId),
+                fetchItems(state.activeAdventureId),
+            ]);
             activeCharacters.value = allCharacters.value
                 .filter((c) => state.activeCharacterIds.includes(c.id))
                 .sort((a, b) => a.name.localeCompare(b.name));
-            await fetchBackgrounds(state.activeAdventureId);
-            await fetchLocations(state.activeAdventureId);
             selectedBackground.value = state.selectedBackground;
         }
         galleryFitMode.value = state.galleryFitMode ?? 'cover';
@@ -460,8 +505,11 @@ onMounted(async () => {
                     @update="onSceneUpdated"
                 />
                 <SessionItemsPanel
-                    :adventure-id="activeAdventure.id"
+                    :all-items="allItems"
+                    :active-ids="activeItemIds"
+                    :saving="savingItems"
                     class="w-40 shrink-0"
+                    @update="onItemsUpdated"
                 />
                 <SavedScenesPanel
                     :adventure-id="activeAdventure.id"

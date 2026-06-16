@@ -3,7 +3,7 @@ import type { Item } from '#shared/types/models';
 
 const props = defineProps<{
     open: boolean;
-    adventureId: string;
+    items: Item[];
     activeIds: string[];
 }>();
 
@@ -13,33 +13,17 @@ const emit = defineEmits<{
 }>();
 
 const search = ref('');
-const allItems = ref<Item[]>([]);
-const loading = ref(false);
 const selected = ref<Set<string>>(new Set());
 
 const filtered = computed(() => {
     const q = search.value.trim().toLowerCase();
-    if (!q) return allItems.value;
-    return allItems.value.filter(
+    if (!q) return props.items;
+    return props.items.filter(
         (i) =>
             i.name.toLowerCase().includes(q) ||
             (i.description ?? '').toLowerCase().includes(q)
     );
 });
-
-async function fetchItems() {
-    loading.value = true;
-    try {
-        const { items } = await $fetch<{ items: Item[] }>('/api/items', {
-            query: { adventureId: props.adventureId },
-        });
-        allItems.value = items;
-    } catch {
-        // non-fatal
-    } finally {
-        loading.value = false;
-    }
-}
 
 watch(
     () => props.open,
@@ -47,7 +31,6 @@ watch(
         if (val) {
             search.value = '';
             selected.value = new Set(props.activeIds);
-            fetchItems();
         }
     }
 );
@@ -82,18 +65,7 @@ function confirm() {
                 />
 
                 <div
-                    v-if="loading"
-                    class="space-y-1"
-                >
-                    <USkeleton
-                        v-for="n in 4"
-                        :key="n"
-                        class="h-12 w-full rounded-xl"
-                    />
-                </div>
-
-                <div
-                    v-else-if="!allItems.length"
+                    v-if="!items.length"
                     class="py-8 text-center text-sm text-gray-500"
                 >
                     No items in this adventure yet
