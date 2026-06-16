@@ -126,3 +126,30 @@ export type DisplayState = typeof displayState.$inferSelect;
 
 export type SavedSceneRow = typeof savedScenes.$inferSelect;
 export type NewSavedScene = typeof savedScenes.$inferInsert;
+
+export const itemCategories = pgTable('item_categories', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    adventureId: uuid('adventure_id')
+        .notNull()
+        .references(() => adventures.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const items = pgTable('items', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    adventureId: uuid('adventure_id')
+        .notNull()
+        .references(() => adventures.id, { onDelete: 'cascade' }),
+    categoryId: uuid('category_id').references(() => itemCategories.id, { onDelete: 'set null' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: text('description'),
+    storagePath: text('storage_path'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type ItemCategory = typeof itemCategories.$inferSelect;
+export type NewItemCategory = typeof itemCategories.$inferInsert;
+
+export type Item = typeof items.$inferSelect;
+export type NewItem = typeof items.$inferInsert;

@@ -49,3 +49,21 @@ export interface CharacterImage {
     url?: string | null;
 }
 
+export interface ItemCategory {
+    id: string;
+    adventureId: string;
+    name: string;
+    createdAt: Date;
+}
+
+export interface Item {
+    id: string;
+    adventureId: string;
+    categoryId: string | null;
+    name: string;
+    description: string | null;
+    storagePath: string | null;
+    createdAt: Date;
+    url?: string | null;
+}
+
