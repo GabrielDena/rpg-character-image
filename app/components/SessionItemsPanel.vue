@@ -12,6 +12,7 @@ const emit = defineEmits<{
 }>();
 
 const showPicker = ref(false);
+const showRemoveAllModal = ref(false);
 
 const activeItems = computed(() =>
     props.activeIds
@@ -81,6 +82,19 @@ const activeItems = computed(() =>
                     />
                 </button>
             </li>
+            <li class="border-t border-gray-800">
+                <button
+                    class="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-800 hover:text-red-400"
+                    :disabled="saving"
+                    @click="showRemoveAllModal = true"
+                >
+                    <UIcon
+                        name="i-heroicons-trash"
+                        class="size-3.5 shrink-0"
+                    />
+                    <span>Remove all items</span>
+                </button>
+            </li>
         </ul>
 
         <ItemPickerModal
@@ -90,4 +104,35 @@ const activeItems = computed(() =>
             @confirm="emit('update', $event)"
         />
     </SessionCard>
+
+    <UModal
+        :open="showRemoveAllModal"
+        title="Remove All Items"
+        :ui="{ content: 'sm:max-w-sm' }"
+        :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
+        @update:open="showRemoveAllModal = $event"
+    >
+        <template #body>
+            <p class="text-sm text-gray-300">
+                Are you sure you want to remove all items from the session?
+            </p>
+        </template>
+        <template #footer>
+            <div class="flex justify-end gap-2">
+                <UButton
+                    color="neutral"
+                    variant="ghost"
+                    @click="showRemoveAllModal = false"
+                >
+                    Cancel
+                </UButton>
+                <UButton
+                    color="error"
+                    @click="emit('update', []); showRemoveAllModal = false"
+                >
+                    Remove All
+                </UButton>
+            </div>
+        </template>
+    </UModal>
 </template>
