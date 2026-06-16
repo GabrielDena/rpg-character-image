@@ -76,6 +76,7 @@ export const displayState = pgTable('display_state', {
         onDelete: 'set null',
     }),
     activeCharacterIds: uuid('active_character_ids').array().default([]).notNull(),
+    activeItemIds: uuid('active_item_ids').array().default([]).notNull(),
     selectedBackgroundId: uuid('selected_background_id').references(() => backgrounds.id),
     galleryFitMode: text('gallery_fit_mode').default('cover').notNull(),
     displayMode: text('display_mode').default('scene').notNull(),
@@ -83,6 +84,7 @@ export const displayState = pgTable('display_state', {
     tableSeats: integer('table_seats').default(4).notNull(),
     seatAssignments: json('seat_assignments').$type<(string | null)[]>(),
     showCharacters: boolean('show_characters').default(true).notNull(),
+    showItems: boolean('show_items').default(false).notNull(),
     tableSideSeats: integer('table_side_seats').default(0).notNull(),
     useAltBackground: boolean('use_alt_background').default(false).notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -126,3 +128,30 @@ export type DisplayState = typeof displayState.$inferSelect;
 
 export type SavedSceneRow = typeof savedScenes.$inferSelect;
 export type NewSavedScene = typeof savedScenes.$inferInsert;
+
+export const itemCategories = pgTable('item_categories', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    adventureId: uuid('adventure_id')
+        .notNull()
+        .references(() => adventures.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const items = pgTable('items', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    adventureId: uuid('adventure_id')
+        .notNull()
+        .references(() => adventures.id, { onDelete: 'cascade' }),
+    categoryId: uuid('category_id').references(() => itemCategories.id, { onDelete: 'set null' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: text('description'),
+    storagePath: text('storage_path'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type ItemCategory = typeof itemCategories.$inferSelect;
+export type NewItemCategory = typeof itemCategories.$inferInsert;
+
+export type Item = typeof items.$inferSelect;
+export type NewItem = typeof items.$inferInsert;

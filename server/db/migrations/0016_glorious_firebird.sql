@@ -1,0 +1,1 @@
+ALTER TABLE "display_state" ADD COLUMN "active_item_ids" uuid[] DEFAULT '{}' NOT NULL;

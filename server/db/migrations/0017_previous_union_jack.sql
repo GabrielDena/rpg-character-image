@@ -1,0 +1,1 @@
+ALTER TABLE "display_state" ADD COLUMN "show_items" boolean DEFAULT false NOT NULL;

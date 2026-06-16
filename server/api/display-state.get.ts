@@ -5,6 +5,7 @@ import {
     characterImages,
     characters,
     displayState,
+    items as itemsTable,
     systems,
     useDb,
 } from '../db';
@@ -54,6 +55,8 @@ export default defineEventHandler(async () => {
             system: null,
             activeCharacterIds: [],
             activeCharacters: [],
+            activeItemIds: [],
+            activeItems: [],
             selectedBackground: null,
             galleryFitMode: (rows[0]?.galleryFitMode ?? 'cover') as 'cover' | 'contain',
             displayMode: (rows[0]?.displayMode ?? 'scene') as 'scene' | 'table',
@@ -66,6 +69,7 @@ export default defineEventHandler(async () => {
                 rows[0]?.tableSeats ?? 4
             ),
             showCharacters: rows[0]?.showCharacters ?? true,
+            showItems: rows[0]?.showItems ?? false,
         };
     }
 
@@ -127,6 +131,16 @@ export default defineEventHandler(async () => {
               .sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
         : [];
 
+    const itemIds = state.activeItemIds ?? [];
+    const activeItems = itemIds.length
+        ? (await db.select().from(itemsTable).where(inArray(itemsTable.id, itemIds))).map(
+              (item) => ({
+                  ...item,
+                  url: item.storagePath ? getPublicUrl(item.storagePath) : null,
+              })
+          )
+        : [];
+
     const selectedBackground = state.selectedBackgroundId
         ? (
               await db
@@ -147,6 +161,8 @@ export default defineEventHandler(async () => {
         system: adventureRows[0]!.system,
         activeCharacterIds: ids,
         activeCharacters,
+        activeItemIds: itemIds,
+        activeItems,
         selectedBackground,
         galleryFitMode: (state.galleryFitMode ?? 'cover') as 'cover' | 'contain',
         displayMode: (state.displayMode ?? 'scene') as 'scene' | 'table',
@@ -159,6 +175,7 @@ export default defineEventHandler(async () => {
             state.tableSeats ?? 4
         ),
         showCharacters: state.showCharacters ?? true,
+        showItems: state.showItems ?? false,
         useAltBackground: state.useAltBackground ?? false,
     };
 });

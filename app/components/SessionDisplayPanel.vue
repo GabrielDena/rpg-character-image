@@ -13,6 +13,8 @@ const props = defineProps<{
     savingTableConfig: boolean;
     showCharacters: boolean;
     savingShowCharacters: boolean;
+    showItems: boolean;
+    savingShowItems: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -20,6 +22,7 @@ const emit = defineEmits<{
     setScene: [];
     setTable: [config: { shape: 'round' | 'square' | 'rectangle'; seats: number; sideSeats: number }];
     toggleShowCharacters: [];
+    toggleShowItems: [];
 }>();
 
 const showTableModal = ref(false);
@@ -56,6 +59,16 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
                 :loading="props.savingShowCharacters"
                 class="w-full justify-start"
                 @click="emit('toggleShowCharacters')"
+            />
+            <UButton
+                size="sm"
+                color="neutral"
+                variant="ghost"
+                :icon="props.showItems ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
+                :label="props.showItems ? 'Hide Items' : 'Show Items'"
+                :loading="props.savingShowItems"
+                class="w-full justify-start"
+                @click="emit('toggleShowItems')"
             />
             <UButton
                 size="sm"

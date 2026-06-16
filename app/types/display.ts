@@ -5,9 +5,18 @@ export interface DisplayCharacter extends CharacterWithUrl {
     profileImageUrl: string | null;
 }
 
+export interface DisplayItem {
+    id: string;
+    name: string;
+    description: string | null;
+    storagePath: string | null;
+    url: string | null;
+}
+
 export interface DisplayState {
     activeAdventureId: string | null;
     activeCharacters: DisplayCharacter[];
+    activeItems: DisplayItem[];
     selectedBackground: (BackgroundWithUrl & { url: string }) | null;
     galleryFitMode: 'cover' | 'contain';
     displayMode: 'scene' | 'table';
@@ -16,5 +25,6 @@ export interface DisplayState {
     tableSideSeats: number;
     seatAssignments: (string | null)[];
     showCharacters: boolean;
+    showItems: boolean;
     useAltBackground: boolean;
 }
