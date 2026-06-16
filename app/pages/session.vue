@@ -138,6 +138,24 @@ const savingFitMode = ref(false);
 // ── Show/hide characters ─────────────────────────────────────────────────────────────
 const showCharacters = ref(true);
 const savingShowCharacters = ref(false);
+const showItems = ref(false);
+const savingShowItems = ref(false);
+
+async function toggleShowItems() {
+    const next = !showItems.value;
+    savingShowItems.value = true;
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: { showItems: next, password: getPassword() },
+        });
+        showItems.value = next;
+    } catch {
+        // non-fatal
+    } finally {
+        savingShowItems.value = false;
+    }
+}
 
 async function toggleShowCharacters() {
     const next = !showCharacters.value;
@@ -340,6 +358,7 @@ const isSaving = computed(
         settingAdventure.value ||
         savingTableConfig.value ||
         savingShowCharacters.value ||
+        savingShowItems.value ||
         savingItems.value
 );
 
@@ -360,6 +379,7 @@ watch(
                 tableSeats: number;
                 tableSideSeats: number;
                 showCharacters: boolean;
+                showItems: boolean;
                 useAltBackground: boolean;
             }>('/api/display-state');
             activeCharacterIds.value = state.activeCharacterIds;
@@ -372,6 +392,7 @@ watch(
             tableSeats.value = state.tableSeats ?? 4;
             tableSideSeats.value = state.tableSideSeats ?? 0;
             showCharacters.value = state.showCharacters ?? true;
+            showItems.value = state.showItems ?? false;
             useAltBackground.value = state.useAltBackground ?? false;
         } catch {
             // non-fatal
@@ -396,6 +417,7 @@ onMounted(async () => {
         tableSeats: number;
         tableSideSeats: number;
         showCharacters: boolean;
+        showItems: boolean;
         useAltBackground: boolean;
     }>('/api/display-state');
 
@@ -423,6 +445,7 @@ onMounted(async () => {
         tableSeats.value = state.tableSeats ?? 4;
         tableSideSeats.value = state.tableSideSeats ?? 0;
         showCharacters.value = state.showCharacters ?? true;
+        showItems.value = state.showItems ?? false;
         useAltBackground.value = state.useAltBackground ?? false;
     } catch {
     } finally {
@@ -475,11 +498,14 @@ onMounted(async () => {
                     :saving-table-config="savingTableConfig"
                     :show-characters="showCharacters"
                     :saving-show-characters="savingShowCharacters"
+                    :show-items="showItems"
+                    :saving-show-items="savingShowItems"
                     class="w-40 shrink-0"
                     @toggle-fit-mode="toggleFitMode"
                     @set-scene="onSetScene"
                     @set-table="onSetTable"
                     @toggle-show-characters="toggleShowCharacters"
+                    @toggle-show-items="toggleShowItems"
                 />
             </div>
 

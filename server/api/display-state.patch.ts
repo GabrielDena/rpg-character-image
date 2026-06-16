@@ -15,6 +15,7 @@ export default defineEventHandler(async (event) => {
         tableSideSeats?: number;
         seatAssignments?: (string | null)[] | null;
         showCharacters?: boolean;
+        showItems?: boolean;
         useAltBackground?: boolean;
         password: string;
     }>(event);
@@ -40,6 +41,7 @@ export default defineEventHandler(async (event) => {
     if ('seatAssignments' in body) patch.seatAssignments = body.seatAssignments ?? null;
     if ('showCharacters' in body && body.showCharacters != null)
         patch.showCharacters = body.showCharacters;
+    if ('showItems' in body && body.showItems != null) patch.showItems = body.showItems;
     if ('useAltBackground' in body && body.useAltBackground != null)
         patch.useAltBackground = body.useAltBackground;
 

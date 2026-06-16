@@ -5,6 +5,7 @@ import type { DisplayCharacter, DisplayState } from '~/types/display';
 const state = ref<DisplayState>({
     activeAdventureId: null,
     activeCharacters: [],
+    activeItems: [],
     selectedBackground: null,
     galleryFitMode: 'cover',
     displayMode: 'scene',
@@ -13,6 +14,7 @@ const state = ref<DisplayState>({
     tableSideSeats: 0,
     seatAssignments: [],
     showCharacters: true,
+    showItems: false,
     useAltBackground: false,
 });
 
@@ -271,6 +273,19 @@ const focusedSrc = computed(
     () => focusedCharacter.value?.profileImageUrl ?? focusedCharacter.value?.avatarUrl ?? undefined
 );
 
+// ── Items overlay sizing ──────────────────────────────────────────────────────
+const itemCardWidth = computed(() => {
+    const n = state.value.activeItems.length;
+    if (n === 0) return '0px';
+    // p-12 overlay padding = 96px total h, gap-6 = 24px between cards
+    const gaps = 24 * (n - 1);
+    const padding = 96;
+    return `calc((100vw - ${padding + gaps}px) / ${n})`;
+});
+
+// max image height = viewport - overlay padding (96px) - name block (~72px)
+const itemImageMaxHeight = computed(() => `calc(100vh - ${96 + 72}px)`);
+
 // ── Image style ──────────────────────────────────────────────────────────────
 const imageStyle = computed<CSSProperties>(() => {
     if (!containerHeight.value) return {};
@@ -346,6 +361,53 @@ const imageStyle = computed<CSSProperties>(() => {
                     class="max-h-full max-w-full object-contain"
                     @click.stop
                 />
+            </div>
+        </Transition>
+
+        <!-- Items overlay -->
+        <Transition name="fade">
+            <div
+                v-if="state.showItems && state.activeItems.length"
+                class="absolute inset-0 z-40 flex items-center justify-center bg-black/70 p-12"
+            >
+                <div class="flex items-start justify-center gap-6">
+                    <div
+                        v-for="item in state.activeItems"
+                        :key="item.id"
+                        class="flex shrink-0 flex-col overflow-hidden rounded-2xl bg-gray-900/95 shadow-2xl ring-1 ring-white/10"
+                        :style="{ width: itemCardWidth }"
+                    >
+                        <div class="w-full bg-gray-800">
+                            <img
+                                v-if="item.url"
+                                :src="item.url"
+                                :alt="item.name"
+                                class="block w-full"
+                                :style="{ maxHeight: itemImageMaxHeight, objectFit: 'contain' }"
+                            />
+                            <div
+                                v-else
+                                class="flex h-48 items-center justify-center"
+                            >
+                                <UIcon
+                                    name="i-heroicons-archive-box"
+                                    class="size-16 text-gray-600"
+                                />
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <p class="text-center font-semibold text-gray-100">
+                                {{ item.name }}
+                            </p>
+                            <p
+                                v-if="item.description"
+                                class="mt-1 line-clamp-3 text-center text-sm text-gray-400"
+                            >
+                                {{ item.description }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </Transition>
 
