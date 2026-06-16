@@ -459,6 +459,10 @@ onMounted(async () => {
                     class="min-w-0 flex-1 shrink-0"
                     @update="onSceneUpdated"
                 />
+                <SessionItemsPanel
+                    :adventure-id="activeAdventure.id"
+                    class="w-40 shrink-0"
+                />
                 <SavedScenesPanel
                     :adventure-id="activeAdventure.id"
                     :active-character-ids="activeCharacterIds"
