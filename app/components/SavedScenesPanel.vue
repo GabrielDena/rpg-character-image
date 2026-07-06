@@ -101,6 +101,30 @@ async function onSceneSaved(updated: SavedScene) {
     }
 }
 
+async function onSceneOverridden(updated: SavedScene) {
+    try {
+        const { scene } = await $fetch<{ scene: SavedScene }>(`/api/saved-scenes/${updated.id}`, {
+            method: 'PATCH',
+            body: {
+                name: updated.name,
+                characterIds: [...props.activeCharacterIds],
+                backgroundId: props.selectedBackgroundId,
+                useAltBackground: props.useAltBackground,
+                displayMode: props.displayMode,
+                tableShape: props.tableShape,
+                tableSeats: props.tableSeats,
+                tableSideSeats: props.tableSideSeats,
+                password: getPassword(),
+            },
+        });
+        const idx = scenes.value.findIndex((s) => s.id === scene.id);
+        if (idx !== -1) scenes.value[idx] = scene;
+        toast.add({ title: 'Scene saved', color: 'success', icon: 'i-heroicons-check-circle' });
+    } catch {
+        toast.add({ title: 'Failed to save scene', color: 'error' });
+    }
+}
+
 async function onSceneDeleted(id: string) {
     try {
         await $fetch(`/api/saved-scenes/${id}`, {
@@ -218,7 +242,7 @@ async function deleteAllScenes() {
             :scene="selectedScene"
             :all-characters="allCharacters"
             :all-backgrounds="allBackgrounds"
-            @save="onSceneSaved"
+            @save="onSceneOverridden"
             @delete="onSceneDeleted"
             @apply="onSceneApplied"
         />
