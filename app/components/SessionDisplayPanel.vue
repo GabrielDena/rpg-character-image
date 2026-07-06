@@ -27,6 +27,14 @@ const emit = defineEmits<{
 
 const showTableModal = ref(false);
 
+function toggleShow() {
+    show.value = !show.value;
+}
+
+function openTableModal() {
+    showTableModal.value = true;
+}
+
 function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats: number; sideSeats: number }) {
     emit('setTable', config);
 }
@@ -43,7 +51,7 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
                 color="neutral"
                 variant="ghost"
                 :icon="show ? 'i-heroicons-eye' : 'i-heroicons-eye-slash'"
-                @click="show = !show"
+                @click="toggleShow"
             />
         </template>
         <div
@@ -93,7 +101,7 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
                 label="Table"
                 :loading="props.savingTableConfig"
                 class="w-full justify-start"
-                @click="showTableModal = true"
+                @click="openTableModal"
             />
             <template v-else>
                 <UButton
@@ -113,7 +121,7 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
                     icon="i-heroicons-cog-6-tooth"
                     label="Configure"
                     class="w-full justify-start"
-                    @click="showTableModal = true"
+                    @click="openTableModal"
                 />
             </template>
         </div>
