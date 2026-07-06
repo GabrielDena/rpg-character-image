@@ -237,7 +237,7 @@ async function confirmDelete() {
                                     ? 'border-violet-500 bg-violet-500/10 text-violet-300'
                                     : 'border-gray-700 text-gray-400 hover:border-gray-600'
                             "
-                            @click="formCategoryId = ''"
+                            @click="void (formCategoryId = '')"
                         >
                             None
                         </button>
@@ -251,7 +251,7 @@ async function confirmDelete() {
                                     ? 'border-violet-500 bg-violet-500/10 text-violet-300'
                                     : 'border-gray-700 text-gray-400 hover:border-gray-600'
                             "
-                            @click="formCategoryId = cat.id"
+                            @click="void (formCategoryId = cat.id)"
                         >
                             {{ cat.name }}
                         </button>
@@ -280,7 +280,7 @@ async function confirmDelete() {
                     color="error"
                     variant="ghost"
                     leading-icon="i-heroicons-trash"
-                    @click="showDeleteConfirm = true"
+                    @click="void (showDeleteConfirm = true)"
                 >
                     Delete
                 </UButton>
@@ -313,7 +313,7 @@ async function confirmDelete() {
         title="Delete Item"
         :ui="{ content: 'sm:max-w-sm' }"
         :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
-        @update:open="showDeleteConfirm = $event"
+        @update:open="(val) => void (showDeleteConfirm = val)"
     >
         <template #body>
             <p class="text-sm text-gray-300">
@@ -328,7 +328,7 @@ async function confirmDelete() {
                     color="neutral"
                     variant="ghost"
                     :disabled="deleting"
-                    @click="showDeleteConfirm = false"
+                    @click="void (showDeleteConfirm = false)"
                 >
                     Cancel
                 </UButton>

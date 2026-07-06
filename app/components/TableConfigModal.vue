@@ -93,7 +93,7 @@ function confirm() {
                                     ? 'border-primary-500 bg-primary-500/10 text-primary-400'
                                     : 'border-gray-700 text-gray-400 hover:border-gray-600'
                             "
-                            @click="selectedShape = shapeOption"
+                            @click="void (selectedShape = shapeOption)"
                         >
                             <svg
                                 viewBox="0 0 100 100"
@@ -159,7 +159,7 @@ function confirm() {
                                     ? 'border-primary-500 bg-primary-500/10 text-primary-400'
                                     : 'border-gray-700 text-gray-400 hover:border-gray-600'
                             "
-                            @click="selectedSeats = n; isCustom = false"
+                            @click="selectedSeats = n; void (isCustom = false)"
                         >
                             {{ n }}
                         </button>
@@ -171,7 +171,7 @@ function confirm() {
                                 ? 'border-primary-500 bg-primary-500/10 text-primary-400'
                                 : 'border-gray-700 text-gray-400 hover:border-gray-600'
                         "
-                        @click="isCustom = true"
+                        @click="void (isCustom = true)"
                     >
                         Custom
                     </button>

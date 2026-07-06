@@ -46,7 +46,7 @@ function toggleEditCharacter(character: CharacterWithUrl) {
                 variant="ghost"
                 icon="i-heroicons-plus"
                 :loading="saving"
-                @click="showNpcModal = true"
+                @click="void (showNpcModal = true)"
             />
         </template>
 

@@ -213,7 +213,7 @@ async function deleteCategory(cat: ItemCategory) {
                     color="neutral"
                     leading-icon="i-heroicons-plus"
                     size="sm"
-                    @click="adding = true; newName = ''"
+                    @click="adding = true; void (newName = '')"
                 >
                     Add Category
                 </UButton>

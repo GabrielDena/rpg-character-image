@@ -378,7 +378,7 @@ async function editCharacter() {
                                     ? 'border-violet-500 bg-violet-500/10 text-violet-300'
                                     : 'border-gray-700 text-gray-400 hover:border-gray-600'
                             "
-                            @click="formType = 'pc'"
+                            @click="void (formType = 'pc')"
                         >
                             PC
                         </button>
@@ -389,7 +389,7 @@ async function editCharacter() {
                                     ? 'border-violet-500 bg-violet-500/10 text-violet-300'
                                     : 'border-gray-700 text-gray-400 hover:border-gray-600'
                             "
-                            @click="formType = 'npc'"
+                            @click="void (formType = 'npc')"
                         >
                             NPC
                         </button>
@@ -628,7 +628,7 @@ async function editCharacter() {
                     color="error"
                     variant="ghost"
                     leading-icon="i-heroicons-trash"
-                    @click="showDeleteCharacterModal = true"
+                    @click="void (showDeleteCharacterModal = true)"
                 >
                     Delete
                 </UButton>
@@ -667,7 +667,7 @@ async function editCharacter() {
         title="Delete Image"
         :ui="{ content: 'sm:max-w-sm' }"
         :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
-        @update:open="showDeleteModal = $event"
+        @update:open="(val) => void (showDeleteModal = val)"
     >
         <template #body>
             <p class="text-sm text-gray-300">
@@ -681,7 +681,7 @@ async function editCharacter() {
                     color="neutral"
                     variant="ghost"
                     :disabled="deletingImage"
-                    @click="showDeleteModal = false"
+                    @click="void (showDeleteModal = false)"
                 >
                     Cancel
                 </UButton>
@@ -701,7 +701,7 @@ async function editCharacter() {
         title="Delete Character"
         :ui="{ content: 'sm:max-w-sm' }"
         :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
-        @update:open="showDeleteCharacterModal = $event"
+        @update:open="(val) => void (showDeleteCharacterModal = val)"
     >
         <template #body>
             <p class="text-sm text-gray-300">
@@ -714,7 +714,7 @@ async function editCharacter() {
                     color="neutral"
                     variant="ghost"
                     :disabled="deletingCharacter"
-                    @click="showDeleteCharacterModal = false"
+                    @click="void (showDeleteCharacterModal = false)"
                 >
                     Cancel
                 </UButton>

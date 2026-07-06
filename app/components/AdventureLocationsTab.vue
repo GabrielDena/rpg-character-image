@@ -102,7 +102,7 @@ async function deleteLocation(loc: Location) {
                 <UButton
                     size="sm"
                     leading-icon="i-heroicons-plus"
-                    @click="adding = true"
+                    @click="void (adding = true)"
                 >
                     Add
                 </UButton>

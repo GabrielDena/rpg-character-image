@@ -194,7 +194,7 @@ async function deleteAllScenes() {
                     <button
                         class="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-800 hover:text-red-400"
                         :disabled="deletingAll"
-                        @click="showDeleteAllModal = true"
+                        @click="void (showDeleteAllModal = true)"
                     >
                         <UIcon
                             v-if="deletingAll"
@@ -228,7 +228,7 @@ async function deleteAllScenes() {
             title="Delete All Scenes"
             :ui="{ content: 'sm:max-w-sm' }"
             :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
-            @update:open="showDeleteAllModal = $event"
+            @update:open="(val) => void (showDeleteAllModal = val)"
         >
             <template #body>
                 <p class="text-sm text-gray-300">
@@ -241,7 +241,7 @@ async function deleteAllScenes() {
                         color="neutral"
                         variant="ghost"
                         :disabled="deletingAll"
-                        @click="showDeleteAllModal = false"
+                        @click="void (showDeleteAllModal = false)"
                     >
                         Cancel
                     </UButton>

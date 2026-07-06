@@ -33,7 +33,7 @@ const activeItems = computed(() =>
                 variant="ghost"
                 icon="i-heroicons-plus"
                 :loading="saving"
-                @click="showPicker = true"
+                @click="void (showPicker = true)"
             />
         </template>
 
@@ -86,7 +86,7 @@ const activeItems = computed(() =>
                 <button
                     class="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-800 hover:text-red-400"
                     :disabled="saving"
-                    @click="showRemoveAllModal = true"
+                    @click="void (showRemoveAllModal = true)"
                 >
                     <UIcon
                         name="i-heroicons-trash"
@@ -110,7 +110,7 @@ const activeItems = computed(() =>
         title="Remove All Items"
         :ui="{ content: 'sm:max-w-sm' }"
         :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
-        @update:open="showRemoveAllModal = $event"
+        @update:open="(val) => void (showRemoveAllModal = val)"
     >
         <template #body>
             <p class="text-sm text-gray-300">
@@ -122,13 +122,13 @@ const activeItems = computed(() =>
                 <UButton
                     color="neutral"
                     variant="ghost"
-                    @click="showRemoveAllModal = false"
+                    @click="void (showRemoveAllModal = false)"
                 >
                     Cancel
                 </UButton>
                 <UButton
                     color="error"
-                    @click="emit('update', []); showRemoveAllModal = false"
+                    @click="emit('update', []); void (showRemoveAllModal = false)"
                 >
                     Remove All
                 </UButton>

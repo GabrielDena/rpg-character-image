@@ -39,7 +39,7 @@ const bgSelectorOpen = ref<boolean>(false);
                 color="neutral"
                 variant="ghost"
                 :icon="show ? 'i-heroicons-eye' : 'i-heroicons-eye-slash'"
-                @click="show = !show"
+                @click="void (show = !show)"
             />
             <UButton
                 size="sm"
@@ -54,7 +54,7 @@ const bgSelectorOpen = ref<boolean>(false);
             class="h-full w-full border-gray-800 transition-colors"
             :class="savingBackground ? 'opacity-50' : 'hover:bg-gray-800'"
             :disabled="savingBackground"
-            @click="bgSelectorOpen = true"
+            @click="void (bgSelectorOpen = true)"
         >
             <div
                 v-if="!selectedBackground"

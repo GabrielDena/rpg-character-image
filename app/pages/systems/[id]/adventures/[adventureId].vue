@@ -98,7 +98,7 @@ onMounted(() => {
                         ? 'border-b-2 border-violet-500 text-gray-100'
                         : 'text-gray-500 hover:text-gray-400'
                 "
-                @click="activeTab = tab.key"
+                @click="void (activeTab = tab.key)"
             >
                 <UIcon
                     :name="tab.icon"

@@ -274,7 +274,7 @@ function close() {
                             type="button"
                             class="rounded-full border px-3 py-1 text-xs font-medium transition-colors"
                             :class="formLocationId === '' ? 'border-violet-500 bg-violet-500/10 text-violet-300' : 'border-gray-700 text-gray-400 hover:border-gray-600'"
-                            @click="formLocationId = ''"
+                            @click="void (formLocationId = '')"
                         >
                             None
                         </button>
@@ -284,7 +284,7 @@ function close() {
                             type="button"
                             class="rounded-full border px-3 py-1 text-xs font-medium transition-colors"
                             :class="formLocationId === loc.id ? 'border-violet-500 bg-violet-500/10 text-violet-300' : 'border-gray-700 text-gray-400 hover:border-gray-600'"
-                            @click="formLocationId = loc.id"
+                            @click="void (formLocationId = loc.id)"
                         >
                             {{ loc.name }}
                         </button>
@@ -307,7 +307,7 @@ function close() {
                     color="error"
                     variant="ghost"
                     leading-icon="i-heroicons-trash"
-                    @click="showDeleteConfirm = true"
+                    @click="void (showDeleteConfirm = true)"
                 >
                     Delete
                 </UButton>
@@ -340,7 +340,7 @@ function close() {
         title="Delete Background"
         :ui="{ content: 'sm:max-w-sm' }"
         :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
-        @update:open="showDeleteConfirm = $event"
+        @update:open="(val) => void (showDeleteConfirm = val)"
     >
         <template #body>
             <p class="text-sm text-gray-300">
@@ -353,7 +353,7 @@ function close() {
                     color="neutral"
                     variant="ghost"
                     :disabled="deleting"
-                    @click="showDeleteConfirm = false"
+                    @click="void (showDeleteConfirm = false)"
                 >
                     Cancel
                 </UButton>

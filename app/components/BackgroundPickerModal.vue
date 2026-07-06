@@ -72,7 +72,7 @@ function confirm(id: string) {
                         type="button"
                         class="rounded-full border px-3 py-1 text-xs font-medium transition-colors"
                         :class="locationFilter === tag.value ? 'border-violet-500 bg-violet-500/10 text-violet-300' : 'border-gray-700 text-gray-400 hover:border-gray-600'"
-                        @click="locationFilter = tag.value"
+                        @click="void (locationFilter = tag.value)"
                     >
                         {{ tag.label }}
                     </button>

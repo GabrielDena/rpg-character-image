@@ -95,7 +95,7 @@ onMounted(async () => {
                 color="neutral"
                 variant="ghost"
                 :icon="show ? 'i-heroicons-eye' : 'i-heroicons-eye-slash'"
-                @click="show = !show"
+                @click="void (show = !show)"
             />
             <UButton
                 v-if="activeAdventureId"

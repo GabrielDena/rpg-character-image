@@ -47,7 +47,7 @@ async function verifyPassword() {
                         size="xs"
                         :icon="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
                         :padded="false"
-                        @click="showPassword = !showPassword"
+                        @click="void (showPassword = !showPassword)"
                     />
                 </template>
             </UInput>

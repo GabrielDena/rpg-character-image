@@ -132,7 +132,7 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
         :shape="props.tableShape"
         :seats="props.tableSeats"
         :side-seats="props.tableSideSeats"
-        @update:open="showTableModal = $event"
+        @update:open="(val) => { showTableModal = val }"
         @confirm="onTableConfirm"
     />
 </template>

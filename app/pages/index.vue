@@ -49,7 +49,7 @@ onMounted(() => {
                 <UButton
                     size="sm"
                     leading-icon="i-heroicons-plus"
-                    @click="showModal = true"
+                    @click="void (showModal = true)"
                 >
                     New System
                 </UButton>
@@ -105,7 +105,7 @@ onMounted(() => {
                 </div>
                 <UButton
                     leading-icon="i-heroicons-plus"
-                    @click="showModal = true"
+                    @click="void (showModal = true)"
                 >
                     New System
                 </UButton>

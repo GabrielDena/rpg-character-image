@@ -110,7 +110,7 @@ onMounted(() => {
                         variant="ghost"
                         icon="i-heroicons-tag"
                         title="Manage categories"
-                        @click="showCategoriesModal = true"
+                        @click="void (showCategoriesModal = true)"
                     />
                     <UButton
                         size="sm"
@@ -139,7 +139,7 @@ onMounted(() => {
                             ? 'border-violet-500 bg-violet-500/10 text-violet-300'
                             : 'border-gray-700 text-gray-400 hover:border-gray-600'
                     "
-                    @click="selectedCategoryId = null"
+                    @click="void (selectedCategoryId = null)"
                 >
                     All
                 </button>
@@ -152,7 +152,7 @@ onMounted(() => {
                             ? 'border-violet-500 bg-violet-500/10 text-violet-300'
                             : 'border-gray-700 text-gray-400 hover:border-gray-600'
                     "
-                    @click="selectedCategoryId = cat.id"
+                    @click="void (selectedCategoryId = cat.id)"
                 >
                     {{ cat.name }}
                 </button>

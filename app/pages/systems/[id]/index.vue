@@ -54,7 +54,7 @@ onMounted(fetchData);
                     size="sm"
                     leading-icon="i-heroicons-plus"
                     :disabled="!system"
-                    @click="showModal = true"
+                    @click="void (showModal = true)"
                 >
                     New Adventure
                 </UButton>
@@ -110,7 +110,7 @@ onMounted(fetchData);
                 </div>
                 <UButton
                     leading-icon="i-heroicons-plus"
-                    @click="showModal = true"
+                    @click="void (showModal = true)"
                 >
                     New Adventure
                 </UButton>
