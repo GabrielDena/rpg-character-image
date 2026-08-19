@@ -10,6 +10,24 @@ const loading = ref(false);
 const fetchError = ref<string | null>(null);
 const showModal = ref(false);
 
+// Rename state
+const renameTarget = ref<Adventure | null>(null);
+const renameName = ref('');
+const renameDescription = ref('');
+const renaming = ref(false);
+const renameError = ref<string | null>(null);
+
+// Delete state
+const deleteTarget = ref<Adventure | null>(null);
+const deleting = ref(false);
+const deleteError = ref<string | null>(null);
+
+const toast = useToast();
+
+function getPassword() {
+    return localStorage.getItem('app_password') ?? '';
+}
+
 async function fetchData() {
     loading.value = true;
     fetchError.value = null;
@@ -24,6 +42,68 @@ async function fetchData() {
         fetchError.value = e instanceof Error ? e.message : 'Could not load data';
     } finally {
         loading.value = false;
+    }
+}
+
+function openRename(adventure: Adventure) {
+    renameTarget.value = adventure;
+    renameName.value = adventure.name;
+    renameDescription.value = adventure.description ?? '';
+    renameError.value = null;
+}
+
+function closeRename() {
+    renameTarget.value = null;
+}
+
+async function submitRename() {
+    if (!renameTarget.value || !renameName.value.trim()) return;
+    renaming.value = true;
+    renameError.value = null;
+    try {
+        await $fetch(`/api/adventures/${renameTarget.value.id}`, {
+            method: 'PATCH',
+            body: {
+                name: renameName.value.trim(),
+                description: renameDescription.value.trim() || null,
+                password: getPassword(),
+            },
+        });
+        await fetchData();
+        closeRename();
+        toast.add({ title: 'Adventure updated', color: 'success', icon: 'i-heroicons-check-circle' });
+    } catch (e: unknown) {
+        renameError.value = e instanceof Error ? e.message : 'Could not update adventure';
+    } finally {
+        renaming.value = false;
+    }
+}
+
+function openDelete(adventure: Adventure) {
+    deleteTarget.value = adventure;
+    deleteError.value = null;
+}
+
+function closeDelete() {
+    deleteTarget.value = null;
+}
+
+async function submitDelete() {
+    if (!deleteTarget.value) return;
+    deleting.value = true;
+    deleteError.value = null;
+    try {
+        await $fetch(`/api/adventures/${deleteTarget.value.id}`, {
+            method: 'DELETE',
+            body: { password: getPassword(), systemId },
+        });
+        await fetchData();
+        closeDelete();
+        toast.add({ title: 'Adventure deleted', color: 'success', icon: 'i-heroicons-check-circle' });
+    } catch (e: unknown) {
+        deleteError.value = e instanceof Error ? e.message : 'Could not delete adventure';
+    } finally {
+        deleting.value = false;
     }
 }
 
@@ -123,10 +203,11 @@ onMounted(fetchData);
                 <li
                     v-for="adventure in adventuresList"
                     :key="adventure.id"
+                    class="group flex items-center gap-1 rounded-xl transition-colors hover:bg-gray-800"
                 >
                     <NuxtLink
                         :to="`/systems/${systemId}/adventures/${adventure.id}`"
-                        class="flex w-full items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-gray-800 active:bg-gray-700"
+                        class="flex min-w-0 flex-1 items-center gap-3 px-3 py-3"
                     >
                         <UIcon
                             name="i-heroicons-map"
@@ -148,6 +229,26 @@ onMounted(fetchData);
                             class="size-4 shrink-0 text-gray-600"
                         />
                     </NuxtLink>
+                    <div class="flex shrink-0 items-center gap-0.5 pr-2 opacity-0 transition-opacity group-hover:opacity-100">
+                        <UButton
+                            variant="ghost"
+                            color="neutral"
+                            size="xs"
+                            icon="i-heroicons-pencil"
+                            :padded="false"
+                            class="p-1.5"
+                            @click.prevent="openRename(adventure)"
+                        />
+                        <UButton
+                            variant="ghost"
+                            color="error"
+                            size="xs"
+                            icon="i-heroicons-trash"
+                            :padded="false"
+                            class="p-1.5"
+                            @click.prevent="openDelete(adventure)"
+                        />
+                    </div>
                 </li>
             </ul>
         </div>
@@ -158,5 +259,98 @@ onMounted(fetchData);
         :system-id="systemId"
         @created="fetchData"
     />
-</template>
 
+    <!-- Rename Modal -->
+    <UModal
+        :open="!!renameTarget"
+        title="Rename Adventure"
+        :content="{ onOpenAutoFocus: (e: Event) => e.preventDefault() }"
+        @update:open="(v) => { if (!v) closeRename(); }"
+    >
+        <template #body>
+            <div class="space-y-4">
+                <UFormField
+                    label="Name"
+                    required
+                >
+                    <UInput
+                        v-model="renameName"
+                        placeholder="Adventure name"
+                        autofocus
+                        @keyup.enter="submitRename"
+                    />
+                </UFormField>
+                <UFormField label="Description">
+                    <UTextarea
+                        v-model="renameDescription"
+                        placeholder="Optional description"
+                        :rows="3"
+                    />
+                </UFormField>
+                <p
+                    v-if="renameError"
+                    class="text-sm text-red-400"
+                >
+                    {{ renameError }}
+                </p>
+            </div>
+        </template>
+        <template #footer>
+            <div class="flex justify-end gap-2">
+                <UButton
+                    color="neutral"
+                    variant="ghost"
+                    @click="closeRename"
+                >
+                    Cancel
+                </UButton>
+                <UButton
+                    :loading="renaming"
+                    :disabled="!renameName.trim()"
+                    @click="submitRename"
+                >
+                    Save
+                </UButton>
+            </div>
+        </template>
+    </UModal>
+
+    <!-- Delete Confirmation Modal -->
+    <UModal
+        :open="!!deleteTarget"
+        title="Delete Adventure"
+        @update:open="(v) => { if (!v) closeDelete(); }"
+    >
+        <template #body>
+            <p class="text-sm text-gray-300">
+                Are you sure you want to delete
+                <span class="font-semibold text-gray-100">{{ deleteTarget?.name }}</span>?
+                This will permanently remove the adventure and all its characters, backgrounds, and scenes.
+            </p>
+            <p
+                v-if="deleteError"
+                class="mt-3 text-sm text-red-400"
+            >
+                {{ deleteError }}
+            </p>
+        </template>
+        <template #footer>
+            <div class="flex justify-end gap-2">
+                <UButton
+                    color="neutral"
+                    variant="ghost"
+                    @click="closeDelete"
+                >
+                    Cancel
+                </UButton>
+                <UButton
+                    color="error"
+                    :loading="deleting"
+                    @click="submitDelete"
+                >
+                    Delete
+                </UButton>
+            </div>
+        </template>
+    </UModal>
+</template>
