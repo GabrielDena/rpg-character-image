@@ -30,7 +30,9 @@ async function onAdventureSelected(adventure: Adventure, system: System) {
         activeAdventure.value = adventure;
         activeSystem.value = system;
         activeItemIds.value = [];
-        await Promise.all([fetchCharacters(adventure.id), fetchItems(adventure.id)]);
+        allBackgrounds.value = [];
+        allLocations.value = [];
+        await Promise.all([fetchCharacters(adventure.id), fetchItems(adventure.id), fetchBackgrounds(adventure.id), fetchLocations(adventure.id)]);
     } catch (e: unknown) {
         toast.add({
             title: 'Failed to set campaign',
