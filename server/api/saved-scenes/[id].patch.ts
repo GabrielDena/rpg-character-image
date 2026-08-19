@@ -27,7 +27,17 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const { password, name, characterIds, backgroundId, useAltBackground, displayMode, tableShape, tableSeats, tableSideSeats } = parsed.data;
+    const {
+        password,
+        name,
+        characterIds,
+        backgroundId,
+        useAltBackground,
+        displayMode,
+        tableShape,
+        tableSeats,
+        tableSideSeats,
+    } = parsed.data;
     if (!checkPassword(password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
 
     const db = useDb();
