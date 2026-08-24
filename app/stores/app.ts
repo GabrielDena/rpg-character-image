@@ -2,6 +2,7 @@ export const useAppStore = defineStore('app', () => {
     const displayStateVersion = ref(0);
     const scenesVersion = ref(0);
     const altBackground = ref(false);
+    const isFullscreen = ref(false);
 
     function notifyDisplayStateUpdated() {
         displayStateVersion.value++;
@@ -15,6 +16,10 @@ export const useAppStore = defineStore('app', () => {
         altBackground.value = value;
     }
 
+    function setFullscreen(value: boolean) {
+        isFullscreen.value = value;
+    }
+
     return {
         displayStateVersion,
         notifyDisplayStateUpdated,
@@ -22,5 +27,7 @@ export const useAppStore = defineStore('app', () => {
         notifyScenesUpdated,
         altBackground,
         setAltBackground,
+        isFullscreen,
+        setFullscreen,
     };
 });
