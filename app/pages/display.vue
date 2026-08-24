@@ -44,7 +44,7 @@ const store = useAppStore();
 watch(
     () => store.displayStateVersion,
     () => {
-        if (!swapping.value) fetchState();
+        triggerSceneTransition();
     }
 );
 watch(
@@ -149,6 +149,31 @@ const isAnythingSelected = computed(
     () => selectedSeatIndex.value !== null || selectedStandingId.value !== null
 );
 const swapping = ref(false);
+
+// ── Scene transition animations ───────────────────────────────────────────────
+const TRANSITIONS = [
+    'fade', 'wipe-right', 'wipe-left', 'wipe-down', 'wipe-up',
+    'split-h', 'split-v', 'blinds-h', 'blinds-v', 'zoom', 'checkerboard',
+];
+const COVER_DURATION = 900;
+const REVEAL_DURATION = 900;
+const PRELOAD_BUFFER = 400; // extra hold after fetchState so images can load
+const transitionPhase = ref<'idle' | 'covering' | 'revealing'>('idle');
+const activeTransition = ref('');
+// Precomputed shuffle of indices 0-11 so checkerboard cells pop in pseudo-random order
+const checkerboardDelays = Array.from({ length: 12 }, (_, i) => ((i * 7 + 3) % 12) * 25);
+
+async function triggerSceneTransition() {
+    if (transitionPhase.value !== 'idle' || swapping.value) return;
+    activeTransition.value = TRANSITIONS[Math.floor(Math.random() * TRANSITIONS.length)];
+    transitionPhase.value = 'covering';
+    await new Promise<void>((r) => setTimeout(r, COVER_DURATION));
+    await fetchState();
+    await new Promise<void>((r) => setTimeout(r, PRELOAD_BUFFER));
+    transitionPhase.value = 'revealing';
+    await new Promise<void>((r) => setTimeout(r, REVEAL_DURATION));
+    transitionPhase.value = 'idle';
+}
 
 watch(displayMode, () => {
     focusedCharacter.value = null;
@@ -410,6 +435,90 @@ const imageStyle = computed<CSSProperties>(() => {
                 </div>
             </div>
         </Transition>
+
+        <!-- Scene transition overlay -->
+        <div
+            v-if="transitionPhase !== 'idle'"
+            class="pointer-events-none absolute inset-0 z-[200] overflow-hidden"
+        >
+            <!-- Single-panel: fade + wipe transitions -->
+            <div
+                v-if="activeTransition === 'fade' || activeTransition.startsWith('wipe')"
+                class="absolute inset-0 bg-black"
+                :class="`tp-${activeTransition}-${transitionPhase}`"
+            />
+
+            <!-- Zoom: black circle expands/contracts from center -->
+            <div
+                v-else-if="activeTransition === 'zoom'"
+                class="absolute rounded-full bg-black"
+                :class="`tp-zoom-circle-${transitionPhase}`"
+                :style="{ width: '250vmax', height: '250vmax', top: 'calc(50% - 125vmax)', left: 'calc(50% - 125vmax)' }"
+            />
+
+            <!-- Split horizontal: top + bottom halves slide in/out -->
+            <template v-else-if="activeTransition === 'split-h'">
+                <div
+                    class="absolute left-0 right-0 top-0 h-1/2 bg-black"
+                    :class="`tp-split-h-top-${transitionPhase}`"
+                />
+                <div
+                    class="absolute bottom-0 left-0 right-0 h-1/2 bg-black"
+                    :class="`tp-split-h-bot-${transitionPhase}`"
+                />
+            </template>
+
+            <!-- Split vertical: left + right halves slide in/out -->
+            <template v-else-if="activeTransition === 'split-v'">
+                <div
+                    class="absolute bottom-0 left-0 top-0 w-1/2 bg-black"
+                    :class="`tp-split-v-left-${transitionPhase}`"
+                />
+                <div
+                    class="absolute bottom-0 right-0 top-0 w-1/2 bg-black"
+                    :class="`tp-split-v-right-${transitionPhase}`"
+                />
+            </template>
+
+            <!-- Blinds horizontal: 8 horizontal strips -->
+            <template v-else-if="activeTransition === 'blinds-h'">
+                <div
+                    v-for="n in 8"
+                    :key="n"
+                    class="absolute left-0 w-full bg-black"
+                    :style="{ top: `${(n - 1) * 12.5}%`, height: '12.5%', animationDelay: `${(n - 1) * 42}ms` }"
+                    :class="`tp-blinds-h-strip-${transitionPhase}`"
+                />
+            </template>
+
+            <!-- Blinds vertical: 8 vertical strips -->
+            <template v-else-if="activeTransition === 'blinds-v'">
+                <div
+                    v-for="n in 8"
+                    :key="n"
+                    class="absolute top-0 h-full bg-black"
+                    :style="{ left: `${(n - 1) * 12.5}%`, width: '12.5%', animationDelay: `${(n - 1) * 42}ms` }"
+                    :class="`tp-blinds-v-strip-${transitionPhase}`"
+                />
+            </template>
+
+            <!-- Checkerboard: 4×3 grid of cells that pop in/out -->
+            <template v-else-if="activeTransition === 'checkerboard'">
+                <div
+                    v-for="(delay, i) in checkerboardDelays"
+                    :key="i"
+                    class="absolute bg-black"
+                    :style="{
+                        left: `${(i % 4) * 25}%`,
+                        top: `${Math.floor(i / 4) * 33.34}%`,
+                        width: '25%',
+                        height: '33.34%',
+                        animationDelay: `${delay}ms`,
+                    }"
+                    :class="`tp-checker-${transitionPhase}`"
+                />
+            </template>
+        </div>
 
         <!-- Table view -->
         <Transition name="fade">
@@ -829,6 +938,96 @@ const imageStyle = computed<CSSProperties>(() => {
 .fade-leave-to {
     opacity: 0;
 }
+
+/* ── Scene transition animations ──────────────────────────────────────────── */
+
+/* Fade */
+.tp-fade-covering { animation: tp-fade-in 900ms ease-in-out forwards; }
+.tp-fade-revealing { animation: tp-fade-out 900ms ease-in-out forwards; }
+@keyframes tp-fade-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes tp-fade-out { from { opacity: 1 } to { opacity: 0 } }
+
+/* Wipe right (panel slides in from left, exits to right) */
+.tp-wipe-right-covering { animation: tp-wipe-right-in 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.tp-wipe-right-revealing { animation: tp-wipe-right-out 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes tp-wipe-right-in { from { transform: translateX(-100%) } to { transform: translateX(0) } }
+@keyframes tp-wipe-right-out { from { transform: translateX(0) } to { transform: translateX(100%) } }
+
+/* Wipe left (panel slides in from right, exits to left) */
+.tp-wipe-left-covering { animation: tp-wipe-left-in 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.tp-wipe-left-revealing { animation: tp-wipe-left-out 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes tp-wipe-left-in { from { transform: translateX(100%) } to { transform: translateX(0) } }
+@keyframes tp-wipe-left-out { from { transform: translateX(0) } to { transform: translateX(-100%) } }
+
+/* Wipe down (panel slides in from top, exits to bottom) */
+.tp-wipe-down-covering { animation: tp-wipe-down-in 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.tp-wipe-down-revealing { animation: tp-wipe-down-out 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes tp-wipe-down-in { from { transform: translateY(-100%) } to { transform: translateY(0) } }
+@keyframes tp-wipe-down-out { from { transform: translateY(0) } to { transform: translateY(100%) } }
+
+/* Wipe up (panel slides in from bottom, exits to top) */
+.tp-wipe-up-covering { animation: tp-wipe-up-in 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.tp-wipe-up-revealing { animation: tp-wipe-up-out 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes tp-wipe-up-in { from { transform: translateY(100%) } to { transform: translateY(0) } }
+@keyframes tp-wipe-up-out { from { transform: translateY(0) } to { transform: translateY(-100%) } }
+
+/* Split horizontal (top + bottom halves close/open) */
+.tp-split-h-top-covering { animation: tp-split-h-top-in 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.tp-split-h-top-revealing { animation: tp-split-h-top-out 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes tp-split-h-top-in { from { transform: translateY(-100%) } to { transform: translateY(0) } }
+@keyframes tp-split-h-top-out { from { transform: translateY(0) } to { transform: translateY(-100%) } }
+
+.tp-split-h-bot-covering { animation: tp-split-h-bot-in 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.tp-split-h-bot-revealing { animation: tp-split-h-bot-out 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes tp-split-h-bot-in { from { transform: translateY(100%) } to { transform: translateY(0) } }
+@keyframes tp-split-h-bot-out { from { transform: translateY(0) } to { transform: translateY(100%) } }
+
+/* Split vertical (left + right halves close/open) */
+.tp-split-v-left-covering { animation: tp-split-v-left-in 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.tp-split-v-left-revealing { animation: tp-split-v-left-out 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes tp-split-v-left-in { from { transform: translateX(-100%) } to { transform: translateX(0) } }
+@keyframes tp-split-v-left-out { from { transform: translateX(0) } to { transform: translateX(-100%) } }
+
+.tp-split-v-right-covering { animation: tp-split-v-right-in 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.tp-split-v-right-revealing { animation: tp-split-v-right-out 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes tp-split-v-right-in { from { transform: translateX(100%) } to { transform: translateX(0) } }
+@keyframes tp-split-v-right-out { from { transform: translateX(0) } to { transform: translateX(100%) } }
+
+/* Blinds horizontal (strips scale in from left, out to right) */
+.tp-blinds-h-strip-covering {
+    transform-origin: left center;
+    animation: tp-blinds-cover 420ms ease-in-out forwards;
+}
+.tp-blinds-h-strip-revealing {
+    transform-origin: right center;
+    animation: tp-blinds-reveal 420ms ease-in-out forwards;
+}
+@keyframes tp-blinds-cover { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+@keyframes tp-blinds-reveal { from { transform: scaleX(1) } to { transform: scaleX(0) } }
+
+/* Blinds vertical (strips scale in from top, out to bottom) */
+.tp-blinds-v-strip-covering {
+    transform-origin: center top;
+    animation: tp-blindsv-cover 420ms ease-in-out forwards;
+}
+.tp-blinds-v-strip-revealing {
+    transform-origin: center bottom;
+    animation: tp-blindsv-reveal 420ms ease-in-out forwards;
+}
+@keyframes tp-blindsv-cover { from { transform: scaleY(0) } to { transform: scaleY(1) } }
+@keyframes tp-blindsv-reveal { from { transform: scaleY(1) } to { transform: scaleY(0) } }
+
+/* Zoom (black circle expands from center / contracts to center) */
+.tp-zoom-circle-covering { animation: tp-zoom-in 900ms ease-out forwards; }
+.tp-zoom-circle-revealing { animation: tp-zoom-out 900ms ease-in forwards; }
+@keyframes tp-zoom-in { from { transform: scale(0) } to { transform: scale(1) } }
+@keyframes tp-zoom-out { from { transform: scale(1) } to { transform: scale(0) } }
+
+/* Checkerboard (grid cells pop in/out with staggered delay) */
+.tp-checker-covering { animation: tp-checker-in 390ms ease-in-out forwards; }
+.tp-checker-revealing { animation: tp-checker-out 390ms ease-in-out forwards; }
+@keyframes tp-checker-in { from { opacity: 0; transform: scale(0.6) } to { opacity: 1; transform: scale(1) } }
+@keyframes tp-checker-out { from { opacity: 1; transform: scale(1) } to { opacity: 0; transform: scale(0.6) } }
 
 .seat-selection-ring {
     animation: seat-pulse 1.2s ease-in-out infinite;
