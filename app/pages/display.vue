@@ -347,19 +347,6 @@ const imageStyle = computed<CSSProperties>(() => {
         "
     >
         <!-- Empty state (scene only) -->
-        <Transition name="fade">
-            <div
-                v-if="count === 0 && displayMode === 'scene' && state.showCharacters"
-                class="flex h-full flex-col items-center justify-center gap-3"
-            >
-                <UIcon
-                    name="i-heroicons-squares-2x2"
-                    class="size-12 text-gray-700"
-                />
-                <p class="text-sm text-gray-500">No characters in scene</p>
-            </div>
-        </Transition>
-
         <!-- Character images (scene only) -->
         <Transition name="fade">
             <div
