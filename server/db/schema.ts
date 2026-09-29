@@ -3,6 +3,7 @@ import {
     integer,
     json,
     pgTable,
+    real,
     text,
     timestamp,
     uuid,
@@ -88,6 +89,7 @@ export const displayState = pgTable('display_state', {
     tableSideSeats: integer('table_side_seats').default(0).notNull(),
     useAltBackground: boolean('use_alt_background').default(false).notNull(),
     hiddenCharacterIds: uuid('hidden_character_ids').array().default([]).notNull(),
+    showTrackingCards: boolean('show_tracking_cards').default(false).notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
@@ -156,3 +158,18 @@ export type NewItemCategory = typeof itemCategories.$inferInsert;
 
 export type Item = typeof items.$inferSelect;
 export type NewItem = typeof items.$inferInsert;
+
+export const trackingCards = pgTable('tracking_cards', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    adventureId: uuid('adventure_id')
+        .notNull()
+        .references(() => adventures.id, { onDelete: 'cascade' }),
+    title: varchar('title', { length: 255 }).notNull(),
+    type: varchar('type', { length: 20 }).notNull().default('tag'),
+    value: real('value'),
+    sortOrder: integer('sort_order').default(0).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type TrackingCard = typeof trackingCards.$inferSelect;
+export type NewTrackingCard = typeof trackingCards.$inferInsert;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue';
-import type { DisplayCharacter, DisplayState } from '~/types/display';
+import type { DisplayCharacter, DisplayState, TrackingCard } from '~/types/display';
 
 const state = ref<DisplayState>({
     activeAdventureId: null,
@@ -17,6 +17,8 @@ const state = ref<DisplayState>({
     showItems: false,
     useAltBackground: false,
     hiddenCharacterIds: [],
+    trackingCards: [],
+    showTrackingCards: false,
 });
 
 const container = ref<HTMLElement | null>(null);
@@ -304,6 +306,28 @@ const focusedSrc = computed(
     () => focusedCharacter.value?.profileImageUrl ?? focusedCharacter.value?.avatarUrl ?? undefined
 );
 
+// ── Tracking cards sidebar ────────────────────────────────────────────────────
+const TRACKING_STEPS = [0, 1, 2, 2.5, 3, 3.33, 3.66, 4, 4.25, 4.5, 4.75, 5, 5.2, 5.4, 5.6, 5.8, 6];
+const TRACKING_SEGMENTS = TRACKING_STEPS.slice(1).map((s) => ({
+    stepValue: s,
+    label: Number.isInteger(s) ? String(s) : '',
+}));
+
+const TYPE_COLORS: Record<string, string> = {
+    clue: '#3b82f6',
+    juice: '#f59e0b',
+    tag: '#e11d48',
+    status: '#10b981',
+};
+
+function trackingSegmentFill(stepValue: number, value: number | null) {
+    return (value ?? 0) >= stepValue;
+}
+
+const showTrackingCards = computed(
+    () => state.value.showTrackingCards && (state.value.trackingCards?.length ?? 0) > 0,
+);
+
 // ── Items overlay sizing ──────────────────────────────────────────────────────
 const itemCardWidth = computed(() => {
     const n = state.value.activeItems.length;
@@ -423,6 +447,62 @@ const imageStyle = computed<CSSProperties>(() => {
                             >
                                 {{ item.description }}
                             </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+
+        <!-- Tracking Cards sidebar -->
+        <Transition name="tracking-cards">
+            <div
+                v-if="showTrackingCards"
+                class="absolute right-0 top-0 z-30 flex h-full flex-col justify-center gap-4 p-6"
+                style="pointer-events: none"
+            >
+                <div
+                    v-for="card in state.trackingCards ?? []"
+                    :key="card.id"
+                    class="flex flex-col gap-3 rounded-2xl px-5 py-4"
+                    style="background: rgba(8,10,18,0.82); backdrop-filter: blur(12px); min-width: 260px; max-width: 300px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);"
+                >
+                    <!-- Type badge + title -->
+                    <div class="flex items-center gap-2">
+                        <span
+                            class="shrink-0 rounded-md px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-white"
+                            :style="{ background: TYPE_COLORS[card.type] ?? '#6b7280' }"
+                        >
+                            {{ card.type }}
+                        </span>
+                        <span
+                            class="min-w-0 flex-1 truncate text-base font-semibold text-white"
+                            style="text-shadow: 0 1px 4px rgba(0,0,0,0.9)"
+                        >
+                            {{ card.title }}
+                        </span>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="flex gap-0.5">
+                        <div
+                            v-for="seg in TRACKING_SEGMENTS"
+                            :key="seg.stepValue"
+                            class="flex items-center justify-center rounded"
+                            :class="Number.isInteger(seg.stepValue) ? 'flex-[2]' : 'flex-1'"
+                            :style="{
+                                height: '24px',
+                                background: trackingSegmentFill(seg.stepValue, card.value)
+                                    ? (TYPE_COLORS[card.type] ?? '#6b7280')
+                                    : 'rgba(255,255,255,0.08)',
+                            }"
+                        >
+                            <span
+                                v-if="seg.label"
+                                class="text-[11px] font-bold leading-none"
+                                :style="{ color: trackingSegmentFill(seg.stepValue, card.value) ? 'white' : 'rgba(255,255,255,0.25)' }"
+                            >
+                                {{ seg.label }}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -1036,6 +1116,16 @@ const imageStyle = computed<CSSProperties>(() => {
         opacity: 0.4;
         stroke-width: 5;
     }
+}
+
+.tracking-cards-enter-active,
+.tracking-cards-leave-active {
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.tracking-cards-enter-from,
+.tracking-cards-leave-to {
+    opacity: 0;
+    transform: translateX(12px);
 }
 </style>
 

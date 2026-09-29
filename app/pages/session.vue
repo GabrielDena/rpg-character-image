@@ -168,6 +168,8 @@ const showCharacters = ref(true);
 const savingShowCharacters = ref(false);
 const showItems = ref(false);
 const savingShowItems = ref(false);
+const showTrackingCards = ref(false);
+const savingShowTrackingCards = ref(false);
 
 async function toggleShowItems() {
     const next = !showItems.value;
@@ -182,6 +184,22 @@ async function toggleShowItems() {
         // non-fatal
     } finally {
         savingShowItems.value = false;
+    }
+}
+
+async function toggleShowTrackingCards() {
+    const next = !showTrackingCards.value;
+    savingShowTrackingCards.value = true;
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: { showTrackingCards: next, password: getPassword() },
+        });
+        showTrackingCards.value = next;
+    } catch {
+        // non-fatal
+    } finally {
+        savingShowTrackingCards.value = false;
     }
 }
 
@@ -387,6 +405,7 @@ const isSaving = computed(
         savingTableConfig.value ||
         savingShowCharacters.value ||
         savingShowItems.value ||
+        savingShowTrackingCards.value ||
         savingItems.value ||
         savingHidden.value
 );
@@ -409,6 +428,7 @@ watch(
                 tableSideSeats: number;
                 showCharacters: boolean;
                 showItems: boolean;
+                showTrackingCards: boolean;
                 useAltBackground: boolean;
                 hiddenCharacterIds: string[];
             }>('/api/display-state');
@@ -423,6 +443,7 @@ watch(
             tableSideSeats.value = state.tableSideSeats ?? 0;
             showCharacters.value = state.showCharacters ?? true;
             showItems.value = state.showItems ?? false;
+            showTrackingCards.value = state.showTrackingCards ?? false;
             useAltBackground.value = state.useAltBackground ?? false;
             hiddenCharacterIds.value = state.hiddenCharacterIds ?? [];
         } catch {
@@ -450,6 +471,7 @@ onMounted(async () => {
         tableSideSeats: number;
         showCharacters: boolean;
         showItems: boolean;
+        showTrackingCards: boolean;
         useAltBackground: boolean;
         hiddenCharacterIds: string[];
     }>('/api/display-state');
@@ -479,6 +501,7 @@ onMounted(async () => {
         tableSideSeats.value = state.tableSideSeats ?? 0;
         showCharacters.value = state.showCharacters ?? true;
         showItems.value = state.showItems ?? false;
+        showTrackingCards.value = state.showTrackingCards ?? false;
         useAltBackground.value = state.useAltBackground ?? false;
         hiddenCharacterIds.value = state.hiddenCharacterIds ?? [];
     } catch {
@@ -534,12 +557,15 @@ onMounted(async () => {
                     :saving-show-characters="savingShowCharacters"
                     :show-items="showItems"
                     :saving-show-items="savingShowItems"
+                    :show-tracking-cards="showTrackingCards"
+                    :saving-show-tracking-cards="savingShowTrackingCards"
                     class="w-40 shrink-0"
                     @toggle-fit-mode="toggleFitMode"
                     @set-scene="onSetScene"
                     @set-table="onSetTable"
                     @toggle-show-characters="toggleShowCharacters"
                     @toggle-show-items="toggleShowItems"
+                    @toggle-show-tracking-cards="toggleShowTrackingCards"
                 />
             </div>
 
@@ -586,6 +612,10 @@ onMounted(async () => {
                     :all-backgrounds="allBackgrounds"
                     class="w-40 shrink-0"
                     @apply-scene="onApplyScene"
+                />
+                <SessionTrackingCardsPanel
+                    :adventure-id="activeAdventure.id"
+                    class="w-40 shrink-0"
                 />
             </div>
         </template>

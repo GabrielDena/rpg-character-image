@@ -1,5 +1,8 @@
+import type { TrackingCard } from '#shared/types/models';
 import type { BackgroundWithUrl } from './background';
 import type { CharacterWithUrl } from './character';
+
+export type { TrackingCard };
 
 export interface DisplayCharacter extends CharacterWithUrl {
     profileImageUrl: string | null;
@@ -26,6 +29,8 @@ export interface DisplayState {
     seatAssignments: (string | null)[];
     showCharacters: boolean;
     showItems: boolean;
+    showTrackingCards: boolean;
     useAltBackground: boolean;
     hiddenCharacterIds: string[];
+    trackingCards: TrackingCard[];
 }

@@ -67,3 +67,15 @@ export interface Item {
     url?: string | null;
 }
 
+export type TrackingCardType = 'clue' | 'juice' | 'tag' | 'status';
+
+export interface TrackingCard {
+    id: string;
+    adventureId: string;
+    title: string;
+    type: TrackingCardType;
+    value: number | null;
+    sortOrder: number;
+    createdAt: Date;
+}
+
