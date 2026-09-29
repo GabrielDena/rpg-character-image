@@ -55,16 +55,33 @@ function removeCharacter(id: string) {
         class="w-full"
     >
         <template #action>
-            <UButton
-                v-if="activeCharacters.length"
-                size="xs"
-                label="Clear"
-                color="error"
-                variant="ghost"
-                icon="i-heroicons-trash"
-                :loading="saving"
-                @click="emit('update', [])"
-            />
+            <template v-if="activeCharacters.length">
+                <UButton
+                    size="xs"
+                    label="Show All"
+                    color="neutral"
+                    variant="ghost"
+                    icon="i-heroicons-eye"
+                    @click="emit('updateHidden', [])"
+                />
+                <UButton
+                    size="xs"
+                    label="Hide All"
+                    color="neutral"
+                    variant="ghost"
+                    icon="i-heroicons-eye-slash"
+                    @click="emit('updateHidden', [...activeIds])"
+                />
+                <UButton
+                    size="xs"
+                    label="Clear"
+                    color="error"
+                    variant="ghost"
+                    icon="i-heroicons-trash"
+                    :loading="saving"
+                    @click="emit('update', [])"
+                />
+            </template>
             <UButton
                 size="xs"
                 color="neutral"

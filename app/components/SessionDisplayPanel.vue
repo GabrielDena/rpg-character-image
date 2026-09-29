@@ -62,16 +62,6 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
                 size="sm"
                 color="neutral"
                 variant="ghost"
-                :icon="props.showCharacters ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
-                :label="props.showCharacters ? 'Hide Chars' : 'Show Chars'"
-                :loading="props.savingShowCharacters"
-                class="w-full justify-start"
-                @click="emit('toggleShowCharacters')"
-            />
-            <UButton
-                size="sm"
-                color="neutral"
-                variant="ghost"
                 :icon="props.showItems ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
                 :label="props.showItems ? 'Hide Items' : 'Show Items'"
                 :loading="props.savingShowItems"
