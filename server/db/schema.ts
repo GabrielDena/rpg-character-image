@@ -87,6 +87,7 @@ export const displayState = pgTable('display_state', {
     showItems: boolean('show_items').default(false).notNull(),
     tableSideSeats: integer('table_side_seats').default(0).notNull(),
     useAltBackground: boolean('use_alt_background').default(false).notNull(),
+    hiddenCharacterIds: uuid('hidden_character_ids').array().default([]).notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 

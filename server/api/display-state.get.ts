@@ -70,6 +70,7 @@ export default defineEventHandler(async () => {
             ),
             showCharacters: rows[0]?.showCharacters ?? true,
             showItems: rows[0]?.showItems ?? false,
+            hiddenCharacterIds: rows[0]?.hiddenCharacterIds ?? [],
         };
     }
 
@@ -100,6 +101,7 @@ export default defineEventHandler(async () => {
                 state.tableSeats ?? 4
             ),
             showCharacters: state.showCharacters ?? true,
+            hiddenCharacterIds: state.hiddenCharacterIds ?? [],
         };
     }
 
@@ -177,5 +179,6 @@ export default defineEventHandler(async () => {
         showCharacters: state.showCharacters ?? true,
         showItems: state.showItems ?? false,
         useAltBackground: state.useAltBackground ?? false,
+        hiddenCharacterIds: state.hiddenCharacterIds ?? [],
     };
 });
