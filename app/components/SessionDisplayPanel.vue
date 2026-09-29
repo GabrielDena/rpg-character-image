@@ -59,8 +59,9 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
         </template>
         <div
             v-if="show"
-            class="flex flex-col gap-1 p-2"
+            class="grid grid-cols-3 gap-1 p-2"
         >
+            <!-- Row 1: visibility toggles + fit mode -->
             <UButton
                 size="sm"
                 color="neutral"
@@ -95,17 +96,20 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
                 class="w-full justify-start"
                 @click="emit('toggleFitMode')"
             />
-            <UButton
-                v-if="props.displayMode === 'scene'"
-                size="sm"
-                color="neutral"
-                variant="ghost"
-                icon="i-heroicons-table-cells"
-                label="Table"
-                :loading="props.savingTableConfig"
-                class="w-full justify-start"
-                @click="openTableModal"
-            />
+
+            <!-- Row 2: display mode -->
+            <template v-if="props.displayMode === 'scene'">
+                <UButton
+                    size="sm"
+                    color="neutral"
+                    variant="ghost"
+                    icon="i-heroicons-table-cells"
+                    label="Table"
+                    :loading="props.savingTableConfig"
+                    class="w-full justify-start"
+                    @click="openTableModal"
+                />
+            </template>
             <template v-else>
                 <UButton
                     size="sm"
