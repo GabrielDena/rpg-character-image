@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
         showCharacters?: boolean;
         showItems?: boolean;
         useAltBackground?: boolean;
+        hiddenCharacterIds?: string[];
         password: string;
     }>(event);
 
@@ -44,6 +45,7 @@ export default defineEventHandler(async (event) => {
     if ('showItems' in body && body.showItems != null) patch.showItems = body.showItems;
     if ('useAltBackground' in body && body.useAltBackground != null)
         patch.useAltBackground = body.useAltBackground;
+    if ('hiddenCharacterIds' in body) patch.hiddenCharacterIds = body.hiddenCharacterIds ?? [];
 
     if (rows.length === 0) {
         await db.insert(displayState).values({

@@ -71,7 +71,9 @@ const allCharacters = ref<CharacterWithUrl[]>([]);
 const loadingCharacters = ref(false);
 const activeCharacterIds = ref<string[]>([]);
 const activeCharacters = ref<CharacterWithUrl[]>([]);
+const hiddenCharacterIds = ref<string[]>([]);
 const savingScene = ref(false);
+const savingHidden = ref(false);
 
 const pcCharacters = computed(() =>
     allCharacters.value.filter((c) => c.type === 'pc').sort((a, b) => a.name.localeCompare(b.name))
@@ -105,12 +107,17 @@ function onPcToggled(id: string) {
 async function onSceneUpdated(ids: string[]) {
     savingScene.value = true;
     try {
-        await $fetch('/api/display-state', {
-            method: 'PATCH',
-            body: { activeCharacterIds: ids, password: getPassword() },
-        });
+        const newHidden = hiddenCharacterIds.value.filter((id) => ids.includes(id));
+        const body: Record<string, unknown> = { activeCharacterIds: ids, password: getPassword() };
+        if (newHidden.length !== hiddenCharacterIds.value.length) {
+            body.hiddenCharacterIds = newHidden;
+        }
+        await $fetch('/api/display-state', { method: 'PATCH', body });
         activeCharacterIds.value = ids;
         activeCharacters.value = allCharacters.value.filter((c) => ids.includes(c.id));
+        if (newHidden.length !== hiddenCharacterIds.value.length) {
+            hiddenCharacterIds.value = newHidden;
+        }
     } catch (e: unknown) {
         toast.add({
             title: 'Failed to update scene',
@@ -119,6 +126,25 @@ async function onSceneUpdated(ids: string[]) {
         });
     } finally {
         savingScene.value = false;
+    }
+}
+
+async function onHiddenUpdated(ids: string[]) {
+    savingHidden.value = true;
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: { hiddenCharacterIds: ids, password: getPassword() },
+        });
+        hiddenCharacterIds.value = ids;
+    } catch (e: unknown) {
+        toast.add({
+            title: 'Failed to update visibility',
+            color: 'error',
+            description: e instanceof Error ? e.message : 'Unknown error',
+        });
+    } finally {
+        savingHidden.value = false;
     }
 }
 
@@ -361,7 +387,8 @@ const isSaving = computed(
         savingTableConfig.value ||
         savingShowCharacters.value ||
         savingShowItems.value ||
-        savingItems.value
+        savingItems.value ||
+        savingHidden.value
 );
 
 watch(
@@ -383,6 +410,7 @@ watch(
                 showCharacters: boolean;
                 showItems: boolean;
                 useAltBackground: boolean;
+                hiddenCharacterIds: string[];
             }>('/api/display-state');
             activeCharacterIds.value = state.activeCharacterIds;
             activeCharacters.value = state.activeCharacters;
@@ -396,6 +424,7 @@ watch(
             showCharacters.value = state.showCharacters ?? true;
             showItems.value = state.showItems ?? false;
             useAltBackground.value = state.useAltBackground ?? false;
+            hiddenCharacterIds.value = state.hiddenCharacterIds ?? [];
         } catch {
             // non-fatal
         }
@@ -411,6 +440,7 @@ onMounted(async () => {
         system: System | null;
         activeCharacterIds: string[];
         activeCharacters: CharacterWithUrl[];
+        activeItemIds: string[];
         selectedBackgroundId: string | null;
         selectedBackground: BackgroundWithUrl | null;
         galleryFitMode: 'cover' | 'contain';
@@ -421,6 +451,7 @@ onMounted(async () => {
         showCharacters: boolean;
         showItems: boolean;
         useAltBackground: boolean;
+        hiddenCharacterIds: string[];
     }>('/api/display-state');
 
     try {
@@ -449,6 +480,7 @@ onMounted(async () => {
         showCharacters.value = state.showCharacters ?? true;
         showItems.value = state.showItems ?? false;
         useAltBackground.value = state.useAltBackground ?? false;
+        hiddenCharacterIds.value = state.hiddenCharacterIds ?? [];
     } catch {
     } finally {
         loadingState.value = false;
@@ -527,10 +559,12 @@ onMounted(async () => {
                     :system-id="activeSystem!.id"
                     :active-characters="activeCharacters"
                     :active-ids="activeCharacterIds"
+                    :hidden-ids="hiddenCharacterIds"
                     :loading="loadingCharacters"
                     :saving="savingScene"
                     class="min-w-0 flex-1 shrink-0"
                     @update="onSceneUpdated"
+                    @update-hidden="onHiddenUpdated"
                 />
                 <SessionItemsPanel
                     :all-items="allItems"

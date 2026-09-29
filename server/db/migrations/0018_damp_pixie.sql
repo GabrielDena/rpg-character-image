@@ -1,0 +1,1 @@
+ALTER TABLE "display_state" ADD COLUMN "hidden_character_ids" uuid[] DEFAULT '{}' NOT NULL;

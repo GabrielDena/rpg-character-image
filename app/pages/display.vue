@@ -16,6 +16,7 @@ const state = ref<DisplayState>({
     showCharacters: true,
     showItems: false,
     useAltBackground: false,
+    hiddenCharacterIds: [],
 });
 
 const container = ref<HTMLElement | null>(null);
@@ -55,7 +56,12 @@ watch(
 );
 
 // ── Layout computation ──────────────────────────────────────────────────────
-const count = computed(() => state.value.activeCharacters.length);
+const visibleCharacters = computed(() => {
+    const hiddenSet = new Set(state.value.hiddenCharacterIds ?? []);
+    return state.value.activeCharacters.filter((c) => !hiddenSet.has(c.id));
+});
+
+const count = computed(() => visibleCharacters.value.length);
 
 const cols = computed(() => {
     if (count.value === 0) return 1;
@@ -74,7 +80,7 @@ const AVATAR_R = 52;
 
 const seatPositions = computed(() => {
     const assignments = state.value.seatAssignments;
-    const charById = Object.fromEntries(state.value.activeCharacters.map((c) => [c.id, c]));
+    const charById = Object.fromEntries(visibleCharacters.value.map((c) => [c.id, c]));
     const seats = state.value.tableSeats;
     const shape = state.value.tableShape;
 
@@ -129,7 +135,7 @@ const STANDING_R = 38;
 
 const standingCharacters = computed(() => {
     const seatedIds = new Set(state.value.seatAssignments.filter(Boolean) as string[]);
-    return state.value.activeCharacters.filter((c) => !seatedIds.has(c.id));
+    return visibleCharacters.value.filter((c) => !seatedIds.has(c.id));
 });
 
 const standingLayout = computed(() => {
@@ -341,19 +347,6 @@ const imageStyle = computed<CSSProperties>(() => {
         "
     >
         <!-- Empty state (scene only) -->
-        <Transition name="fade">
-            <div
-                v-if="count === 0 && displayMode === 'scene' && state.showCharacters"
-                class="flex h-full flex-col items-center justify-center gap-3"
-            >
-                <UIcon
-                    name="i-heroicons-squares-2x2"
-                    class="size-12 text-gray-700"
-                />
-                <p class="text-sm text-gray-500">No characters in scene</p>
-            </div>
-        </Transition>
-
         <!-- Character images (scene only) -->
         <Transition name="fade">
             <div
@@ -362,7 +355,7 @@ const imageStyle = computed<CSSProperties>(() => {
                 :style="{ columnCount: cols, columnGap: '4px' }"
             >
                 <img
-                    v-for="character in state.activeCharacters"
+                    v-for="character in visibleCharacters"
                     :key="character.id"
                     :src="character.profileImageUrl ?? character.avatarUrl ?? undefined"
                     :alt="character.name"

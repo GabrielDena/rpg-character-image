@@ -6,12 +6,14 @@ const props = defineProps<{
     systemId: string;
     activeCharacters: CharacterWithUrl[];
     activeIds: string[];
+    hiddenIds: string[];
     loading: boolean;
     saving: boolean;
 }>();
 
 const emit = defineEmits<{
     update: [ids: string[]];
+    updateHidden: [ids: string[]];
 }>();
 
 const showNpcModal = ref(false);
@@ -22,6 +24,29 @@ function toggleEditCharacter(character: CharacterWithUrl) {
     showCharacterModal.value = true;
     editingCharacter.value = character;
 }
+
+function isHidden(id: string) {
+    return props.hiddenIds.includes(id);
+}
+
+function toggleHidden(id: string) {
+    const next = isHidden(id)
+        ? props.hiddenIds.filter((i) => i !== id)
+        : [...props.hiddenIds, id];
+    emit('updateHidden', next);
+}
+
+function soloCharacter(id: string) {
+    const otherIds = props.activeIds.filter((i) => i !== id);
+    emit('updateHidden', otherIds);
+}
+
+function removeCharacter(id: string) {
+    emit('update', props.activeIds.filter((i) => i !== id));
+    if (isHidden(id)) {
+        emit('updateHidden', props.hiddenIds.filter((i) => i !== id));
+    }
+}
 </script>
 
 <template>
@@ -30,16 +55,33 @@ function toggleEditCharacter(character: CharacterWithUrl) {
         class="w-full"
     >
         <template #action>
-            <UButton
-                v-if="activeCharacters.length"
-                size="xs"
-                label="Clear"
-                color="error"
-                variant="ghost"
-                icon="i-heroicons-trash"
-                :loading="saving"
-                @click="emit('update', [])"
-            />
+            <template v-if="activeCharacters.length">
+                <UButton
+                    size="xs"
+                    label="Show All"
+                    color="neutral"
+                    variant="ghost"
+                    icon="i-heroicons-eye"
+                    @click="emit('updateHidden', [])"
+                />
+                <UButton
+                    size="xs"
+                    label="Hide All"
+                    color="neutral"
+                    variant="ghost"
+                    icon="i-heroicons-eye-slash"
+                    @click="emit('updateHidden', [...activeIds])"
+                />
+                <UButton
+                    size="xs"
+                    label="Clear"
+                    color="error"
+                    variant="ghost"
+                    icon="i-heroicons-trash"
+                    :loading="saving"
+                    @click="emit('update', [])"
+                />
+            </template>
             <UButton
                 size="xs"
                 color="neutral"
@@ -74,66 +116,98 @@ function toggleEditCharacter(character: CharacterWithUrl) {
 
         <ul
             v-else
-            class="flex flex-wrap gap-2 p-2"
+            class="flex flex-col gap-1 p-2"
         >
             <li
                 v-for="character in [...activeCharacters].sort((a, b) => a.name.localeCompare(b.name))"
                 :key="character.id"
+                class="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors"
+                :class="isHidden(character.id) ? 'bg-gray-800/40 opacity-50' : 'bg-gray-800/20 hover:bg-gray-800/40'"
             >
-                <SessionCard
-                    :title="character.name"
-                    class="w-30"
+                <!-- Avatar -->
+                <button
+                    class="size-7 shrink-0 overflow-hidden rounded-full bg-gray-800"
+                    @click="toggleEditCharacter(character)"
                 >
-                    <template #action>
+                    <img
+                        v-if="character.avatarUrl"
+                        :src="character.avatarUrl"
+                        :alt="character.name"
+                        class="size-full object-cover"
+                    />
+                    <div
+                        v-else
+                        class="flex size-full items-center justify-center"
+                    >
+                        <UIcon
+                            name="i-heroicons-user"
+                            class="size-3.5 text-gray-500"
+                        />
+                    </div>
+                </button>
+
+                <!-- Name + type -->
+                <button
+                    class="min-w-0 flex-1 text-left"
+                    @click="toggleEditCharacter(character)"
+                >
+                    <p class="truncate text-xs font-medium text-gray-200">{{ character.name }}</p>
+                    <span
+                        class="shrink-0 rounded px-1 py-0.5 text-[9px] tracking-wide uppercase"
+                        :class="
+                            character.type === 'pc'
+                                ? 'bg-violet-500/15 text-violet-400'
+                                : 'bg-gray-700/60 text-gray-500'
+                        "
+                    >
+                        {{ character.type }}
+                    </span>
+                </button>
+
+                <!-- Actions -->
+                <div class="flex shrink-0 items-center gap-0.5">
+                    <!-- Toggle visibility -->
+                    <UTooltip :text="isHidden(character.id) ? 'Show' : 'Hide'">
                         <button
-                            @click="
-                                emit(
-                                    'update',
-                                    activeIds.filter((i) => i !== character.id)
-                                )
-                            "
+                            class="flex size-6 items-center justify-center rounded hover:bg-gray-700"
+                            @click="toggleHidden(character.id)"
+                        >
+                            <UIcon
+                                :name="isHidden(character.id) ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
+                                class="size-3.5 text-gray-400 hover:text-gray-200"
+                            />
+                        </button>
+                    </UTooltip>
+
+                    <!-- Solo (show only this one) -->
+                    <UTooltip text="Show only this">
+                        <button
+                            class="flex size-6 items-center justify-center rounded hover:bg-gray-700"
+                            @click="soloCharacter(character.id)"
+                        >
+                            <UIcon
+                                name="i-heroicons-magnifying-glass"
+                                class="size-3.5 text-gray-400 hover:text-gray-200"
+                            />
+                        </button>
+                    </UTooltip>
+
+                    <!-- Remove from scene -->
+                    <UTooltip text="Remove from scene">
+                        <button
+                            class="flex size-6 items-center justify-center rounded hover:bg-gray-700"
+                            @click="removeCharacter(character.id)"
                         >
                             <UIcon
                                 name="i-heroicons-x-mark"
                                 class="size-3.5 text-gray-500 hover:text-red-400"
                             />
                         </button>
-                    </template>
-                    <button
-                        class="flex w-full flex-col items-center justify-center gap-2 p-2 hover:bg-gray-800"
-                        @click="toggleEditCharacter(character)"
-                    >
-                        <div class="size-7 shrink-0 overflow-hidden rounded-full bg-gray-800">
-                            <img
-                                v-if="character.avatarUrl"
-                                :src="character.avatarUrl"
-                                :alt="character.name"
-                                class="size-full object-cover"
-                            />
-                            <div
-                                v-else
-                                class="flex size-full items-center justify-center"
-                            >
-                                <UIcon
-                                    name="i-heroicons-user"
-                                    class="size-3.5 text-gray-500"
-                                />
-                            </div>
-                        </div>
-                        <span
-                            class="shrink-0 rounded px-1 py-0.5 text-[10px] tracking-wide uppercase"
-                            :class="
-                                character.type === 'pc'
-                                    ? 'bg-violet-500/15 text-violet-400'
-                                    : 'bg-gray-700/60 text-gray-500'
-                            "
-                        >
-                            {{ character.type }}
-                        </span>
-                    </button>
-                </SessionCard>
+                    </UTooltip>
+                </div>
             </li>
         </ul>
+
         <NpcPickerModal
             v-model:open="showNpcModal"
             :adventure-id="adventureId"
@@ -148,4 +222,3 @@ function toggleEditCharacter(character: CharacterWithUrl) {
         />
     </SessionCard>
 </template>
-

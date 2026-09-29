@@ -27,4 +27,5 @@ export interface DisplayState {
     showCharacters: boolean;
     showItems: boolean;
     useAltBackground: boolean;
+    hiddenCharacterIds: string[];
 }
