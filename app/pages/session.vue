@@ -526,104 +526,106 @@ onMounted(async () => {
                 <h1 class="text-base font-semibold text-gray-100">Session</h1>
             </div>
 
-            <div class="shrink-0 px-4 pt-4">
-                <SessionCampaignSelector
-                    :active-adventure-id="activeAdventureId"
-                    :active-adventure="activeAdventure"
-                    :active-system="activeSystem"
-                    :loading="settingAdventure"
-                    @select="onAdventureSelected"
-                    @clear="onAdventureCleared"
-                />
-            </div>
+            <div class="flex min-h-0 flex-1 flex-col gap-3 p-4">
+                <!-- Rows 1–2: campaign (7), background (4) + display (3) -->
+                <div class="grid shrink-0 grid-cols-7 gap-3">
+                    <SessionCampaignSelector
+                        class="col-span-7"
+                        :active-adventure-id="activeAdventureId"
+                        :active-adventure="activeAdventure"
+                        :active-system="activeSystem"
+                        :loading="settingAdventure"
+                        @select="onAdventureSelected"
+                        @clear="onAdventureCleared"
+                    />
+                    <SessionBackgroundSelector
+                        v-model="show"
+                        class="col-span-4 min-w-0"
+                        :backgrounds="allBackgrounds"
+                        :locations="allLocations"
+                        :selected-background="selectedBackground"
+                        :loading="loadingBackgrounds"
+                        :saving-background="savingBackground"
+                        :use-alt-background="useAltBackground"
+                        @select="onBackgroundSelected"
+                        @toggle-alt="onToggleAltBackground"
+                    />
+                    <SessionDisplayPanel
+                        v-model="show"
+                        class="col-span-3"
+                        :gallery-fit-mode="galleryFitMode"
+                        :saving-fit-mode="savingFitMode"
+                        :display-mode="displayMode"
+                        :table-shape="tableShape"
+                        :table-seats="tableSeats"
+                        :table-side-seats="tableSideSeats"
+                        :saving-table-config="savingTableConfig"
+                        :show-characters="showCharacters"
+                        :saving-show-characters="savingShowCharacters"
+                        :show-items="showItems"
+                        :saving-show-items="savingShowItems"
+                        :show-tracking-cards="showTrackingCards"
+                        :saving-show-tracking-cards="savingShowTrackingCards"
+                        @toggle-fit-mode="toggleFitMode"
+                        @set-scene="onSetScene"
+                        @set-table="onSetTable"
+                        @toggle-show-characters="toggleShowCharacters"
+                        @toggle-show-items="toggleShowItems"
+                        @toggle-show-tracking-cards="toggleShowTrackingCards"
+                    />
+                </div>
 
-            <div class="flex shrink-0 gap-3 px-4 pt-4">
-                <SessionBackgroundSelector
-                    v-model="show"
-                    class="min-w-0 flex-1"
-                    :backgrounds="allBackgrounds"
-                    :locations="allLocations"
-                    :selected-background="selectedBackground"
-                    :loading="loadingBackgrounds"
-                    :saving-background="savingBackground"
-                    :use-alt-background="useAltBackground"
-                    @select="onBackgroundSelected"
-                    @toggle-alt="onToggleAltBackground"
-                />
-                <SessionDisplayPanel
-                    v-model="show"
-                    :gallery-fit-mode="galleryFitMode"
-                    :saving-fit-mode="savingFitMode"
-                    :display-mode="displayMode"
-                    :table-shape="tableShape"
-                    :table-seats="tableSeats"
-                    :table-side-seats="tableSideSeats"
-                    :saving-table-config="savingTableConfig"
-                    :show-characters="showCharacters"
-                    :saving-show-characters="savingShowCharacters"
-                    :show-items="showItems"
-                    :saving-show-items="savingShowItems"
-                    :show-tracking-cards="showTrackingCards"
-                    :saving-show-tracking-cards="savingShowTrackingCards"
-                    class="w-[31.5rem] shrink-0"
-                    @toggle-fit-mode="toggleFitMode"
-                    @set-scene="onSetScene"
-                    @set-table="onSetTable"
-                    @toggle-show-characters="toggleShowCharacters"
-                    @toggle-show-items="toggleShowItems"
-                    @toggle-show-tracking-cards="toggleShowTrackingCards"
-                />
-            </div>
-
-            <div
-                v-if="activeAdventure"
-                class="flex min-h-0 flex-1 gap-3 p-4"
-            >
-                <SessionPlayerList
-                    :characters="pcCharacters"
-                    :active-ids="activeCharacterIds"
-                    :loading="loadingCharacters"
-                    class="w-40 shrink-0"
-                    @toggle="onPcToggled"
-                    @add-all="onAddAllPcs"
-                />
-                <SessionScenePanel
-                    :adventure-id="activeAdventure.id"
-                    :system-id="activeSystem!.id"
-                    :active-characters="activeCharacters"
-                    :active-ids="activeCharacterIds"
-                    :hidden-ids="hiddenCharacterIds"
-                    :loading="loadingCharacters"
-                    :saving="savingScene"
-                    class="min-w-0 flex-1 shrink-0"
-                    @update="onSceneUpdated"
-                    @update-hidden="onHiddenUpdated"
-                />
-                <SessionItemsPanel
-                    :all-items="allItems"
-                    :active-ids="activeItemIds"
-                    :saving="savingItems"
-                    class="w-40 shrink-0"
-                    @update="onItemsUpdated"
-                />
-                <SavedScenesPanel
-                    :adventure-id="activeAdventure.id"
-                    :active-character-ids="activeCharacterIds"
-                    :selected-background-id="selectedBackground?.id ?? null"
-                    :use-alt-background="useAltBackground"
-                    :display-mode="displayMode"
-                    :table-shape="tableShape"
-                    :table-seats="tableSeats"
-                    :table-side-seats="tableSideSeats"
-                    :all-characters="allCharacters"
-                    :all-backgrounds="allBackgrounds"
-                    class="w-40 shrink-0"
-                    @apply-scene="onApplyScene"
-                />
-                <SessionTrackingCardsPanel
-                    :adventure-id="activeAdventure.id"
-                    class="w-40 shrink-0"
-                />
+                <!-- Row 3: players (1) + scene (3) + items (1) + saved (1) + tracking (1) -->
+                <div
+                    v-if="activeAdventure"
+                    class="grid min-h-0 flex-1 grid-cols-7 gap-3"
+                >
+                    <SessionPlayerList
+                        class="col-span-1"
+                        :characters="pcCharacters"
+                        :active-ids="activeCharacterIds"
+                        :loading="loadingCharacters"
+                        @toggle="onPcToggled"
+                        @add-all="onAddAllPcs"
+                    />
+                    <SessionScenePanel
+                        class="col-span-3 min-w-0"
+                        :adventure-id="activeAdventure.id"
+                        :system-id="activeSystem!.id"
+                        :active-characters="activeCharacters"
+                        :active-ids="activeCharacterIds"
+                        :hidden-ids="hiddenCharacterIds"
+                        :loading="loadingCharacters"
+                        :saving="savingScene"
+                        @update="onSceneUpdated"
+                        @update-hidden="onHiddenUpdated"
+                    />
+                    <SessionItemsPanel
+                        class="col-span-1"
+                        :all-items="allItems"
+                        :active-ids="activeItemIds"
+                        :saving="savingItems"
+                        @update="onItemsUpdated"
+                    />
+                    <SavedScenesPanel
+                        class="col-span-1"
+                        :adventure-id="activeAdventure.id"
+                        :active-character-ids="activeCharacterIds"
+                        :selected-background-id="selectedBackground?.id ?? null"
+                        :use-alt-background="useAltBackground"
+                        :display-mode="displayMode"
+                        :table-shape="tableShape"
+                        :table-seats="tableSeats"
+                        :table-side-seats="tableSideSeats"
+                        :all-characters="allCharacters"
+                        :all-backgrounds="allBackgrounds"
+                        @apply-scene="onApplyScene"
+                    />
+                    <SessionTrackingCardsPanel
+                        class="col-span-1"
+                        :adventure-id="activeAdventure.id"
+                    />
+                </div>
             </div>
         </template>
     </div>
