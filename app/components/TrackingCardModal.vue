@@ -163,8 +163,11 @@ async function save() {
                     </div>
                 </UFormField>
 
-                <!-- Progression -->
-                <UFormField label="Progression">
+                <!-- Progression (not shown for Tag type) -->
+                <UFormField
+                    v-if="formType !== 'tag'"
+                    label="Progression"
+                >
                     <div class="flex items-center gap-1">
                         <button
                             class="shrink-0 rounded p-0.5 text-gray-500 transition-colors hover:text-gray-200 disabled:opacity-30"

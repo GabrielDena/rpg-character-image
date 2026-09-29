@@ -112,7 +112,7 @@ async function deleteCard(card: TrackingCard) {
             <li
                 v-for="card in cards"
                 :key="card.id"
-                class="group flex items-center gap-2 px-3 py-2 transition-colors hover:bg-gray-800"
+                class="flex items-center gap-2 px-3 py-2 transition-colors hover:bg-gray-800"
             >
                 <span
                     class="size-2 shrink-0 rounded-full"
@@ -130,7 +130,7 @@ async function deleteCard(card: TrackingCard) {
                 >
                     <UIcon
                         name="i-heroicons-x-mark"
-                        class="size-3.5 text-gray-500 opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+                        class="size-3.5 text-gray-500 hover:text-red-400"
                     />
                 </button>
             </li>

@@ -482,8 +482,11 @@ const imageStyle = computed<CSSProperties>(() => {
                         </span>
                     </div>
 
-                    <!-- Progress bar -->
-                    <div class="flex gap-0.5">
+                    <!-- Progress bar (hidden for Tag type) -->
+                    <div
+                        v-if="card.type !== 'tag'"
+                        class="flex gap-0.5"
+                    >
                         <div
                             v-for="seg in TRACKING_SEGMENTS"
                             :key="seg.stepValue"
