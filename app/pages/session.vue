@@ -540,7 +540,7 @@ onMounted(async () => {
                     />
                     <SessionBackgroundSelector
                         v-model="show"
-                        class="col-span-4 min-w-0"
+                        class="col-span-5 min-w-0"
                         :backgrounds="allBackgrounds"
                         :locations="allLocations"
                         :selected-background="selectedBackground"
@@ -552,7 +552,7 @@ onMounted(async () => {
                     />
                     <SessionDisplayPanel
                         v-model="show"
-                        class="col-span-3"
+                        class="col-span-2"
                         :gallery-fit-mode="galleryFitMode"
                         :saving-fit-mode="savingFitMode"
                         :display-mode="displayMode"
