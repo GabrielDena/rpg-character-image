@@ -113,6 +113,7 @@ async function save() {
                         adventureId: props.adventureId,
                         title: formTitle.value.trim(),
                         type: formType.value,
+                        value: formValue.value,
                         password: getPassword(),
                     },
                 },

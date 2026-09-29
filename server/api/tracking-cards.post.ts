@@ -6,6 +6,7 @@ export default defineEventHandler(async (event) => {
         adventureId: string;
         title: string;
         type: string;
+        value?: number | null;
         password: string;
     }>(event);
 
@@ -17,7 +18,7 @@ export default defineEventHandler(async (event) => {
     const db = useDb();
     const rows = await db
         .insert(trackingCards)
-        .values({ adventureId: body.adventureId, title: body.title, type: body.type })
+        .values({ adventureId: body.adventureId, title: body.title, type: body.type, value: body.value ?? null })
         .returning();
 
     const card = rows[0];
