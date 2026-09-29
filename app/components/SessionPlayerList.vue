@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CharacterWithUrl } from '~/types/character';
 
-defineProps<{
+const props = defineProps<{
     characters: CharacterWithUrl[];
     activeIds: string[];
     loading: boolean;
@@ -9,11 +9,28 @@ defineProps<{
 
 const emit = defineEmits<{
     toggle: [id: string];
+    addAll: [];
 }>();
+
+const allActive = computed(() => props.characters.length > 0 && props.characters.every((c) => props.activeIds.includes(c.id)));
 </script>
 
 <template>
     <SessionCard title="Players">
+        <template #action>
+            <button
+                v-if="!loading && characters.length"
+                class="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-gray-500 transition-colors hover:bg-gray-800 hover:text-gray-300 disabled:opacity-40"
+                :disabled="allActive"
+                @click="emit('addAll')"
+            >
+                <UIcon
+                    name="i-heroicons-user-plus"
+                    class="size-3"
+                />
+                All
+            </button>
+        </template>
         <div
             v-if="loading"
             class="space-y-1 p-2"

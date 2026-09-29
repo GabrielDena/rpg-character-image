@@ -104,6 +104,12 @@ function onPcToggled(id: string) {
     onSceneUpdated(next);
 }
 
+function onAddAllPcs() {
+    const allIds = pcCharacters.value.map((c) => c.id);
+    const next = [...new Set([...activeCharacterIds.value, ...allIds])];
+    onSceneUpdated(next);
+}
+
 async function onSceneUpdated(ids: string[]) {
     savingScene.value = true;
     try {
@@ -579,6 +585,7 @@ onMounted(async () => {
                     :loading="loadingCharacters"
                     class="w-40 shrink-0"
                     @toggle="onPcToggled"
+                    @add-all="onAddAllPcs"
                 />
                 <SessionScenePanel
                     :adventure-id="activeAdventure.id"
