@@ -4,6 +4,7 @@ export const useAppStore = defineStore('app', () => {
     const scenesVersion = ref(0);
     const altBackground = ref(false);
     const isFullscreen = ref(false);
+    const navCollapsed = ref(false);
 
     function notifyDisplayStateUpdated() {
         displayStateVersion.value++;
@@ -25,6 +26,10 @@ export const useAppStore = defineStore('app', () => {
         isFullscreen.value = value;
     }
 
+    function setNavCollapsed(value: boolean) {
+        navCollapsed.value = value;
+    }
+
     return {
         displayStateVersion,
         displayTransitionVersion,
@@ -36,5 +41,7 @@ export const useAppStore = defineStore('app', () => {
         setAltBackground,
         isFullscreen,
         setFullscreen,
+        navCollapsed,
+        setNavCollapsed,
     };
 });
