@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
         seatAssignments?: (string | null)[] | null;
         showCharacters?: boolean;
         showItems?: boolean;
+        showTrackingCards?: boolean;
         useAltBackground?: boolean;
         hiddenCharacterIds?: string[];
         password: string;
@@ -43,6 +44,8 @@ export default defineEventHandler(async (event) => {
     if ('showCharacters' in body && body.showCharacters != null)
         patch.showCharacters = body.showCharacters;
     if ('showItems' in body && body.showItems != null) patch.showItems = body.showItems;
+    if ('showTrackingCards' in body && body.showTrackingCards != null)
+        patch.showTrackingCards = body.showTrackingCards;
     if ('useAltBackground' in body && body.useAltBackground != null)
         patch.useAltBackground = body.useAltBackground;
     if ('hiddenCharacterIds' in body) patch.hiddenCharacterIds = body.hiddenCharacterIds ?? [];

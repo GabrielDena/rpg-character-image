@@ -7,6 +7,7 @@ import {
     displayState,
     items as itemsTable,
     systems,
+    trackingCards,
     useDb,
 } from '../db';
 import { getPublicUrl } from '../utils/storage';
@@ -70,7 +71,9 @@ export default defineEventHandler(async () => {
             ),
             showCharacters: rows[0]?.showCharacters ?? true,
             showItems: rows[0]?.showItems ?? false,
+            showTrackingCards: rows[0]?.showTrackingCards ?? false,
             hiddenCharacterIds: rows[0]?.hiddenCharacterIds ?? [],
+            trackingCards: [],
         };
     }
 
@@ -101,7 +104,9 @@ export default defineEventHandler(async () => {
                 state.tableSeats ?? 4
             ),
             showCharacters: state.showCharacters ?? true,
+            showTrackingCards: state.showTrackingCards ?? false,
             hiddenCharacterIds: state.hiddenCharacterIds ?? [],
+            trackingCards: [],
         };
     }
 
@@ -157,6 +162,12 @@ export default defineEventHandler(async () => {
           }))[0]
         : null;
 
+    const activeTrackingCards = await db
+        .select()
+        .from(trackingCards)
+        .where(eq(trackingCards.adventureId, state.activeAdventureId!))
+        .orderBy(trackingCards.sortOrder, trackingCards.createdAt);
+
     return {
         activeAdventureId: state.activeAdventureId,
         adventure: adventureRows[0]!.adventure,
@@ -178,7 +189,9 @@ export default defineEventHandler(async () => {
         ),
         showCharacters: state.showCharacters ?? true,
         showItems: state.showItems ?? false,
+        showTrackingCards: state.showTrackingCards ?? false,
         useAltBackground: state.useAltBackground ?? false,
         hiddenCharacterIds: state.hiddenCharacterIds ?? [],
+        trackingCards: activeTrackingCards,
     };
 });
