@@ -10,6 +10,10 @@ export const useSyncSocket = () => {
             case 'character-updated':
                 store.notifyDisplayStateUpdated();
                 break;
+            case 'display-transition':
+                store.notifyDisplayStateUpdated();
+                store.notifyDisplayTransition();
+                break;
             case 'scene-updated':
                 store.notifyScenesUpdated();
                 break;

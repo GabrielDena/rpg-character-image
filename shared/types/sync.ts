@@ -3,7 +3,8 @@ export type PayloadTypes =
     | 'adventure-updated'
     | 'character-updated'
     | 'scene-updated'
-    | 'alt-background-toggled';
+    | 'alt-background-toggled'
+    | 'display-transition';
 
 interface BasePayload {
     type: PayloadTypes;
@@ -47,10 +48,16 @@ export interface AltBackgroundToggledPayload extends BasePayload {
     };
 }
 
+export interface DisplayTransitionPayload extends BasePayload {
+    type: 'display-transition';
+    data: Record<string, never>;
+}
+
 export type WSPayload =
     | BackgroundPayload
     | AdventurePayload
     | CharacterUpdatedPayload
     | SceneUpdatedPayload
-    | AltBackgroundToggledPayload;
+    | AltBackgroundToggledPayload
+    | DisplayTransitionPayload;
 

@@ -1,4 +1,4 @@
-import type { AdventurePayload, AltBackgroundToggledPayload } from '#shared/types/sync';
+import type { AdventurePayload, AltBackgroundToggledPayload, DisplayTransitionPayload } from '#shared/types/sync';
 import { eq } from 'drizzle-orm';
 import { displayState, useDb } from '../db';
 
@@ -19,6 +19,7 @@ export default defineEventHandler(async (event) => {
         showTrackingCards?: boolean;
         useAltBackground?: boolean;
         hiddenCharacterIds?: string[];
+        withTransition?: boolean;
         password: string;
     }>(event);
 
@@ -65,6 +66,9 @@ export default defineEventHandler(async (event) => {
             type: 'alt-background-toggled',
             data: { useAltBackground: body.useAltBackground ? 'true' : 'false' },
         };
+        broadcast(payload);
+    } else if (body.withTransition) {
+        const payload: DisplayTransitionPayload = { type: 'display-transition', data: {} };
         broadcast(payload);
     } else {
         const payload: AdventurePayload = {

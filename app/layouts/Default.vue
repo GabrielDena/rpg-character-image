@@ -2,7 +2,7 @@
 const route = useRoute()
 const store = useAppStore()
 const isDisplayPage = computed(() => route.path === '/display')
-const hideNavSpace = computed(() => isDisplayPage.value && store.isFullscreen)
+const hideNavSpace = computed(() => (isDisplayPage.value && store.isFullscreen) || store.navCollapsed)
 </script>
 
 <template>

@@ -59,8 +59,9 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
         </template>
         <div
             v-if="show"
-            class="flex flex-col gap-1 p-2"
+            class="grid grid-cols-2 gap-1 p-2"
         >
+            <!-- Row 1: visibility toggles -->
             <UButton
                 size="sm"
                 color="neutral"
@@ -81,6 +82,8 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
                 class="w-full justify-start"
                 @click="emit('toggleShowTrackingCards')"
             />
+
+            <!-- Row 2: fit mode + display mode -->
             <UButton
                 size="sm"
                 color="neutral"
