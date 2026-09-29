@@ -110,7 +110,7 @@ function onAddAllPcs() {
     onSceneUpdated(next);
 }
 
-async function onSceneUpdated(ids: string[]) {
+async function onSceneUpdated(ids: string[], withTransition = false) {
     savingScene.value = true;
     try {
         const newHidden = hiddenCharacterIds.value.filter((id) => ids.includes(id));
@@ -118,6 +118,7 @@ async function onSceneUpdated(ids: string[]) {
         if (newHidden.length !== hiddenCharacterIds.value.length) {
             body.hiddenCharacterIds = newHidden;
         }
+        if (withTransition) body.withTransition = true;
         await $fetch('/api/display-state', { method: 'PATCH', body });
         activeCharacterIds.value = ids;
         activeCharacters.value = allCharacters.value.filter((c) => ids.includes(c.id));
@@ -155,7 +156,7 @@ async function onHiddenUpdated(ids: string[]) {
 }
 
 async function onApplyScene(scene: SavedScene) {
-    await onSceneUpdated(scene.characterIds);
+    await onSceneUpdated(scene.characterIds, true);
     await onBackgroundSelected(scene.backgroundId);
     if (scene.useAltBackground !== useAltBackground.value) await onToggleAltBackground();
     if (scene.displayMode === 'table') {
@@ -330,7 +331,7 @@ async function onBackgroundSelected(backgroundId: string | null) {
     try {
         await $fetch('/api/display-state', {
             method: 'PATCH',
-            body: { selectedBackgroundId: backgroundId, password: getPassword() },
+            body: { selectedBackgroundId: backgroundId, withTransition: true, password: getPassword() },
         });
         selectedBackground.value = allBackgrounds.value.find((c) => c.id === backgroundId) ?? null;
     } catch (e: unknown) {

@@ -47,6 +47,12 @@ const store = useAppStore();
 watch(
     () => store.displayStateVersion,
     () => {
+        if (transitionPhase.value === 'idle') fetchState();
+    }
+);
+watch(
+    () => store.displayTransitionVersion,
+    () => {
         triggerSceneTransition();
     }
 );

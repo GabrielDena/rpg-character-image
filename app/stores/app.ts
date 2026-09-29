@@ -1,11 +1,16 @@
 export const useAppStore = defineStore('app', () => {
     const displayStateVersion = ref(0);
+    const displayTransitionVersion = ref(0);
     const scenesVersion = ref(0);
     const altBackground = ref(false);
     const isFullscreen = ref(false);
 
     function notifyDisplayStateUpdated() {
         displayStateVersion.value++;
+    }
+
+    function notifyDisplayTransition() {
+        displayTransitionVersion.value++;
     }
 
     function notifyScenesUpdated() {
@@ -22,7 +27,9 @@ export const useAppStore = defineStore('app', () => {
 
     return {
         displayStateVersion,
+        displayTransitionVersion,
         notifyDisplayStateUpdated,
+        notifyDisplayTransition,
         scenesVersion,
         notifyScenesUpdated,
         altBackground,
