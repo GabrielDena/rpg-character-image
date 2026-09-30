@@ -213,7 +213,7 @@ async function toggleShowTrackingCards() {
 }
 
 async function changeTrackingCardsScale(delta: 1 | -1) {
-    const next = Math.min(5, Math.max(1, trackingCardsScale.value + delta));
+    const next = Math.min(5, Math.max(3, trackingCardsScale.value + delta));
     if (next === trackingCardsScale.value) return;
     savingTrackingCardsScale.value = true;
     try {

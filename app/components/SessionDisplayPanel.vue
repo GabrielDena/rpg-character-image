@@ -95,7 +95,7 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
                 icon="i-heroicons-minus"
                 label="Cards -"
                 :loading="props.savingTrackingCardsScale"
-                :disabled="props.trackingCardsScale <= 1"
+                :disabled="props.trackingCardsScale <= 3"
                 class="w-full justify-start"
                 @click="emit('decreaseTrackingCardsScale')"
             />
