@@ -84,7 +84,7 @@ async function deleteCard(card: TrackingCard) {
 </script>
 
 <template>
-    <SessionCard title="Tracking Cards">
+    <SessionCard v-bind="$attrs" title="Tracking Cards">
         <template #action>
             <UButton
                 size="xs"
