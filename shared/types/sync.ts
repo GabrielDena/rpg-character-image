@@ -4,7 +4,8 @@ export type PayloadTypes =
     | 'character-updated'
     | 'scene-updated'
     | 'alt-background-toggled'
-    | 'display-transition';
+    | 'display-transition'
+    | 'tracking-card-updated';
 
 interface BasePayload {
     type: PayloadTypes;
@@ -53,11 +54,19 @@ export interface DisplayTransitionPayload extends BasePayload {
     data: Record<string, never>;
 }
 
+export interface TrackingCardUpdatedPayload extends BasePayload {
+    type: 'tracking-card-updated';
+    data: {
+        adventureId: string;
+    };
+}
+
 export type WSPayload =
     | BackgroundPayload
     | AdventurePayload
     | CharacterUpdatedPayload
     | SceneUpdatedPayload
     | AltBackgroundToggledPayload
-    | DisplayTransitionPayload;
+    | DisplayTransitionPayload
+    | TrackingCardUpdatedPayload;
 

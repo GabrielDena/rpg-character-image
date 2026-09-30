@@ -10,6 +10,7 @@ function getPassword() {
 }
 
 const toast = useToast();
+const store = useAppStore();
 const cards = ref<TrackingCard[]>([]);
 const loading = ref(false);
 
@@ -37,6 +38,8 @@ async function fetchCards() {
 }
 
 onMounted(fetchCards);
+
+watch(() => store.trackingCardsVersion, fetchCards);
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 const showModal = ref(false);

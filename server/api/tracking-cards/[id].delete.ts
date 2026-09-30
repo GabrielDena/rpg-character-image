@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { trackingCards, useDb } from '../../db';
-import type { AdventurePayload } from '#shared/types/sync';
+import type { TrackingCardUpdatedPayload } from '#shared/types/sync';
 
 export default defineEventHandler(async (event) => {
     const id = getRouterParam(event, 'id')!;
@@ -9,9 +9,10 @@ export default defineEventHandler(async (event) => {
     if (!checkPassword(body?.password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
 
     const db = useDb();
-    await db.delete(trackingCards).where(eq(trackingCards.id, id));
+    const rows = await db.delete(trackingCards).where(eq(trackingCards.id, id)).returning();
+    const adventureId = rows[0]?.adventureId ?? '';
 
-    const payload: AdventurePayload = { type: 'adventure-updated', data: { activeAdventureId: null } };
+    const payload: TrackingCardUpdatedPayload = { type: 'tracking-card-updated', data: { adventureId } };
     broadcast(payload);
 
     return { ok: true };

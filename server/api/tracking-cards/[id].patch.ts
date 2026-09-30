@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { trackingCards, useDb } from '../../db';
-import type { AdventurePayload } from '#shared/types/sync';
+import type { TrackingCardUpdatedPayload } from '#shared/types/sync';
 
 export default defineEventHandler(async (event) => {
     const id = getRouterParam(event, 'id')!;
@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     const card = rows[0];
     if (!card) throw createError({ statusCode: 404, message: 'Tracking card not found' });
 
-    const payload: AdventurePayload = { type: 'adventure-updated', data: { activeAdventureId: null } };
+    const payload: TrackingCardUpdatedPayload = { type: 'tracking-card-updated', data: { adventureId: card.adventureId } };
     broadcast(payload);
 
     return { trackingCard: card };

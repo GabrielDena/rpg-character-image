@@ -20,6 +20,9 @@ export const useSyncSocket = () => {
             case 'alt-background-toggled':
                 store.setAltBackground(message.data.useAltBackground === 'true');
                 break;
+            case 'tracking-card-updated':
+                store.notifyTrackingCardsUpdated();
+                break;
             default:
                 console.warn('Unknown message type:', (message as any).type);
         }

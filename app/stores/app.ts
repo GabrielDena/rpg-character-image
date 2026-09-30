@@ -2,6 +2,7 @@ export const useAppStore = defineStore('app', () => {
     const displayStateVersion = ref(0);
     const displayTransitionVersion = ref(0);
     const scenesVersion = ref(0);
+    const trackingCardsVersion = ref(0);
     const altBackground = ref(false);
     const isFullscreen = ref(false);
     const navCollapsed = ref(false);
@@ -16,6 +17,10 @@ export const useAppStore = defineStore('app', () => {
 
     function notifyScenesUpdated() {
         scenesVersion.value++;
+    }
+
+    function notifyTrackingCardsUpdated() {
+        trackingCardsVersion.value++;
     }
 
     function setAltBackground(value: boolean) {
@@ -37,6 +42,8 @@ export const useAppStore = defineStore('app', () => {
         notifyDisplayTransition,
         scenesVersion,
         notifyScenesUpdated,
+        trackingCardsVersion,
+        notifyTrackingCardsUpdated,
         altBackground,
         setAltBackground,
         isFullscreen,

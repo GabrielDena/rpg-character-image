@@ -1,5 +1,5 @@
 import { trackingCards, useDb } from '../db';
-import type { AdventurePayload } from '#shared/types/sync';
+import type { TrackingCardUpdatedPayload } from '#shared/types/sync';
 
 export default defineEventHandler(async (event) => {
     const body = await readBody<{
@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
     const card = rows[0];
     if (!card) throw createError({ statusCode: 500, message: 'Failed to create tracking card' });
 
-    const payload: AdventurePayload = { type: 'adventure-updated', data: { activeAdventureId: null } };
+    const payload: TrackingCardUpdatedPayload = { type: 'tracking-card-updated', data: { adventureId: body.adventureId } };
     broadcast(payload);
 
     return { trackingCard: card };
