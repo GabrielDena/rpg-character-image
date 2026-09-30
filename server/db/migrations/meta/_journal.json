@@ -148,6 +148,13 @@
       "when": 1790800001000,
       "tag": "0020_show_tracking_cards",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790791780340,
+      "tag": "0021_chilly_bastion",
+      "breakpoints": true
     }
   ]
 }
