@@ -19,6 +19,7 @@ const state = ref<DisplayState>({
     hiddenCharacterIds: [],
     trackingCards: [],
     showTrackingCards: false,
+    trackingCardsScale: 3,
 });
 
 const container = ref<HTMLElement | null>(null);
@@ -464,7 +465,11 @@ const imageStyle = computed<CSSProperties>(() => {
             <div
                 v-if="showTrackingCards"
                 class="absolute right-0 top-0 z-30 flex h-full flex-col justify-center gap-4 p-6"
-                style="pointer-events: none"
+                :style="{
+                    pointerEvents: 'none',
+                    transform: `scale(${[0.6, 0.8, 1, 1.25, 1.5][(state.trackingCardsScale ?? 3) - 1]})`,
+                    transformOrigin: 'right center',
+                }"
             >
                 <div
                     v-for="card in state.trackingCards ?? []"

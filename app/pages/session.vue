@@ -177,6 +177,8 @@ const showItems = ref(false);
 const savingShowItems = ref(false);
 const showTrackingCards = ref(false);
 const savingShowTrackingCards = ref(false);
+const trackingCardsScale = ref(3);
+const savingTrackingCardsScale = ref(false);
 
 async function toggleShowItems() {
     const next = !showItems.value;
@@ -207,6 +209,23 @@ async function toggleShowTrackingCards() {
         // non-fatal
     } finally {
         savingShowTrackingCards.value = false;
+    }
+}
+
+async function changeTrackingCardsScale(delta: 1 | -1) {
+    const next = Math.min(5, Math.max(1, trackingCardsScale.value + delta));
+    if (next === trackingCardsScale.value) return;
+    savingTrackingCardsScale.value = true;
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: { trackingCardsScale: next, password: getPassword() },
+        });
+        trackingCardsScale.value = next;
+    } catch {
+        // non-fatal
+    } finally {
+        savingTrackingCardsScale.value = false;
     }
 }
 
@@ -413,6 +432,7 @@ const isSaving = computed(
         savingShowCharacters.value ||
         savingShowItems.value ||
         savingShowTrackingCards.value ||
+        savingTrackingCardsScale.value ||
         savingItems.value ||
         savingHidden.value
 );
@@ -451,6 +471,7 @@ watch(
             showCharacters.value = state.showCharacters ?? true;
             showItems.value = state.showItems ?? false;
             showTrackingCards.value = state.showTrackingCards ?? false;
+            trackingCardsScale.value = state.trackingCardsScale ?? 3;
             useAltBackground.value = state.useAltBackground ?? false;
             hiddenCharacterIds.value = state.hiddenCharacterIds ?? [];
         } catch {
@@ -479,6 +500,7 @@ onMounted(async () => {
         showCharacters: boolean;
         showItems: boolean;
         showTrackingCards: boolean;
+        trackingCardsScale: number;
         useAltBackground: boolean;
         hiddenCharacterIds: string[];
     }>('/api/display-state');
@@ -509,6 +531,7 @@ onMounted(async () => {
         showCharacters.value = state.showCharacters ?? true;
         showItems.value = state.showItems ?? false;
         showTrackingCards.value = state.showTrackingCards ?? false;
+        trackingCardsScale.value = state.trackingCardsScale ?? 3;
         useAltBackground.value = state.useAltBackground ?? false;
         hiddenCharacterIds.value = state.hiddenCharacterIds ?? [];
     } catch {
@@ -567,12 +590,16 @@ onMounted(async () => {
                         :saving-show-items="savingShowItems"
                         :show-tracking-cards="showTrackingCards"
                         :saving-show-tracking-cards="savingShowTrackingCards"
+                        :tracking-cards-scale="trackingCardsScale"
+                        :saving-tracking-cards-scale="savingTrackingCardsScale"
                         @toggle-fit-mode="toggleFitMode"
                         @set-scene="onSetScene"
                         @set-table="onSetTable"
                         @toggle-show-characters="toggleShowCharacters"
                         @toggle-show-items="toggleShowItems"
                         @toggle-show-tracking-cards="toggleShowTrackingCards"
+                        @increase-tracking-cards-scale="changeTrackingCardsScale(1)"
+                        @decrease-tracking-cards-scale="changeTrackingCardsScale(-1)"
                     />
                 </div>
 

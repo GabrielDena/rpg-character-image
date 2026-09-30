@@ -30,6 +30,7 @@ export interface DisplayState {
     showCharacters: boolean;
     showItems: boolean;
     showTrackingCards: boolean;
+    trackingCardsScale: number;
     useAltBackground: boolean;
     hiddenCharacterIds: string[];
     trackingCards: TrackingCard[];

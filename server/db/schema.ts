@@ -90,6 +90,7 @@ export const displayState = pgTable('display_state', {
     useAltBackground: boolean('use_alt_background').default(false).notNull(),
     hiddenCharacterIds: uuid('hidden_character_ids').array().default([]).notNull(),
     showTrackingCards: boolean('show_tracking_cards').default(false).notNull(),
+    trackingCardsScale: integer('tracking_cards_scale').default(3).notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 

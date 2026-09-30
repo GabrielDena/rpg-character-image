@@ -17,6 +17,8 @@ const props = defineProps<{
     savingShowItems: boolean;
     showTrackingCards: boolean;
     savingShowTrackingCards: boolean;
+    trackingCardsScale: number;
+    savingTrackingCardsScale: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -26,6 +28,8 @@ const emit = defineEmits<{
     toggleShowCharacters: [];
     toggleShowItems: [];
     toggleShowTrackingCards: [];
+    increaseTrackingCardsScale: [];
+    decreaseTrackingCardsScale: [];
 }>();
 
 const showTableModal = ref(false);
@@ -81,6 +85,30 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
                 :loading="props.savingShowTrackingCards"
                 class="w-full justify-start"
                 @click="emit('toggleShowTrackingCards')"
+            />
+
+            <!-- Row 1b: tracking cards size -->
+            <UButton
+                size="sm"
+                color="neutral"
+                variant="ghost"
+                icon="i-heroicons-minus"
+                label="Cards -"
+                :loading="props.savingTrackingCardsScale"
+                :disabled="props.trackingCardsScale <= 1"
+                class="w-full justify-start"
+                @click="emit('decreaseTrackingCardsScale')"
+            />
+            <UButton
+                size="sm"
+                color="neutral"
+                variant="ghost"
+                icon="i-heroicons-plus"
+                label="Cards +"
+                :loading="props.savingTrackingCardsScale"
+                :disabled="props.trackingCardsScale >= 5"
+                class="w-full justify-start"
+                @click="emit('increaseTrackingCardsScale')"
             />
 
             <!-- Row 2: fit mode + display mode -->
