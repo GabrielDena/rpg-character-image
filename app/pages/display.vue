@@ -17,6 +17,7 @@ const state = ref<DisplayState>({
     showItems: false,
     useAltBackground: false,
     hiddenCharacterIds: [],
+    hiddenTrackingCardIds: [],
     trackingCards: [],
     showTrackingCards: false,
     trackingCardsScale: 3,
@@ -472,7 +473,7 @@ const imageStyle = computed<CSSProperties>(() => {
                 }"
             >
                 <div
-                    v-for="card in state.trackingCards ?? []"
+                    v-for="card in (state.trackingCards ?? []).filter(c => !(state.hiddenTrackingCardIds ?? []).includes(c.id))"
                     :key="card.id"
                     class="flex flex-col gap-3 rounded-2xl px-5 py-4"
                     style="background: rgba(8,10,18,0.82); backdrop-filter: blur(12px); min-width: 260px; max-width: 300px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);"

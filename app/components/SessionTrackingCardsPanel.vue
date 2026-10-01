@@ -3,7 +3,24 @@ import type { TrackingCard, TrackingCardType } from '#shared/types/models';
 
 const props = defineProps<{
     adventureId: string;
+    hiddenIds: string[];
+    savingHidden: boolean;
 }>();
+
+const emit = defineEmits<{
+    updateHidden: [ids: string[]];
+}>();
+
+function isHidden(id: string) {
+    return props.hiddenIds.includes(id);
+}
+
+function toggleHidden(id: string) {
+    const next = isHidden(id)
+        ? props.hiddenIds.filter((i) => i !== id)
+        : [...props.hiddenIds, id];
+    emit('updateHidden', next);
+}
 
 function getPassword() {
     return localStorage.getItem('app_password') ?? '';
@@ -116,6 +133,7 @@ async function deleteCard(card: TrackingCard) {
                 v-for="card in cards"
                 :key="card.id"
                 class="flex items-center gap-2 px-3 py-2 transition-colors hover:bg-gray-800"
+                :class="isHidden(card.id) ? 'opacity-50' : ''"
             >
                 <span
                     class="size-2 shrink-0 rounded-full"
@@ -127,15 +145,29 @@ async function deleteCard(card: TrackingCard) {
                 >
                     {{ card.title }}
                 </button>
-                <button
-                    :disabled="!!deletingId"
-                    @click="deleteCard(card)"
-                >
-                    <UIcon
-                        name="i-heroicons-x-mark"
-                        class="size-3.5 text-gray-500 hover:text-red-400"
-                    />
-                </button>
+                <div class="flex shrink-0 items-center gap-0.5">
+                    <UTooltip :text="isHidden(card.id) ? 'Show' : 'Hide'">
+                        <button
+                            class="flex size-6 items-center justify-center rounded hover:bg-gray-700"
+                            :disabled="savingHidden"
+                            @click="toggleHidden(card.id)"
+                        >
+                            <UIcon
+                                :name="isHidden(card.id) ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
+                                class="size-3.5 text-gray-400 hover:text-gray-200"
+                            />
+                        </button>
+                    </UTooltip>
+                    <button
+                        :disabled="!!deletingId"
+                        @click="deleteCard(card)"
+                    >
+                        <UIcon
+                            name="i-heroicons-x-mark"
+                            class="size-3.5 text-gray-500 hover:text-red-400"
+                        />
+                    </button>
+                </div>
             </li>
         </ul>
     </SessionCard>

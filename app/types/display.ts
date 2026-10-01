@@ -33,5 +33,6 @@ export interface DisplayState {
     trackingCardsScale: number;
     useAltBackground: boolean;
     hiddenCharacterIds: string[];
+    hiddenTrackingCardIds: string[];
     trackingCards: TrackingCard[];
 }

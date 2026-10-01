@@ -91,6 +91,7 @@ export const displayState = pgTable('display_state', {
     hiddenCharacterIds: uuid('hidden_character_ids').array().default([]).notNull(),
     showTrackingCards: boolean('show_tracking_cards').default(false).notNull(),
     trackingCardsScale: integer('tracking_cards_scale').default(3).notNull(),
+    hiddenTrackingCardIds: uuid('hidden_tracking_card_ids').array().default([]).notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 

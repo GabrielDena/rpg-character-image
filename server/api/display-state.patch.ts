@@ -20,6 +20,7 @@ export default defineEventHandler(async (event) => {
         trackingCardsScale?: number;
         useAltBackground?: boolean;
         hiddenCharacterIds?: string[];
+        hiddenTrackingCardIds?: string[];
         withTransition?: boolean;
         password: string;
     }>(event);
@@ -53,6 +54,7 @@ export default defineEventHandler(async (event) => {
     if ('useAltBackground' in body && body.useAltBackground != null)
         patch.useAltBackground = body.useAltBackground;
     if ('hiddenCharacterIds' in body) patch.hiddenCharacterIds = body.hiddenCharacterIds ?? [];
+    if ('hiddenTrackingCardIds' in body) patch.hiddenTrackingCardIds = body.hiddenTrackingCardIds ?? [];
 
     if (rows.length === 0) {
         await db.insert(displayState).values({

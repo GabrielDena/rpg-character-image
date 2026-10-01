@@ -74,6 +74,7 @@ export default defineEventHandler(async () => {
             showTrackingCards: rows[0]?.showTrackingCards ?? false,
             trackingCardsScale: rows[0]?.trackingCardsScale ?? 3,
             hiddenCharacterIds: rows[0]?.hiddenCharacterIds ?? [],
+            hiddenTrackingCardIds: rows[0]?.hiddenTrackingCardIds ?? [],
             trackingCards: [],
         };
     }
@@ -108,6 +109,7 @@ export default defineEventHandler(async () => {
             showTrackingCards: state.showTrackingCards ?? false,
             trackingCardsScale: state.trackingCardsScale ?? 3,
             hiddenCharacterIds: state.hiddenCharacterIds ?? [],
+            hiddenTrackingCardIds: state.hiddenTrackingCardIds ?? [],
             trackingCards: [],
         };
     }
@@ -195,6 +197,7 @@ export default defineEventHandler(async () => {
         trackingCardsScale: state.trackingCardsScale ?? 3,
         useAltBackground: state.useAltBackground ?? false,
         hiddenCharacterIds: state.hiddenCharacterIds ?? [],
+        hiddenTrackingCardIds: state.hiddenTrackingCardIds ?? [],
         trackingCards: activeTrackingCards,
     };
 });

@@ -179,6 +179,8 @@ const showTrackingCards = ref(false);
 const savingShowTrackingCards = ref(false);
 const trackingCardsScale = ref(3);
 const savingTrackingCardsScale = ref(false);
+const hiddenTrackingCardIds = ref<string[]>([]);
+const savingHiddenTrackingCards = ref(false);
 
 async function toggleShowItems() {
     const next = !showItems.value;
@@ -226,6 +228,25 @@ async function changeTrackingCardsScale(delta: 1 | -1) {
         // non-fatal
     } finally {
         savingTrackingCardsScale.value = false;
+    }
+}
+
+async function onHiddenTrackingCardsUpdated(ids: string[]) {
+    savingHiddenTrackingCards.value = true;
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: { hiddenTrackingCardIds: ids, password: getPassword() },
+        });
+        hiddenTrackingCardIds.value = ids;
+    } catch (e: unknown) {
+        toast.add({
+            title: 'Failed to update visibility',
+            color: 'error',
+            description: e instanceof Error ? e.message : 'Unknown error',
+        });
+    } finally {
+        savingHiddenTrackingCards.value = false;
     }
 }
 
@@ -458,6 +479,7 @@ watch(
                 showTrackingCards: boolean;
                 useAltBackground: boolean;
                 hiddenCharacterIds: string[];
+                hiddenTrackingCardIds: string[];
             }>('/api/display-state');
             activeCharacterIds.value = state.activeCharacterIds;
             activeCharacters.value = state.activeCharacters;
@@ -474,6 +496,7 @@ watch(
             trackingCardsScale.value = state.trackingCardsScale ?? 3;
             useAltBackground.value = state.useAltBackground ?? false;
             hiddenCharacterIds.value = state.hiddenCharacterIds ?? [];
+            hiddenTrackingCardIds.value = state.hiddenTrackingCardIds ?? [];
         } catch {
             // non-fatal
         }
@@ -503,6 +526,7 @@ onMounted(async () => {
         trackingCardsScale: number;
         useAltBackground: boolean;
         hiddenCharacterIds: string[];
+        hiddenTrackingCardIds: string[];
     }>('/api/display-state');
 
     try {
@@ -534,6 +558,7 @@ onMounted(async () => {
         trackingCardsScale.value = state.trackingCardsScale ?? 3;
         useAltBackground.value = state.useAltBackground ?? false;
         hiddenCharacterIds.value = state.hiddenCharacterIds ?? [];
+        hiddenTrackingCardIds.value = state.hiddenTrackingCardIds ?? [];
     } catch {
     } finally {
         loadingState.value = false;
@@ -652,6 +677,9 @@ onMounted(async () => {
                     <SessionTrackingCardsPanel
                         class="col-span-1"
                         :adventure-id="activeAdventure.id"
+                        :hidden-ids="hiddenTrackingCardIds"
+                        :saving-hidden="savingHiddenTrackingCards"
+                        @update-hidden="onHiddenTrackingCardsUpdated"
                     />
                 </div>
             </div>
