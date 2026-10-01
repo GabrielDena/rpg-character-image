@@ -500,16 +500,16 @@ const imageStyle = computed<CSSProperties>(() => {
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2">
                                 <span
-                                    class="shrink-0 rounded-md px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-white"
-                                    :style="{ background: TYPE_COLORS[card.type] ?? '#6b7280' }"
-                                >
-                                    {{ card.type }}
-                                </span>
-                                <span
                                     class="min-w-0 flex-1 truncate text-base font-semibold text-white"
                                     style="text-shadow: 0 1px 4px rgba(0,0,0,0.9)"
                                 >
                                     {{ card.title }}
+                                </span>
+                                <span
+                                    class="shrink-0 rounded-md px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-white"
+                                    :style="{ background: TYPE_COLORS[card.type] ?? '#6b7280' }"
+                                >
+                                    {{ card.type }}
                                 </span>
                             </div>
                             <p

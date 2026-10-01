@@ -31,7 +31,10 @@ const formCharacterId = ref<string | null>(null);
 
 const characterOptions = computed(() => [
     { label: 'None', value: null },
-    ...(props.characters ?? []).map((c) => ({ label: c.name, value: c.id })),
+    ...(props.characters ?? [])
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((c) => ({ label: c.name, value: c.id })),
 ]);
 
 watch(
@@ -180,9 +183,12 @@ async function save() {
                     v-if="characters && characters.length"
                     label="Character"
                 >
-                    <USelect
+                    <USelectMenu
                         v-model="formCharacterId"
                         :items="characterOptions"
+                        value-key="value"
+                        :filter-fields="['label']"
+                        searchable
                         class="w-full"
                     />
                 </UFormField>
