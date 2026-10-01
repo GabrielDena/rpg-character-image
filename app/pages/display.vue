@@ -53,6 +53,10 @@ watch(
     }
 );
 watch(
+    () => store.trackingCardsVersion,
+    () => fetchState(),
+);
+watch(
     () => store.displayTransitionVersion,
     () => {
         triggerSceneTransition();
@@ -472,6 +476,7 @@ const imageStyle = computed<CSSProperties>(() => {
                     transformOrigin: 'right center',
                 }"
             >
+                <TransitionGroup name="tracking-card-item">
                 <div
                     v-for="card in (state.trackingCards ?? []).filter(c => !(state.hiddenTrackingCardIds ?? []).includes(c.id))"
                     :key="card.id"
@@ -521,6 +526,7 @@ const imageStyle = computed<CSSProperties>(() => {
                         </div>
                     </div>
                 </div>
+                </TransitionGroup>
             </div>
         </Transition>
 
@@ -1141,6 +1147,22 @@ const imageStyle = computed<CSSProperties>(() => {
 .tracking-cards-leave-to {
     opacity: 0;
     transform: translateX(12px);
+}
+
+.tracking-card-item-enter-active,
+.tracking-card-item-leave-active {
+    transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.tracking-card-item-enter-from {
+    opacity: 0;
+    transform: translateX(110%);
+}
+.tracking-card-item-leave-to {
+    opacity: 0;
+    transform: translateX(110%);
+}
+.tracking-card-item-move {
+    transition: transform 0.45s ease;
 }
 </style>
 
