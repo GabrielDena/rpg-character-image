@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
         title?: string;
         type?: string;
         value?: number | null;
+        characterId?: string | null;
         sortOrder?: number;
         password: string;
     }>(event);
@@ -18,6 +19,7 @@ export default defineEventHandler(async (event) => {
     if ('title' in body && body.title) patch.title = body.title;
     if ('type' in body && body.type) patch.type = body.type;
     if ('value' in body) patch.value = body.value ?? null;
+    if ('characterId' in body) patch.characterId = body.characterId ?? null;
     if ('sortOrder' in body && body.sortOrder !== undefined) patch.sortOrder = body.sortOrder;
 
     const db = useDb();

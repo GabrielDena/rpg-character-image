@@ -477,6 +477,7 @@ watch(
                 showCharacters: boolean;
                 showItems: boolean;
                 showTrackingCards: boolean;
+                trackingCardsScale: number;
                 useAltBackground: boolean;
                 hiddenCharacterIds: string[];
                 hiddenTrackingCardIds: string[];
@@ -679,6 +680,7 @@ onMounted(async () => {
                         :adventure-id="activeAdventure.id"
                         :hidden-ids="hiddenTrackingCardIds"
                         :saving-hidden="savingHiddenTrackingCards"
+                        :all-characters="allCharacters"
                         @update-hidden="onHiddenTrackingCardsUpdated"
                     />
                 </div>

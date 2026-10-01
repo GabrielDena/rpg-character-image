@@ -169,6 +169,7 @@ export const trackingCards = pgTable('tracking_cards', {
     title: varchar('title', { length: 255 }).notNull(),
     type: varchar('type', { length: 20 }).notNull().default('tag'),
     value: real('value'),
+    characterId: uuid('character_id').references(() => characters.id, { onDelete: 'set null' }),
     sortOrder: integer('sort_order').default(0).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });

@@ -75,6 +75,7 @@ export interface TrackingCard {
     title: string;
     type: TrackingCardType;
     value: number | null;
+    characterId: string | null;
     sortOrder: number;
     createdAt: Date;
 }

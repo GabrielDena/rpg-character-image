@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue';
-import type { DisplayCharacter, DisplayState, TrackingCard } from '~/types/display';
+import type { DisplayCharacter, DisplayState, DisplayTrackingCard } from '~/types/display';
 
 const state = ref<DisplayState>({
     activeAdventureId: null,
@@ -478,25 +478,47 @@ const imageStyle = computed<CSSProperties>(() => {
             >
                 <TransitionGroup name="tracking-card-item">
                 <div
-                    v-for="card in (state.trackingCards ?? []).filter(c => !(state.hiddenTrackingCardIds ?? []).includes(c.id))"
+                    v-for="card in (state.trackingCards ?? []).filter((c: DisplayTrackingCard) => !(state.hiddenTrackingCardIds ?? []).includes(c.id))"
                     :key="card.id"
                     class="flex flex-col gap-3 rounded-2xl px-5 py-4"
                     style="background: rgba(8,10,18,0.82); backdrop-filter: blur(12px); min-width: 260px; max-width: 300px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);"
                 >
                     <!-- Type badge + title -->
-                    <div class="flex items-center gap-2">
-                        <span
-                            class="shrink-0 rounded-md px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-white"
-                            :style="{ background: TYPE_COLORS[card.type] ?? '#6b7280' }"
+                    <div class="flex items-center gap-3">
+                        <!-- Character avatar -->
+                        <div
+                            v-if="card.characterAvatarUrl"
+                            class="size-10 shrink-0 overflow-hidden rounded-full"
+                            style="box-shadow: 0 2px 8px rgba(0,0,0,0.6);"
                         >
-                            {{ card.type }}
-                        </span>
-                        <span
-                            class="min-w-0 flex-1 truncate text-base font-semibold text-white"
-                            style="text-shadow: 0 1px 4px rgba(0,0,0,0.9)"
-                        >
-                            {{ card.title }}
-                        </span>
+                            <img
+                                :src="card.characterAvatarUrl"
+                                class="size-full object-cover"
+                            />
+                        </div>
+
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="shrink-0 rounded-md px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-white"
+                                    :style="{ background: TYPE_COLORS[card.type] ?? '#6b7280' }"
+                                >
+                                    {{ card.type }}
+                                </span>
+                                <span
+                                    class="min-w-0 flex-1 truncate text-base font-semibold text-white"
+                                    style="text-shadow: 0 1px 4px rgba(0,0,0,0.9)"
+                                >
+                                    {{ card.title }}
+                                </span>
+                            </div>
+                            <p
+                                v-if="card.characterName"
+                                class="mt-0.5 truncate text-[11px] text-white/50"
+                            >
+                                {{ card.characterName }}
+                            </p>
+                        </div>
                     </div>
 
                     <!-- Progress bar (hidden for Tag type) -->

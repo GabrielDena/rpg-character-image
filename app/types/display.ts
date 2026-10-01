@@ -4,6 +4,11 @@ import type { CharacterWithUrl } from './character';
 
 export type { TrackingCard };
 
+export interface DisplayTrackingCard extends TrackingCard {
+    characterName?: string | null;
+    characterAvatarUrl?: string | null;
+}
+
 export interface DisplayCharacter extends CharacterWithUrl {
     profileImageUrl: string | null;
 }
@@ -34,5 +39,5 @@ export interface DisplayState {
     useAltBackground: boolean;
     hiddenCharacterIds: string[];
     hiddenTrackingCardIds: string[];
-    trackingCards: TrackingCard[];
+    trackingCards: DisplayTrackingCard[];
 }

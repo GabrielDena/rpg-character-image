@@ -172,6 +172,27 @@ export default defineEventHandler(async () => {
         .where(eq(trackingCards.adventureId, state.activeAdventureId!))
         .orderBy(trackingCards.sortOrder, trackingCards.createdAt);
 
+    const cardCharacterIds = activeTrackingCards
+        .map((c) => c.characterId)
+        .filter((id): id is string => !!id);
+
+    const cardCharacters = cardCharacterIds.length
+        ? await db.select().from(characters).where(inArray(characters.id, cardCharacterIds))
+        : [];
+
+    const cardCharacterById = Object.fromEntries(
+        cardCharacters.map((c) => [c.id, c])
+    );
+
+    const enrichedTrackingCards = activeTrackingCards.map((card) => {
+        const ch = card.characterId ? (cardCharacterById[card.characterId] ?? null) : null;
+        return {
+            ...card,
+            characterName: ch?.name ?? null,
+            characterAvatarUrl: ch?.avatarPath ? getPublicUrl(ch.avatarPath) : null,
+        };
+    });
+
     return {
         activeAdventureId: state.activeAdventureId,
         adventure: adventureRows[0]!.adventure,
@@ -198,6 +219,6 @@ export default defineEventHandler(async () => {
         useAltBackground: state.useAltBackground ?? false,
         hiddenCharacterIds: state.hiddenCharacterIds ?? [],
         hiddenTrackingCardIds: state.hiddenTrackingCardIds ?? [],
-        trackingCards: activeTrackingCards,
+        trackingCards: enrichedTrackingCards,
     };
 });

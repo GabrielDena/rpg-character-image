@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { TrackingCard, TrackingCardType } from '#shared/types/models';
+import type { CharacterWithUrl } from '~/types/character';
 
 const props = defineProps<{
     open: boolean;
     adventureId: string;
     card?: TrackingCard | null;
+    characters?: CharacterWithUrl[];
 }>();
 
 const emit = defineEmits<{
@@ -25,6 +27,12 @@ const saving = ref(false);
 const formTitle = ref('');
 const formType = ref<TrackingCardType>('tag');
 const formValue = ref<number | null>(null);
+const formCharacterId = ref<string | null>(null);
+
+const characterOptions = computed(() => [
+    { label: 'None', value: null },
+    ...(props.characters ?? []).map((c) => ({ label: c.name, value: c.id })),
+]);
 
 watch(
     () => props.open,
@@ -33,6 +41,7 @@ watch(
         formTitle.value = props.card?.title ?? '';
         formType.value = (props.card?.type as TrackingCardType) ?? 'tag';
         formValue.value = props.card?.value ?? null;
+        formCharacterId.value = props.card?.characterId ?? null;
     },
 );
 
@@ -99,6 +108,7 @@ async function save() {
                         title: formTitle.value.trim(),
                         type: formType.value,
                         value: formValue.value,
+                        characterId: formCharacterId.value,
                         password: getPassword(),
                     },
                 },
@@ -114,6 +124,7 @@ async function save() {
                         title: formTitle.value.trim(),
                         type: formType.value,
                         value: formValue.value,
+                        characterId: formCharacterId.value,
                         password: getPassword(),
                     },
                 },
@@ -162,6 +173,18 @@ async function save() {
                             {{ opt.label }}
                         </button>
                     </div>
+                </UFormField>
+
+                <!-- Character -->
+                <UFormField
+                    v-if="characters && characters.length"
+                    label="Character"
+                >
+                    <USelect
+                        v-model="formCharacterId"
+                        :items="characterOptions"
+                        class="w-full"
+                    />
                 </UFormField>
 
                 <!-- Progression (not shown for Tag type) -->

@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import type { TrackingCard, TrackingCardType } from '#shared/types/models';
+import type { CharacterWithUrl } from '~/types/character';
 
 const props = defineProps<{
     adventureId: string;
     hiddenIds: string[];
     savingHidden: boolean;
+    allCharacters: CharacterWithUrl[];
 }>();
+
+const characterById = computed(() =>
+    Object.fromEntries(props.allCharacters.map((c) => [c.id, c]))
+);
 
 const emit = defineEmits<{
     updateHidden: [ids: string[]];
@@ -140,10 +146,16 @@ async function deleteCard(card: TrackingCard) {
                     :class="TYPE_COLORS[card.type as TrackingCardType]"
                 />
                 <button
-                    class="min-w-0 flex-1 truncate text-left text-sm text-gray-300"
+                    class="min-w-0 flex-1 text-left"
                     @click="openEdit(card)"
                 >
-                    {{ card.title }}
+                    <p class="truncate text-sm text-gray-300">{{ card.title }}</p>
+                    <p
+                        v-if="card.characterId && characterById[card.characterId]"
+                        class="truncate text-xs text-gray-500"
+                    >
+                        {{ characterById[card.characterId]!.name }}
+                    </p>
                 </button>
                 <div class="flex shrink-0 items-center gap-0.5">
                     <UTooltip :text="isHidden(card.id) ? 'Show' : 'Hide'">
@@ -176,6 +188,7 @@ async function deleteCard(card: TrackingCard) {
         v-model:open="showModal"
         :adventure-id="adventureId"
         :card="editingCard"
+        :characters="allCharacters"
         @created="onCreated"
         @updated="onUpdated"
     />

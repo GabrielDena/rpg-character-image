@@ -1,0 +1,2 @@
+ALTER TABLE "tracking_cards" ADD COLUMN "character_id" uuid;--> statement-breakpoint
+ALTER TABLE "tracking_cards" ADD CONSTRAINT "tracking_cards_character_id_characters_id_fk" FOREIGN KEY ("character_id") REFERENCES "public"."characters"("id") ON DELETE set null ON UPDATE no action;
