@@ -129,6 +129,7 @@ onMounted(() => {
                     v-show="activeTab === 'characters'"
                     :adventure-id="adventureId"
                     :system-id="systemId"
+                    :playbook-label="adventure?.playbookLabel ?? null"
                 />
                 <AdventureLocationsTab
                     v-show="activeTab === 'locations'"

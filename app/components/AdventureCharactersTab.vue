@@ -4,6 +4,7 @@ import type { CharacterWithUrl } from '~/types/character';
 const props = defineProps<{
     adventureId: string;
     systemId: string;
+    playbookLabel?: string | null;
 }>();
 
 const toast = useToast();
@@ -205,6 +206,7 @@ onMounted(fetchCharacters);
             :adventure-id="adventureId"
             :system-id="systemId"
             :character="editingCharacter"
+            :playbook-label="props.playbookLabel"
             @created="fetchCharacters"
             @updated="fetchCharacters"
             @deleted="fetchCharacters"

@@ -5,6 +5,7 @@ import { adventures, useDb } from '../../db';
 const bodySchema = z.object({
     name: z.string().min(1, 'Name is required').max(255),
     description: z.string().max(1000).optional().nullable(),
+    playbookLabel: z.string().max(255).optional().nullable(),
     password: z.string(),
 });
 
@@ -21,13 +22,13 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const { name, description, password } = parsed.data;
+    const { name, description, playbookLabel, password } = parsed.data;
     if (!checkPassword(password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
 
     const db = useDb();
     const rows = await db
         .update(adventures)
-        .set({ name, description: description ?? null })
+        .set({ name, description: description ?? null, playbookLabel: playbookLabel ?? null })
         .where(eq(adventures.id, id))
         .returning();
 

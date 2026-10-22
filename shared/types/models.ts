@@ -10,6 +10,7 @@ export interface Adventure {
     systemId: string;
     name: string;
     description: string | null;
+    playbookLabel: string | null;
     createdAt: Date;
 }
 

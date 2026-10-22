@@ -1,0 +1,1 @@
+ALTER TABLE "adventures" ADD COLUMN "playbook_label" varchar(255);

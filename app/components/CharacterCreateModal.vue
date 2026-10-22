@@ -22,6 +22,7 @@ const props = defineProps<{
     adventureId: string;
     systemId: string;
     character?: CharacterWithUrl | null;
+    playbookLabel?: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -32,6 +33,7 @@ const emit = defineEmits<{
 }>();
 
 const isEditing = computed(() => !!props.character);
+const playbookFieldLabel = computed(() => props.playbookLabel || 'Playbook');
 
 const toast = useToast();
 
@@ -397,7 +399,7 @@ async function editCharacter() {
                 </UFormField>
 
                 <!-- Playbook -->
-                <UFormField label="Playbook">
+                <UFormField :label="playbookFieldLabel">
                     <UInput
                         v-model="formPlaybook"
                         placeholder="e.g. The Witch"

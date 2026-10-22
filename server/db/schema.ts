@@ -24,6 +24,7 @@ export const adventures = pgTable('adventures', {
         .references(() => systems.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
+    playbookLabel: varchar('playbook_label', { length: 255 }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

@@ -14,6 +14,7 @@ const showModal = ref(false);
 const renameTarget = ref<Adventure | null>(null);
 const renameName = ref('');
 const renameDescription = ref('');
+const renamePlaybookLabel = ref('');
 const renaming = ref(false);
 const renameError = ref<string | null>(null);
 
@@ -49,6 +50,7 @@ function openRename(adventure: Adventure) {
     renameTarget.value = adventure;
     renameName.value = adventure.name;
     renameDescription.value = adventure.description ?? '';
+    renamePlaybookLabel.value = adventure.playbookLabel ?? '';
     renameError.value = null;
 }
 
@@ -66,6 +68,7 @@ async function submitRename() {
             body: {
                 name: renameName.value.trim(),
                 description: renameDescription.value.trim() || null,
+                playbookLabel: renamePlaybookLabel.value.trim() || null,
                 password: getPassword(),
             },
         });
@@ -285,6 +288,15 @@ onMounted(fetchData);
                         v-model="renameDescription"
                         placeholder="Optional description"
                         :rows="3"
+                    />
+                </UFormField>
+                <UFormField
+                    label="Playbook label"
+                    hint="Leave blank to use 'Playbook'"
+                >
+                    <UInput
+                        v-model="renamePlaybookLabel"
+                        placeholder="e.g. Class, Archetype, Kit…"
                     />
                 </UFormField>
                 <p
