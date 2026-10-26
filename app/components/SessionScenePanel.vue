@@ -169,12 +169,12 @@ function removeCharacter(id: string) {
                     <!-- Toggle visibility -->
                     <UTooltip :text="isHidden(character.id) ? 'Show' : 'Hide'">
                         <button
-                            class="flex size-6 items-center justify-center rounded hover:bg-gray-700"
+                            class="flex size-9 items-center justify-center rounded hover:bg-gray-700"
                             @click="toggleHidden(character.id)"
                         >
                             <UIcon
                                 :name="isHidden(character.id) ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
-                                class="size-3.5 text-gray-400 hover:text-gray-200"
+                                class="size-5 text-gray-400 hover:text-gray-200"
                             />
                         </button>
                     </UTooltip>
@@ -182,12 +182,12 @@ function removeCharacter(id: string) {
                     <!-- Solo (show only this one) -->
                     <UTooltip text="Show only this">
                         <button
-                            class="flex size-6 items-center justify-center rounded hover:bg-gray-700"
+                            class="flex size-9 items-center justify-center rounded hover:bg-gray-700"
                             @click="soloCharacter(character.id)"
                         >
                             <UIcon
                                 name="i-heroicons-magnifying-glass"
-                                class="size-3.5 text-gray-400 hover:text-gray-200"
+                                class="size-5 text-gray-400 hover:text-gray-200"
                             />
                         </button>
                     </UTooltip>
@@ -195,12 +195,12 @@ function removeCharacter(id: string) {
                     <!-- Remove from scene -->
                     <UTooltip text="Remove from scene">
                         <button
-                            class="flex size-6 items-center justify-center rounded hover:bg-gray-700"
+                            class="flex size-9 items-center justify-center rounded hover:bg-gray-700"
                             @click="removeCharacter(character.id)"
                         >
                             <UIcon
                                 name="i-heroicons-x-mark"
-                                class="size-3.5 text-gray-500 hover:text-red-400"
+                                class="size-5 text-gray-500 hover:text-red-400"
                             />
                         </button>
                     </UTooltip>
