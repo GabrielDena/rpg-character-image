@@ -13,33 +13,67 @@ const loading = ref(false);
 const showModal = ref(false);
 const editingBackground = ref<BackgroundWithUrl | null>(null);
 const search = ref('');
-const locationFilter = ref<string>('all');
+const collapsedGroups = ref<Set<string>>(new Set());
 
-const locationFilterOptions = computed(() => [
-    { value: 'all', label: 'All locations' },
-    { value: 'none', label: 'No location' },
-    ...props.locations.map((l) => ({ value: l.id, label: l.name })),
-]);
+function toggleGroup(key: string) {
+    if (collapsedGroups.value.has(key)) {
+        collapsedGroups.value.delete(key);
+    } else {
+        collapsedGroups.value.add(key);
+    }
+    collapsedGroups.value = new Set(collapsedGroups.value);
+}
 
-const filtered = computed(() => {
+const allCollapsed = computed(() => groups.value.length > 0 && groups.value.every((g) => collapsedGroups.value.has(g.key)));
+
+function toggleAll() {
+    if (allCollapsed.value) {
+        collapsedGroups.value = new Set();
+    } else {
+        collapsedGroups.value = new Set(groups.value.map((g) => g.key));
+    }
+}
+
+const filteredList = computed(() => {
     const q = search.value.trim().toLowerCase();
-    let result = list.value;
+    if (!q) return list.value;
+    return list.value.filter((bg) => bg.name.toLowerCase().includes(q));
+});
 
-    if (locationFilter.value === 'none') {
-        result = result.filter((bg) => !bg.locationId);
-    } else if (locationFilter.value !== 'all') {
-        result = result.filter((bg) => bg.locationId === locationFilter.value);
+interface BackgroundGroup {
+    key: string;
+    label: string;
+    items: BackgroundWithUrl[];
+}
+
+const groups = computed<BackgroundGroup[]>(() => {
+    const locationMap = new Map(props.locations.map((l) => [l.id, l.name]));
+    const byLocation = new Map<string | null, BackgroundWithUrl[]>();
+
+    for (const bg of filteredList.value) {
+        const key = bg.locationId ?? null;
+        if (!byLocation.has(key)) byLocation.set(key, []);
+        byLocation.get(key)!.push(bg);
     }
 
-    if (q) result = result.filter((bg) => bg.name.toLowerCase().includes(q));
+    const result: BackgroundGroup[] = [];
+
+    // Named location groups in location order
+    for (const loc of props.locations) {
+        const items = byLocation.get(loc.id);
+        if (items?.length) {
+            result.push({ key: loc.id, label: locationMap.get(loc.id) ?? loc.id, items });
+        }
+    }
+
+    // No-location group last
+    const unlocated = byLocation.get(null);
+    if (unlocated?.length) {
+        result.push({ key: '__none__', label: 'No location', items: unlocated });
+    }
 
     return result;
 });
-
-function locationName(locationId: string | null) {
-    if (!locationId) return null;
-    return props.locations.find((l) => l.id === locationId)?.name ?? null;
-}
 
 async function fetchBackgrounds() {
     loading.value = true;
@@ -85,18 +119,6 @@ onMounted(fetchBackgrounds);
 <template>
     <div>
         <div class="sticky top-0 z-10 space-y-2 bg-gray-900 p-4 pb-2">
-            <div class="flex items-center justify-between">
-                <p class="text-xs text-gray-500">
-                    {{ filtered.length }} background{{ filtered.length !== 1 ? 's' : '' }}
-                </p>
-                <UButton
-                    size="sm"
-                    leading-icon="i-heroicons-plus"
-                    @click="openCreate"
-                >
-                    Add
-                </UButton>
-            </div>
             <div class="flex gap-2">
                 <UInput
                     v-model="search"
@@ -105,13 +127,26 @@ onMounted(fetchBackgrounds);
                     size="sm"
                     class="flex-1"
                 />
-                <USelect
-                    v-model="locationFilter"
-                    :items="locationFilterOptions"
+                <UButton
                     size="sm"
-                    class="w-40 shrink-0"
+                    leading-icon="i-heroicons-plus"
+                    @click="openCreate"
+                >
+                    Add
+                </UButton>
+                <UButton
+                    v-if="groups.length > 0"
+                    size="sm"
+                    variant="ghost"
+                    color="neutral"
+                    :icon="allCollapsed ? 'i-heroicons-arrows-pointing-out' : 'i-heroicons-arrows-pointing-in'"
+                    :title="allCollapsed ? 'Expand all' : 'Collapse all'"
+                    @click="toggleAll"
                 />
             </div>
+            <p class="text-xs text-gray-500">
+                {{ filteredList.length }} background{{ filteredList.length !== 1 ? 's' : '' }}
+            </p>
         </div>
 
         <div
@@ -140,52 +175,71 @@ onMounted(fetchBackgrounds);
         </div>
 
         <p
-            v-else-if="!filtered.length"
+            v-else-if="!filteredList.length"
             class="px-4 py-8 text-center text-sm text-gray-500"
         >
-            No backgrounds match your filters
+            No backgrounds match your search
         </p>
 
-        <ul
+        <div
             v-else
-            class="space-y-0.5 p-2"
+            class="p-2"
         >
-            <li
-                v-for="bg in filtered"
-                :key="bg.id"
+            <div
+                v-for="group in groups"
+                :key="group.key"
+                class="mb-1"
             >
+                <!-- Group header -->
                 <button
-                    class="flex w-full items-center gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-gray-800 active:bg-gray-700"
-                    @click="openEdit(bg)"
+                    class="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-gray-800"
+                    @click="toggleGroup(group.key)"
                 >
-                    <div class="size-14 shrink-0 overflow-hidden rounded-lg bg-gray-800">
-                        <img
-                            v-if="bg.url"
-                            :src="bg.url"
-                            :alt="bg.name"
-                            class="size-full object-cover"
-                        />
-                    </div>
-
-                    <div class="min-w-0 flex-1 text-left">
-                        <p class="truncate text-sm text-gray-200">{{ bg.name }}</p>
-                        <UBadge
-                            v-if="locationName(bg.locationId)"
-                            :label="locationName(bg.locationId)!"
-                            size="xs"
-                            variant="subtle"
-                            color="violet"
-                            class="mt-0.5"
-                        />
-                    </div>
-
                     <UIcon
-                        name="i-heroicons-pencil"
-                        class="size-4 shrink-0 text-gray-600"
+                        :name="collapsedGroups.has(group.key) ? 'i-heroicons-chevron-right' : 'i-heroicons-chevron-down'"
+                        class="size-3.5 shrink-0 text-gray-500"
                     />
+                    <span class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        {{ group.label }}
+                    </span>
+                    <span class="text-xs text-gray-600">{{ group.items.length }}</span>
                 </button>
-            </li>
-        </ul>
+
+                <!-- Group items -->
+                <ul
+                    v-if="!collapsedGroups.has(group.key)"
+                    class="space-y-0.5"
+                >
+                    <li
+                        v-for="bg in group.items"
+                        :key="bg.id"
+                    >
+                        <button
+                            class="flex w-full items-center gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-gray-800 active:bg-gray-700"
+                            @click="openEdit(bg)"
+                        >
+                            <div class="size-14 shrink-0 overflow-hidden rounded-lg bg-gray-800">
+                                <img
+                                    v-if="bg.url"
+                                    :src="bg.url"
+                                    :alt="bg.name"
+                                    class="size-full object-cover"
+                                />
+                            </div>
+
+                            <div class="min-w-0 flex-1 text-left">
+                                <p class="truncate text-sm text-gray-200">{{ bg.name }}</p>
+                            </div>
+
+                            <UIcon
+                                name="i-heroicons-pencil"
+                                class="size-4 shrink-0 text-gray-600"
+                            />
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
 
         <BackgroundCreateEditModal
             v-model:open="showModal"
