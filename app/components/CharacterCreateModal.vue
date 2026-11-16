@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CharacterGroup } from '#shared/types/models';
 import type { CharacterWithUrl } from '~/types/character';
 
 interface ImagePreview {
@@ -23,6 +24,7 @@ const props = defineProps<{
     systemId: string;
     character?: CharacterWithUrl | null;
     playbookLabel?: string | null;
+    groups?: CharacterGroup[];
 }>();
 
 const emit = defineEmits<{
@@ -30,6 +32,7 @@ const emit = defineEmits<{
     created: [];
     updated: [];
     deleted: [];
+    'group-created': [group: CharacterGroup];
 }>();
 
 const isEditing = computed(() => !!props.character);
@@ -41,8 +44,10 @@ const formName = ref('');
 const formType = ref<'pc' | 'npc'>('npc');
 const formPlaybook = ref('');
 const formDescription = ref('');
+const formGroupIds = ref<string[]>([]);
 const creating = ref(false);
 const createError = ref<string | null>(null);
+const localGroups = ref<CharacterGroup[]>([]);
 
 const avatarBlob = ref<Blob | null>(null);
 const avatarPreviewUrl = ref<string | null>(null);
@@ -67,11 +72,32 @@ function getPassword() {
     return localStorage.getItem('app_password') ?? '';
 }
 
+const allGroups = computed(() => {
+    const extra = localGroups.value.filter((g) => !(props.groups ?? []).some((pg) => pg.id === g.id));
+    return [...(props.groups ?? []), ...extra];
+});
+
+async function createGroup(name: string) {
+    try {
+        const { group } = await $fetch<{ group: CharacterGroup }>('/api/character-groups', {
+            method: 'POST',
+            body: { adventureId: props.adventureId, name, password: getPassword() },
+        });
+        localGroups.value.push(group);
+        formGroupIds.value.push(group.id);
+        emit('group-created', group);
+    } catch {
+        toast.add({ title: 'Failed to create group', color: 'error' });
+    }
+}
+
 function reset() {
     formName.value = '';
     formType.value = 'npc';
     formPlaybook.value = '';
     formDescription.value = '';
+    formGroupIds.value = [];
+    localGroups.value = [];
     avatarBlob.value = null;
     if (avatarPreviewUrl.value?.startsWith('blob:')) URL.revokeObjectURL(avatarPreviewUrl.value);
     avatarPreviewUrl.value = null;
@@ -102,6 +128,8 @@ async function populateFromCharacter(c: CharacterWithUrl) {
     formType.value = (c.type as 'pc' | 'npc') ?? 'npc';
     formPlaybook.value = c.playbook ?? '';
     formDescription.value = c.description ?? '';
+    formGroupIds.value = [...(c.groupIds ?? [])];
+    localGroups.value = [];
     avatarBlob.value = null;
     if (avatarPreviewUrl.value?.startsWith('blob:')) URL.revokeObjectURL(avatarPreviewUrl.value);
     avatarPreviewUrl.value = c.avatarUrl ?? null;
@@ -298,6 +326,7 @@ async function createCharacter() {
                 type: formType.value,
                 playbook: formPlaybook.value.trim() || undefined,
                 description: formDescription.value.trim() || undefined,
+                groupIds: formGroupIds.value,
                 password: getPassword(),
             },
         });
@@ -329,6 +358,7 @@ async function editCharacter() {
                 type: formType.value,
                 playbook: formPlaybook.value.trim() || null,
                 description: formDescription.value.trim() || null,
+                groupIds: formGroupIds.value,
                 password: getPassword(),
             },
         });
@@ -403,6 +433,15 @@ async function editCharacter() {
                     <UInput
                         v-model="formPlaybook"
                         placeholder="e.g. The Witch"
+                    />
+                </UFormField>
+
+                <!-- Groups -->
+                <UFormField label="Groups">
+                    <GroupSelect
+                        v-model="formGroupIds"
+                        :groups="allGroups"
+                        @create="createGroup"
                     />
                 </UFormField>
 

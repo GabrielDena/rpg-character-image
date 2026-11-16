@@ -8,13 +8,14 @@ const adventureId = String(route.params.adventureId);
 const adventure = ref<Adventure | null>(null);
 const loading = ref(false);
 const fetchError = ref<string | null>(null);
-const activeTab = ref<'characters' | 'locations' | 'backgrounds' | 'items'>('characters');
+const activeTab = ref<'characters' | 'groups' | 'locations' | 'backgrounds' | 'items'>('characters');
 
 const locations = ref<Location[]>([]);
 const locationsLoading = ref(false);
 
 const tabs = [
     { key: 'characters' as const, label: 'Characters', icon: 'i-heroicons-user-group' },
+    { key: 'groups' as const, label: 'Groups', icon: 'i-heroicons-tag' },
     { key: 'locations' as const, label: 'Locations', icon: 'i-heroicons-map-pin' },
     { key: 'backgrounds' as const, label: 'Backgrounds', icon: 'i-heroicons-photo' },
     { key: 'items' as const, label: 'Items', icon: 'i-heroicons-archive-box' },
@@ -130,6 +131,10 @@ onMounted(() => {
                     :adventure-id="adventureId"
                     :system-id="systemId"
                     :playbook-label="adventure?.playbookLabel ?? null"
+                />
+                <AdventureGroupsTab
+                    v-show="activeTab === 'groups'"
+                    :adventure-id="adventureId"
                 />
                 <AdventureLocationsTab
                     v-show="activeTab === 'locations'"

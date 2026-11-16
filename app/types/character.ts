@@ -7,5 +7,6 @@ export interface CharacterWithUrl {
     description: string | null;
     avatarPath: string | null;
     avatarUrl: string | null;
+    groupIds: string[];
     createdAt: Date;
 }

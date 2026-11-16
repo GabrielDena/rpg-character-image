@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CharacterGroup } from '#shared/types/models';
 import type { CharacterWithUrl } from '~/types/character';
 
 const props = defineProps<{
@@ -10,6 +11,7 @@ const props = defineProps<{
 const toast = useToast();
 
 const list = ref<CharacterWithUrl[]>([]);
+const groups = ref<CharacterGroup[]>([]);
 const loading = ref(false);
 const showModal = ref(false);
 const editingCharacter = ref<CharacterWithUrl | null>(null);
@@ -43,10 +45,16 @@ const hasActiveFilter = computed(
 async function fetchCharacters() {
     loading.value = true;
     try {
-        const { characters } = await $fetch<{ characters: CharacterWithUrl[] }>('/api/characters', {
-            query: { adventureId: props.adventureId },
-        });
+        const [{ characters }, { groups: groupRows }] = await Promise.all([
+            $fetch<{ characters: CharacterWithUrl[] }>('/api/characters', {
+                query: { adventureId: props.adventureId },
+            }),
+            $fetch<{ groups: CharacterGroup[] }>('/api/character-groups', {
+                query: { adventureId: props.adventureId },
+            }),
+        ]);
         list.value = characters;
+        groups.value = groupRows;
     } catch (e: unknown) {
         toast.add({
             title: 'Failed to load characters',
@@ -55,6 +63,12 @@ async function fetchCharacters() {
         });
     } finally {
         loading.value = false;
+    }
+}
+
+function onGroupCreated(group: CharacterGroup) {
+    if (!groups.value.some((g) => g.id === group.id)) {
+        groups.value.push(group);
     }
 }
 
@@ -207,9 +221,11 @@ onMounted(fetchCharacters);
             :system-id="systemId"
             :character="editingCharacter"
             :playbook-label="props.playbookLabel"
+            :groups="groups"
             @created="fetchCharacters"
             @updated="fetchCharacters"
             @deleted="fetchCharacters"
+            @group-created="onGroupCreated"
         />
     </div>
 </template>

@@ -162,6 +162,27 @@ export type NewItemCategory = typeof itemCategories.$inferInsert;
 export type Item = typeof items.$inferSelect;
 export type NewItem = typeof items.$inferInsert;
 
+export const characterGroups = pgTable('character_groups', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    adventureId: uuid('adventure_id')
+        .notNull()
+        .references(() => adventures.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const characterGroupMembers = pgTable('character_group_members', {
+    groupId: uuid('group_id')
+        .notNull()
+        .references(() => characterGroups.id, { onDelete: 'cascade' }),
+    characterId: uuid('character_id')
+        .notNull()
+        .references(() => characters.id, { onDelete: 'cascade' }),
+});
+
+export type CharacterGroup = typeof characterGroups.$inferSelect;
+export type NewCharacterGroup = typeof characterGroups.$inferInsert;
+
 export const trackingCards = pgTable('tracking_cards', {
     id: uuid('id').defaultRandom().primaryKey(),
     adventureId: uuid('adventure_id')

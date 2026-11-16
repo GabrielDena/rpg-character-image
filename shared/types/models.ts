@@ -68,6 +68,14 @@ export interface Item {
     url?: string | null;
 }
 
+export interface CharacterGroup {
+    id: string;
+    adventureId: string;
+    name: string;
+    createdAt: Date;
+    memberIds?: string[];
+}
+
 export type TrackingCardType = 'clue' | 'juice' | 'tag' | 'status';
 
 export interface TrackingCard {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { characters, useDb } from '../db';
+import { characterGroupMembers, characters, useDb } from '../db';
 
 const bodySchema = z.object({
     adventureId: z.string().uuid(),
@@ -7,6 +7,7 @@ const bodySchema = z.object({
     type: z.enum(['pc', 'npc']).default('npc'),
     playbook: z.string().max(255).optional(),
     description: z.string().max(2000).optional(),
+    groupIds: z.array(z.string().uuid()).optional(),
     password: z.string(),
 });
 
@@ -21,7 +22,7 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const { adventureId, name, type, playbook, description, password } = parsed.data;
+    const { adventureId, name, type, playbook, description, groupIds, password } = parsed.data;
     if (!checkPassword(password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
 
     const db = useDb();
@@ -31,6 +32,12 @@ export default defineEventHandler(async (event) => {
         .returning();
     const character = rows[0];
     if (!character) throw createError({ statusCode: 500, message: 'Failed to create character' });
+
+    if (groupIds?.length) {
+        await db.insert(characterGroupMembers).values(
+            groupIds.map((groupId) => ({ groupId, characterId: character.id }))
+        );
+    }
 
     return { character };
 });

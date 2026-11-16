@@ -1,0 +1,27 @@
+import { eq } from 'drizzle-orm';
+import { z } from 'zod';
+import { characterGroups, useDb } from '../../db';
+
+const bodySchema = z.object({
+    password: z.string(),
+});
+
+export default defineEventHandler(async (event) => {
+    const id = getRouterParam(event, 'id');
+    if (!id) throw createError({ statusCode: 400, message: 'id is required' });
+
+    const body = await readBody(event);
+    const parsed = bodySchema.safeParse(body);
+    if (!parsed.success) {
+        throw createError({ statusCode: 400, message: 'Invalid input' });
+    }
+
+    const { password } = parsed.data;
+    if (!checkPassword(password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
+
+    const db = useDb();
+    const rows = await db.delete(characterGroups).where(eq(characterGroups.id, id)).returning();
+    if (!rows.length) throw createError({ statusCode: 404, message: 'Group not found' });
+
+    return { ok: true };
+});
