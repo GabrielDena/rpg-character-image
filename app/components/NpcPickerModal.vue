@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CharacterGroup } from '#shared/types/models';
 import type { CharacterWithUrl } from '~/types/character';
 
 const props = defineProps<{
@@ -14,8 +15,15 @@ const emit = defineEmits<{
 
 const search = ref('');
 const allCharacters = ref<CharacterWithUrl[]>([]);
+const groups = ref<CharacterGroup[]>([]);
 const loading = ref(false);
 const selected = ref<Set<string>>(new Set());
+
+const npcIds = computed(() => new Set(allCharacters.value.map((c) => c.id)));
+
+const npcGroups = computed(() =>
+    groups.value.filter((g) => (g.memberIds ?? []).some((id) => npcIds.value.has(id)))
+);
 
 const filtered = computed(() => {
     const q = search.value.trim().toLowerCase();
@@ -28,12 +36,18 @@ const filtered = computed(() => {
 async function fetchCharacters() {
     loading.value = true;
     try {
-        const { characters } = await $fetch<{ characters: CharacterWithUrl[] }>('/api/characters', {
-            query: { adventureId: props.adventureId },
-        });
+        const [{ characters }, { groups: groupRows }] = await Promise.all([
+            $fetch<{ characters: CharacterWithUrl[] }>('/api/characters', {
+                query: { adventureId: props.adventureId },
+            }),
+            $fetch<{ groups: CharacterGroup[] }>('/api/character-groups', {
+                query: { adventureId: props.adventureId },
+            }),
+        ]);
         allCharacters.value = characters
             .filter((c) => c.type === 'npc')
             .sort((a, b) => a.name.localeCompare(b.name));
+        groups.value = groupRows;
     } catch {
         // non-fatal
     } finally {
@@ -59,6 +73,28 @@ function toggle(id: string) {
     selected.value = next;
 }
 
+function selectGroup(group: CharacterGroup) {
+    const groupNpcIds = (group.memberIds ?? []).filter((id) => npcIds.value.has(id));
+    const allSelected = groupNpcIds.every((id) => selected.value.has(id));
+    const next = new Set(selected.value);
+    if (allSelected) {
+        groupNpcIds.forEach((id) => next.delete(id));
+    } else {
+        groupNpcIds.forEach((id) => next.add(id));
+    }
+    selected.value = next;
+}
+
+function isGroupSelected(group: CharacterGroup) {
+    const groupNpcIds = (group.memberIds ?? []).filter((id) => npcIds.value.has(id));
+    return groupNpcIds.length > 0 && groupNpcIds.every((id) => selected.value.has(id));
+}
+
+function isGroupPartial(group: CharacterGroup) {
+    const groupNpcIds = (group.memberIds ?? []).filter((id) => npcIds.value.has(id));
+    return groupNpcIds.some((id) => selected.value.has(id)) && !isGroupSelected(group);
+}
+
 function confirm() {
     emit('confirm', [...selected.value]);
     emit('update:open', false);
@@ -75,6 +111,32 @@ function confirm() {
     >
         <template #body>
             <div class="space-y-3">
+                <!-- Group quick-select -->
+                <div
+                    v-if="npcGroups.length"
+                    class="flex flex-wrap gap-1.5"
+                >
+                    <button
+                        v-for="group in npcGroups"
+                        :key="group.id"
+                        class="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors"
+                        :class="
+                            isGroupSelected(group)
+                                ? 'border-violet-500 bg-violet-500/20 text-violet-300'
+                                : isGroupPartial(group)
+                                  ? 'border-violet-500/40 bg-violet-500/10 text-violet-400'
+                                  : 'border-gray-700 text-gray-400 hover:border-gray-600 hover:text-gray-300'
+                        "
+                        @click="selectGroup(group)"
+                    >
+                        <UIcon
+                            name="i-heroicons-tag"
+                            class="size-3"
+                        />
+                        {{ group.name }}
+                    </button>
+                </div>
+
                 <UInput
                     v-model="search"
                     placeholder="Search NPCs…"

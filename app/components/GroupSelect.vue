@@ -23,9 +23,8 @@ const selectedGroups = computed(() =>
 
 const filteredGroups = computed(() => {
     const q = query.value.trim().toLowerCase();
-    return props.groups.filter(
-        (g) => !props.modelValue.includes(g.id) && (!q || g.name.toLowerCase().includes(q))
-    );
+    if (!q) return props.groups;
+    return props.groups.filter((g) => g.name.toLowerCase().includes(q));
 });
 
 const showCreate = computed(() => {
@@ -33,8 +32,12 @@ const showCreate = computed(() => {
     return q.length > 0 && !props.groups.some((g) => g.name.toLowerCase() === q.toLowerCase());
 });
 
-function select(group: CharacterGroup) {
-    emit('update:modelValue', [...props.modelValue, group.id]);
+function toggle(group: CharacterGroup) {
+    if (props.modelValue.includes(group.id)) {
+        emit('update:modelValue', props.modelValue.filter((id) => id !== group.id));
+    } else {
+        emit('update:modelValue', [...props.modelValue, group.id]);
+    }
     query.value = '';
     inputRef.value?.focus();
 }
@@ -54,7 +57,10 @@ function onKeydown(e: KeyboardEvent) {
     if (e.key === 'Backspace' && !query.value && props.modelValue.length) {
         remove(props.modelValue[props.modelValue.length - 1]!);
     }
-    if (e.key === 'Escape') open.value = false;
+    if (e.key === 'Escape') {
+        open.value = false;
+        inputRef.value?.blur();
+    }
 }
 
 function onBlur() {
@@ -107,10 +113,17 @@ function onBlur() {
                 v-for="group in filteredGroups"
                 :key="group.id"
                 type="button"
-                class="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-200 hover:bg-gray-800"
-                @mousedown.prevent="select(group)"
+                class="flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-gray-800"
+                :class="modelValue.includes(group.id) ? 'text-violet-300' : 'text-gray-200'"
+                @mousedown.prevent="toggle(group)"
             >
                 <UIcon
+                    v-if="modelValue.includes(group.id)"
+                    name="i-heroicons-check"
+                    class="size-4 text-violet-400"
+                />
+                <UIcon
+                    v-else
                     name="i-heroicons-user-group"
                     class="size-4 text-gray-500"
                 />

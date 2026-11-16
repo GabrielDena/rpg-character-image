@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Adventure, Location } from '#shared/types/models';
+import type { Adventure, CharacterGroup, Location } from '#shared/types/models';
 
 const route = useRoute();
 const systemId = String(route.params.id);
@@ -12,6 +12,8 @@ const activeTab = ref<'characters' | 'groups' | 'locations' | 'backgrounds' | 'i
 
 const locations = ref<Location[]>([]);
 const locationsLoading = ref(false);
+
+const groups = ref<CharacterGroup[]>([]);
 
 const tabs = [
     { key: 'characters' as const, label: 'Characters', icon: 'i-heroicons-user-group' },
@@ -46,6 +48,17 @@ async function fetchLocations() {
     }
 }
 
+async function fetchGroups() {
+    try {
+        const { groups: rows } = await $fetch<{ groups: CharacterGroup[] }>('/api/character-groups', {
+            query: { adventureId },
+        });
+        groups.value = rows;
+    } catch {
+        // non-fatal
+    }
+}
+
 function onLocationAdded(location: Location) {
     locations.value.push(location);
 }
@@ -59,9 +72,23 @@ function onLocationDeleted(id: string) {
     locations.value = locations.value.filter((l) => l.id !== id);
 }
 
+function onGroupAdded(group: CharacterGroup) {
+    if (!groups.value.some((g) => g.id === group.id)) groups.value.push(group);
+}
+
+function onGroupUpdated(group: CharacterGroup) {
+    const idx = groups.value.findIndex((g) => g.id === group.id);
+    if (idx !== -1) groups.value[idx] = group;
+}
+
+function onGroupDeleted(id: string) {
+    groups.value = groups.value.filter((g) => g.id !== id);
+}
+
 onMounted(() => {
     fetchAdventure();
     fetchLocations();
+    fetchGroups();
 });
 </script>
 
@@ -131,10 +158,17 @@ onMounted(() => {
                     :adventure-id="adventureId"
                     :system-id="systemId"
                     :playbook-label="adventure?.playbookLabel ?? null"
+                    :groups="groups"
+                    @group-added="onGroupAdded"
+                    @characters-changed="fetchGroups"
                 />
                 <AdventureGroupsTab
                     v-show="activeTab === 'groups'"
                     :adventure-id="adventureId"
+                    :groups="groups"
+                    @group-added="onGroupAdded"
+                    @group-updated="onGroupUpdated"
+                    @group-deleted="onGroupDeleted"
                 />
                 <AdventureLocationsTab
                     v-show="activeTab === 'locations'"

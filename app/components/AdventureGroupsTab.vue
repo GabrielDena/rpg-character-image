@@ -4,13 +4,19 @@ import type { CharacterWithUrl } from '~/types/character';
 
 const props = defineProps<{
     adventureId: string;
+    groups: CharacterGroup[];
+}>();
+
+const emit = defineEmits<{
+    'group-added': [group: CharacterGroup];
+    'group-updated': [group: CharacterGroup];
+    'group-deleted': [id: string];
 }>();
 
 const toast = useToast();
 
-const groups = ref<CharacterGroup[]>([]);
 const characters = ref<CharacterWithUrl[]>([]);
-const loading = ref(false);
+const loadingCharacters = ref(false);
 
 const newGroupName = ref('');
 const creating = ref(false);
@@ -32,23 +38,17 @@ const characterMap = computed(() => {
     return map;
 });
 
-async function fetchData() {
-    loading.value = true;
+async function fetchCharacters() {
+    loadingCharacters.value = true;
     try {
-        const [{ groups: groupRows }, { characters: charRows }] = await Promise.all([
-            $fetch<{ groups: CharacterGroup[] }>('/api/character-groups', {
-                query: { adventureId: props.adventureId },
-            }),
-            $fetch<{ characters: CharacterWithUrl[] }>('/api/characters', {
-                query: { adventureId: props.adventureId },
-            }),
-        ]);
-        groups.value = groupRows;
-        characters.value = charRows;
+        const { characters: rows } = await $fetch<{ characters: CharacterWithUrl[] }>('/api/characters', {
+            query: { adventureId: props.adventureId },
+        });
+        characters.value = rows;
     } catch {
-        toast.add({ title: 'Failed to load groups', color: 'error' });
+        // non-fatal
     } finally {
-        loading.value = false;
+        loadingCharacters.value = false;
     }
 }
 
@@ -61,7 +61,7 @@ async function createGroup() {
             method: 'POST',
             body: { adventureId: props.adventureId, name, password: getPassword() },
         });
-        groups.value.push({ ...group, memberIds: [] });
+        emit('group-added', { ...group, memberIds: [] });
         newGroupName.value = '';
     } catch {
         toast.add({ title: 'Failed to create group', color: 'error' });
@@ -87,8 +87,7 @@ async function saveEdit(group: CharacterGroup) {
             method: 'PATCH',
             body: { name, password: getPassword() },
         });
-        const idx = groups.value.findIndex((g) => g.id === group.id);
-        if (idx !== -1) groups.value[idx]!.name = name;
+        emit('group-updated', { ...group, name });
         editingGroupId.value = null;
     } catch {
         toast.add({ title: 'Failed to rename group', color: 'error' });
@@ -105,7 +104,7 @@ async function deleteGroup() {
             method: 'DELETE',
             body: { password: getPassword() },
         });
-        groups.value = groups.value.filter((g) => g.id !== confirmDeleteId.value);
+        emit('group-deleted', confirmDeleteId.value);
         confirmDeleteId.value = null;
     } catch {
         toast.add({ title: 'Failed to delete group', color: 'error' });
@@ -114,7 +113,7 @@ async function deleteGroup() {
     }
 }
 
-onMounted(fetchData);
+onMounted(fetchCharacters);
 </script>
 
 <template>
@@ -141,21 +140,9 @@ onMounted(fetchData);
             </div>
         </div>
 
-        <!-- Loading -->
-        <div
-            v-if="loading"
-            class="space-y-3 p-4"
-        >
-            <USkeleton
-                v-for="n in 3"
-                :key="n"
-                class="h-24 w-full rounded-xl"
-            />
-        </div>
-
         <!-- Empty state -->
         <div
-            v-else-if="!groups.length"
+            v-if="!groups.length"
             class="flex flex-col items-center justify-center gap-4 px-6 py-20"
         >
             <UIcon
