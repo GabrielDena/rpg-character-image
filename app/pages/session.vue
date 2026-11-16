@@ -169,6 +169,8 @@ async function onApplyScene(scene: SavedScene) {
 // ── Fit mode ───────────────────────────────────────────────────────────────────────────
 const galleryFitMode = ref<'cover' | 'contain'>('cover');
 const savingFitMode = ref(false);
+const bgFitMode = ref<'cover' | 'contain'>('cover');
+const savingBgFitMode = ref(false);
 
 // ── Show/hide characters ─────────────────────────────────────────────────────────────
 const showCharacters = ref(true);
@@ -326,6 +328,22 @@ async function toggleFitMode() {
     }
 }
 
+async function toggleBgFitMode() {
+    const next = bgFitMode.value === 'cover' ? 'contain' : 'cover';
+    savingBgFitMode.value = true;
+    try {
+        await $fetch('/api/display-state', {
+            method: 'PATCH',
+            body: { bgFitMode: next, password: getPassword() },
+        });
+        bgFitMode.value = next;
+    } catch {
+        // non-fatal
+    } finally {
+        savingBgFitMode.value = false;
+    }
+}
+
 // ── Backgrounds ───────────────────────────────────────────────────────────────────────
 const allBackgrounds = ref<BackgroundWithUrl[]>([]);
 const allLocations = ref<Location[]>([]);
@@ -470,6 +488,7 @@ watch(
                 activeItemIds: string[];
                 selectedBackground: BackgroundWithUrl | null;
                 galleryFitMode: 'cover' | 'contain';
+                bgFitMode: 'cover' | 'contain';
                 displayMode: 'scene' | 'table';
                 tableShape: 'round' | 'square' | 'rectangle';
                 tableSeats: number;
@@ -487,6 +506,7 @@ watch(
             activeItemIds.value = state.activeItemIds ?? [];
             selectedBackground.value = state.selectedBackground;
             galleryFitMode.value = state.galleryFitMode ?? 'cover';
+            bgFitMode.value = state.bgFitMode ?? 'cover';
             displayMode.value = state.displayMode ?? 'scene';
             tableShape.value = state.tableShape ?? 'round';
             tableSeats.value = state.tableSeats ?? 4;
@@ -517,6 +537,7 @@ onMounted(async () => {
         selectedBackgroundId: string | null;
         selectedBackground: BackgroundWithUrl | null;
         galleryFitMode: 'cover' | 'contain';
+        bgFitMode: 'cover' | 'contain';
         displayMode: 'scene' | 'table';
         tableShape: 'round' | 'square' | 'rectangle';
         tableSeats: number;
@@ -549,6 +570,7 @@ onMounted(async () => {
             selectedBackground.value = state.selectedBackground;
         }
         galleryFitMode.value = state.galleryFitMode ?? 'cover';
+        bgFitMode.value = state.bgFitMode ?? 'cover';
         displayMode.value = state.displayMode ?? 'scene';
         tableShape.value = state.tableShape ?? 'round';
         tableSeats.value = state.tableSeats ?? 4;
@@ -605,6 +627,8 @@ onMounted(async () => {
                         class="col-span-2"
                         :gallery-fit-mode="galleryFitMode"
                         :saving-fit-mode="savingFitMode"
+                        :bg-fit-mode="bgFitMode"
+                        :saving-bg-fit-mode="savingBgFitMode"
                         :display-mode="displayMode"
                         :table-shape="tableShape"
                         :table-seats="tableSeats"
@@ -619,6 +643,7 @@ onMounted(async () => {
                         :tracking-cards-scale="trackingCardsScale"
                         :saving-tracking-cards-scale="savingTrackingCardsScale"
                         @toggle-fit-mode="toggleFitMode"
+                        @toggle-bg-fit-mode="toggleBgFitMode"
                         @set-scene="onSetScene"
                         @set-table="onSetTable"
                         @toggle-show-characters="toggleShowCharacters"

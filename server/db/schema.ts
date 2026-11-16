@@ -81,6 +81,7 @@ export const displayState = pgTable('display_state', {
     activeItemIds: uuid('active_item_ids').array().default([]).notNull(),
     selectedBackgroundId: uuid('selected_background_id').references(() => backgrounds.id),
     galleryFitMode: text('gallery_fit_mode').default('cover').notNull(),
+    bgFitMode: text('bg_fit_mode').default('cover').notNull(),
     displayMode: text('display_mode').default('scene').notNull(),
     tableShape: text('table_shape').default('round').notNull(),
     tableSeats: integer('table_seats').default(4).notNull(),

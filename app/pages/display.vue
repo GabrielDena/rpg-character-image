@@ -8,6 +8,7 @@ const state = ref<DisplayState>({
     activeItems: [],
     selectedBackground: null,
     galleryFitMode: 'cover',
+    bgFitMode: 'cover',
     displayMode: 'scene',
     tableShape: 'round' as 'round' | 'square' | 'rectangle',
     tableSeats: 4,
@@ -371,17 +372,29 @@ const imageStyle = computed<CSSProperties>(() => {
 <template>
     <div
         ref="container"
-        class="relative h-full w-full"
-        :style="
-            state.selectedBackground
-                ? {
-                      backgroundImage: `url(${state.useAltBackground && state.selectedBackground.altUrl ? state.selectedBackground.altUrl : state.selectedBackground.url})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                  }
-                : {}
-        "
+        class="relative h-full w-full overflow-hidden"
     >
+        <template v-if="state.selectedBackground">
+            <div
+                class="pointer-events-none absolute inset-0"
+                :style="{
+                    backgroundImage: `url(${state.useAltBackground && state.selectedBackground.altUrl ? state.selectedBackground.altUrl : state.selectedBackground.url})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    ...(state.bgFitMode === 'contain' ? { filter: 'blur(28px)', transform: 'scale(1.08)' } : {}),
+                }"
+            />
+            <div
+                v-if="state.bgFitMode === 'contain'"
+                class="pointer-events-none absolute inset-0"
+                :style="{
+                    backgroundImage: `url(${state.useAltBackground && state.selectedBackground.altUrl ? state.selectedBackground.altUrl : state.selectedBackground.url})`,
+                    backgroundSize: 'contain',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                }"
+            />
+        </template>
         <!-- Empty state (scene only) -->
         <!-- Character images (scene only) -->
         <Transition name="fade">

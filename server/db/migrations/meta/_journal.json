@@ -183,6 +183,13 @@
       "when": 1794865416036,
       "tag": "0025_past_patriot",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1794871947984,
+      "tag": "0026_right_nighthawk",
+      "breakpoints": true
     }
   ]
 }

@@ -27,6 +27,7 @@ export interface DisplayState {
     activeItems: DisplayItem[];
     selectedBackground: (BackgroundWithUrl & { url: string }) | null;
     galleryFitMode: 'cover' | 'contain';
+    bgFitMode: 'cover' | 'contain';
     displayMode: 'scene' | 'table';
     tableShape: 'round' | 'square' | 'rectangle';
     tableSeats: number;

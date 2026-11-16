@@ -9,6 +9,7 @@ export default defineEventHandler(async (event) => {
         activeItemIds?: string[];
         selectedBackgroundId?: string | null;
         galleryFitMode?: 'cover' | 'contain';
+        bgFitMode?: 'cover' | 'contain';
         displayMode?: 'scene' | 'table';
         tableShape?: 'round' | 'square' | 'rectangle';
         tableSeats?: number;
@@ -38,6 +39,7 @@ export default defineEventHandler(async (event) => {
     if ('selectedBackgroundId' in body)
         patch.selectedBackgroundId = body.selectedBackgroundId ?? null;
     if ('galleryFitMode' in body && body.galleryFitMode) patch.galleryFitMode = body.galleryFitMode;
+    if ('bgFitMode' in body && body.bgFitMode) patch.bgFitMode = body.bgFitMode;
     if ('displayMode' in body && body.displayMode) patch.displayMode = body.displayMode;
     if ('tableShape' in body && body.tableShape) patch.tableShape = body.tableShape;
     if ('tableSeats' in body && body.tableSeats != null) patch.tableSeats = body.tableSeats;

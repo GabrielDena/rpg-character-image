@@ -6,6 +6,8 @@ const show = defineModel();
 const props = defineProps<{
     galleryFitMode: 'cover' | 'contain';
     savingFitMode: boolean;
+    bgFitMode: 'cover' | 'contain';
+    savingBgFitMode: boolean;
     displayMode: 'scene' | 'table';
     tableShape: 'round' | 'square' | 'rectangle';
     tableSeats: number;
@@ -23,6 +25,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     toggleFitMode: [];
+    toggleBgFitMode: [];
     setScene: [];
     setTable: [config: { shape: 'round' | 'square' | 'rectangle'; seats: number; sideSeats: number }];
     toggleShowCharacters: [];
@@ -111,7 +114,7 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
                 @click="emit('increaseTrackingCardsScale')"
             />
 
-            <!-- Row 2: fit mode + display mode -->
+            <!-- Row 2: fit modes + display mode -->
             <UButton
                 size="sm"
                 color="neutral"
@@ -125,6 +128,20 @@ function onTableConfirm(config: { shape: 'round' | 'square' | 'rectangle'; seats
                 :loading="props.savingFitMode"
                 class="w-full justify-start"
                 @click="emit('toggleFitMode')"
+            />
+            <UButton
+                size="sm"
+                color="neutral"
+                variant="ghost"
+                :icon="
+                    props.bgFitMode === 'cover'
+                        ? 'i-heroicons-photo'
+                        : 'i-heroicons-arrows-pointing-in'
+                "
+                :label="props.bgFitMode === 'cover' ? 'BG: Fit' : 'BG: Fill'"
+                :loading="props.savingBgFitMode"
+                class="w-full justify-start"
+                @click="emit('toggleBgFitMode')"
             />
             <UButton
                 v-if="props.displayMode === 'scene'"

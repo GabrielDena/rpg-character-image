@@ -1,0 +1,1 @@
+ALTER TABLE "display_state" ADD COLUMN "bg_fit_mode" text DEFAULT 'cover' NOT NULL;
