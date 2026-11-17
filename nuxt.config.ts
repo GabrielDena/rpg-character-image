@@ -21,10 +21,8 @@ export default defineNuxtConfig({
     modules: ['@nuxt/ui', '@nuxt/eslint', '@pinia/nuxt', '@vueuse/nuxt'],
     css: ['~/assets/css/main.css'],
     runtimeConfig: {
-        public: {
-            supabaseUrl: process.env.SUPABASE_URL ?? '',
-            supabaseKey: process.env.SUPABASE_KEY ?? '',
-        },
+        supabaseUrl: process.env.SUPABASE_URL ?? '',
+        supabaseKey: process.env.SUPABASE_KEY ?? '',
     },
     routeRules: {
         '/**': {

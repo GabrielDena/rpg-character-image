@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
     const id = getRouterParam(event, 'id');
     if (!id) throw createError({ statusCode: 400, message: 'id is required' });
 
-    const { password, systemId } = await readBody(event);
+    const { password } = await readBody(event);
     if (!checkPassword(password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
 
     const db = useDb();
@@ -14,6 +14,7 @@ export default defineEventHandler(async (event) => {
     if (!adventure) throw createError({ statusCode: 404, message: 'Adventure not found' });
 
     // Remove all files in the adventure's storage folder
+    const { systemId } = adventure;
     const folderPrefix = `${systemId}/${id}/`;
     const { data: fileList } = await supabaseAdmin()
         .storage.from(STORAGE_BUCKET)
