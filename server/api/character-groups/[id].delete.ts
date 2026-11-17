@@ -11,13 +11,8 @@ export default defineEventHandler(async (event) => {
     if (!id) throw createError({ statusCode: 400, message: 'id is required' });
 
     const body = await readBody(event);
-    const parsed = bodySchema.safeParse(body);
-    if (!parsed.success) {
-        throw createError({ statusCode: 400, message: 'Invalid input' });
-    }
-
-    const { password } = parsed.data;
-    if (!checkPassword(password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
+    const { password } = parseOrThrow(bodySchema, body);
+    requireAuth(password);
 
     const db = useDb();
     const rows = await db.delete(characterGroups).where(eq(characterGroups.id, id)).returning();

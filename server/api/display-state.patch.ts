@@ -26,8 +26,7 @@ export default defineEventHandler(async (event) => {
         password: string;
     }>(event);
 
-    if (!checkPassword(body?.password))
-        throw createError({ statusCode: 401, message: 'Unauthorized' });
+    requireAuth(body?.password);
 
     const db = useDb();
     const rows = await db.select().from(displayState).limit(1);

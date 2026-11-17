@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, message: 'Missing required fields' });
     }
 
-    if (!checkPassword(password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
+    requireAuth(password);
 
     const storagePath = `${systemId}/${adventureId}/characters/${id}/avatar.jpg`;
 

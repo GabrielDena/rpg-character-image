@@ -1,26 +1,31 @@
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
 import { trackingCards, useDb } from '../../db';
 import type { TrackingCardUpdatedPayload } from '#shared/types/sync';
 
-export default defineEventHandler(async (event) => {
-    const id = getRouterParam(event, 'id')!;
-    const body = await readBody<{
-        title?: string;
-        type?: string;
-        value?: number | null;
-        characterId?: string | null;
-        sortOrder?: number;
-        password: string;
-    }>(event);
+const bodySchema = z.object({
+    title: z.string().min(1).max(255).optional(),
+    type: z.enum(['clue', 'juice', 'tag', 'status']).optional(),
+    value: z.number().nullable().optional(),
+    characterId: z.string().uuid().nullable().optional(),
+    sortOrder: z.number().int().optional(),
+    password: z.string(),
+});
 
-    if (!checkPassword(body?.password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
+export default defineEventHandler(async (event) => {
+    const id = getRouterParam(event, 'id');
+    if (!id) throw createError({ statusCode: 400, message: 'id is required' });
+
+    const body = await readBody(event);
+    const { password, ...fields } = parseOrThrow(bodySchema, body);
+    requireAuth(password);
 
     const patch: Partial<typeof trackingCards.$inferInsert> = {};
-    if ('title' in body && body.title) patch.title = body.title;
-    if ('type' in body && body.type) patch.type = body.type;
-    if ('value' in body) patch.value = body.value ?? null;
-    if ('characterId' in body) patch.characterId = body.characterId ?? null;
-    if ('sortOrder' in body && body.sortOrder !== undefined) patch.sortOrder = body.sortOrder;
+    if ('title' in fields && fields.title) patch.title = fields.title;
+    if ('type' in fields && fields.type) patch.type = fields.type;
+    if ('value' in fields) patch.value = fields.value ?? null;
+    if ('characterId' in fields) patch.characterId = fields.characterId ?? null;
+    if ('sortOrder' in fields && fields.sortOrder !== undefined) patch.sortOrder = fields.sortOrder;
 
     const db = useDb();
     const rows = await db

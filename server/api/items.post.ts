@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, message: 'Missing required fields' });
     }
 
-    if (!checkPassword(password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
+    requireAuth(password);
 
     let storagePath: string | null = null;
     if (fileField?.data) {

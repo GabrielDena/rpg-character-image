@@ -10,20 +10,9 @@ const bodySchema = z.object({
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event);
-    const parsed = bodySchema.safeParse(body);
+    const { systemId, name, description, password } = parseOrThrow(bodySchema, body);
 
-    if (!parsed.success) {
-        throw createError({
-            statusCode: 400,
-            message: parsed.error.issues[0]?.message ?? 'Invalid input',
-        });
-    }
-
-    const { systemId, name, description, password } = parsed.data;
-
-    if (!checkPassword(password)) {
-        throw createError({ statusCode: 401, message: 'Unauthorized' });
-    }
+    requireAuth(password);
 
     const db = useDb();
     const rows = await db.insert(adventures).values({ systemId, name, description }).returning();

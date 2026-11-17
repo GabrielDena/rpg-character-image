@@ -3,8 +3,8 @@ import { trackingCards, useDb } from '../db';
 
 export default defineEventHandler(async (event) => {
     const query = getQuery(event);
-    const adventureId = query.adventureId as string;
-    if (!adventureId) throw createError({ statusCode: 400, message: 'adventureId is required' });
+    const adventureId = query.adventureId;
+    if (typeof adventureId !== 'string') throw createError({ statusCode: 400, message: 'adventureId is required' });
 
     const db = useDb();
     const cards = await db

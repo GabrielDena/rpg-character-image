@@ -5,3 +5,7 @@ export function checkPassword(password: unknown): boolean {
         password === process.env.APP_PASSWORD
     );
 }
+
+export function requireAuth(password: unknown): void {
+    if (!checkPassword(password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
+}

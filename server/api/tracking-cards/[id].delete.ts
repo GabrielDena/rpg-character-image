@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     if (!id) throw createError({ statusCode: 400, message: 'id is required' });
 
     const body = await readBody<{ password: string }>(event);
-    if (!checkPassword(body?.password)) throw createError({ statusCode: 401, message: 'Unauthorized' });
+    requireAuth(body?.password);
 
     const db = useDb();
     const rows = await db.delete(trackingCards).where(eq(trackingCards.id, id)).returning();

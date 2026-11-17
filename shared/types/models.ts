@@ -20,6 +20,7 @@ export interface Background {
     locationId: string | null;
     name: string;
     storagePath: string;
+    altStoragePath: string | null;
     createdAt: Date;
 }
 
@@ -27,7 +28,7 @@ export interface Character {
     id: string;
     adventureId: string;
     name: string;
-    type: string;
+    type: 'pc' | 'npc';
     playbook: string | null;
     description: string | null;
     avatarPath: string | null;
