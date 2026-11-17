@@ -237,6 +237,6 @@ One handler does: singleton row fetch, adventure+system join, character fetch, p
 | Priority | Findings |
 | --- | --- |
 | ~~**Fix now** (correctness risk)~~ ✅ Done (commit `77ee7b7`) | ~~2.6 (inconsistent display response shape)~~, ~~4.1 (systemId missing silently)~~, ~~4.7 (empty adventureId broadcast)~~, ~~7.3 (Supabase key in public config)~~ |
-| ~~**High value** (reduce future bugs)~~ ✅ Done (commit `HEAD`) | ~~1.2–1.4 (narrow types)~~, ~~2.1–2.2 (auth + Zod helpers)~~, ~~8.1 (auth middleware)~~, ~~8.5 (stop duplicating schema types — drift fixed; full re-export left as future step)~~ |
+| ~~**High value** (reduce future bugs)~~ ✅ Done (commit `f368226`) | ~~1.2–1.4 (narrow types)~~, ~~2.1–2.2 (auth + Zod helpers)~~, ~~8.1 (auth middleware)~~, ~~8.5 (stop duplicating schema types — drift fixed; full re-export left as future step)~~ |
 | **Good cleanup** | 3.1–3.2 (split large components), 5.3 (applyDisplayState), 2.7 (patchDisplayField), 6.2 (pgEnum) |
 | **Minor polish** | 6.4–6.5 (naming), 7.1–7.2 (dead refs/imports), 5.2 (notify channels) |
