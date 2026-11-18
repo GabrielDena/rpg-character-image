@@ -42,6 +42,7 @@ const TYPE_COLORS: Record<TrackingCardType, string> = {
     juice: 'bg-amber-500',
     tag: 'bg-rose-600',
     status: 'bg-emerald-500',
+    score: 'bg-purple-500',
 };
 
 // ── Fetch ─────────────────────────────────────────────────────────────────────

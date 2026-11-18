@@ -331,7 +331,17 @@ const TYPE_COLORS: Record<string, string> = {
     juice: '#f59e0b',
     tag: '#e11d48',
     status: '#10b981',
+    score: '#a855f7',
 };
+
+const SCORE_STEPS = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
+
+function scoreSegmentFill(step: number, value: number | null) {
+    const v = value ?? 0;
+    if (v > 0) return step > 0 && step <= v;
+    if (v < 0) return step < 0 && step >= v;
+    return false;
+}
 
 function trackingSegmentFill(stepValue: number, value: number | null) {
     return (value ?? 0) >= stepValue;
@@ -534,9 +544,36 @@ const imageStyle = computed<CSSProperties>(() => {
                         </div>
                     </div>
 
-                    <!-- Progress bar (hidden for Tag type) -->
+                    <!-- Score bar (bidirectional -5 to +5) -->
                     <div
-                        v-if="card.type !== 'tag'"
+                        v-if="card.type === 'score'"
+                        class="flex gap-0.5"
+                    >
+                        <div
+                            v-for="s in SCORE_STEPS"
+                            :key="s"
+                            class="flex flex-1 items-center justify-center rounded"
+                            :style="{
+                                height: '24px',
+                                background: scoreSegmentFill(s, card.value)
+                                    ? '#a855f7'
+                                    : s === 0
+                                        ? 'rgba(255,255,255,0.15)'
+                                        : 'rgba(255,255,255,0.08)',
+                            }"
+                        >
+                            <span
+                                class="text-[10px] font-bold leading-none"
+                                :style="{ color: scoreSegmentFill(s, card.value) || s === 0 ? 'white' : 'rgba(255,255,255,0.25)' }"
+                            >
+                                {{ s }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Progress bar (hidden for Tag and Score types) -->
+                    <div
+                        v-else-if="card.type !== 'tag'"
                         class="flex gap-0.5"
                     >
                         <div

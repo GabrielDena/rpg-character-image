@@ -77,7 +77,7 @@ export interface CharacterGroup {
     memberIds?: string[];
 }
 
-export type TrackingCardType = 'clue' | 'juice' | 'tag' | 'status';
+export type TrackingCardType = 'clue' | 'juice' | 'tag' | 'status' | 'score';
 
 export interface TrackingCard {
     id: string;

@@ -5,7 +5,7 @@ import type { TrackingCardUpdatedPayload } from '#shared/types/sync';
 
 const bodySchema = z.object({
     title: z.string().min(1).max(255).optional(),
-    type: z.enum(['clue', 'juice', 'tag', 'status']).optional(),
+    type: z.enum(['clue', 'juice', 'tag', 'status', 'score']).optional(),
     value: z.number().nullable().optional(),
     characterId: z.string().uuid().nullable().optional(),
     sortOrder: z.number().int().optional(),

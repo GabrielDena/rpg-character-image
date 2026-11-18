@@ -43,10 +43,19 @@ watch(
         if (!val) return;
         formTitle.value = props.card?.title ?? '';
         formType.value = (props.card?.type as TrackingCardType) ?? 'tag';
-        formValue.value = props.card?.value ?? null;
+        const rawValue = props.card?.value ?? null;
+        formValue.value = rawValue !== null ? rawValue : (formType.value === 'score' ? 0 : null);
         formCharacterId.value = props.card?.characterId ?? null;
     },
 );
+
+watch(formType, (newType, oldType) => {
+    if (newType === 'score' && formValue.value === null) {
+        formValue.value = 0;
+    } else if (oldType === 'score' && newType !== 'score') {
+        formValue.value = null;
+    }
+});
 
 // ── Progression ───────────────────────────────────────────────────────────────
 const STEPS = [0, 1, 2, 2.5, 3, 3.33, 3.66, 4, 4.25, 4.5, 4.75, 5, 5.2, 5.4, 5.6, 5.8, 6];
@@ -82,12 +91,37 @@ function stepForward() {
     formValue.value = STEPS[idx + 1] ?? null;
 }
 
+// ── Score ─────────────────────────────────────────────────────────────────────
+const SCORE_STEPS = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
+
+function scoreSegmentFilled(step: number) {
+    const v = formValue.value ?? 0;
+    if (v > 0) return step > 0 && step <= v;
+    if (v < 0) return step < 0 && step >= v;
+    return false;
+}
+
+function clickScoreSegment(step: number) {
+    formValue.value = step;
+}
+
+function scoreStepBack() {
+    const cur = formValue.value ?? 0;
+    if (cur > -5) formValue.value = cur - 1;
+}
+
+function scoreStepForward() {
+    const cur = formValue.value ?? 0;
+    if (cur < 5) formValue.value = cur + 1;
+}
+
 // ── Type config ───────────────────────────────────────────────────────────────
 const TYPE_OPTIONS: { value: TrackingCardType; label: string; bg: string }[] = [
     { value: 'clue', label: 'Clue', bg: 'bg-blue-500' },
     { value: 'juice', label: 'Juice', bg: 'bg-amber-500' },
     { value: 'tag', label: 'Tag', bg: 'bg-rose-600' },
     { value: 'status', label: 'Status', bg: 'bg-emerald-500' },
+    { value: 'score', label: 'Score', bg: 'bg-purple-500' },
 ];
 
 const TYPE_BG: Record<TrackingCardType, string> = {
@@ -95,6 +129,7 @@ const TYPE_BG: Record<TrackingCardType, string> = {
     juice: 'bg-amber-500',
     tag: 'bg-rose-600',
     status: 'bg-emerald-500',
+    score: 'bg-purple-500',
 };
 
 // ── Save ──────────────────────────────────────────────────────────────────────
@@ -193,9 +228,9 @@ async function save() {
                     />
                 </UFormField>
 
-                <!-- Progression (not shown for Tag type) -->
+                <!-- Progression (not shown for Tag or Score type) -->
                 <UFormField
-                    v-if="formType !== 'tag'"
+                    v-if="formType !== 'tag' && formType !== 'score'"
                     label="Progression"
                 >
                     <div class="flex items-center gap-1">
@@ -237,6 +272,59 @@ async function save() {
                             class="shrink-0 rounded p-0.5 text-gray-500 transition-colors hover:text-gray-200 disabled:opacity-30"
                             :disabled="formValue === 6"
                             @click="stepForward"
+                        >
+                            <UIcon
+                                name="i-heroicons-chevron-right"
+                                class="size-4"
+                            />
+                        </button>
+                    </div>
+                </UFormField>
+
+                <!-- Score (bidirectional -5 to +5) -->
+                <UFormField
+                    v-if="formType === 'score'"
+                    label="Score"
+                >
+                    <div class="flex items-center gap-1">
+                        <button
+                            class="shrink-0 rounded p-0.5 text-gray-500 transition-colors hover:text-gray-200 disabled:opacity-30"
+                            :disabled="(formValue ?? 0) <= -5"
+                            @click="scoreStepBack"
+                        >
+                            <UIcon
+                                name="i-heroicons-chevron-left"
+                                class="size-4"
+                            />
+                        </button>
+
+                        <div class="flex flex-1 gap-px">
+                            <button
+                                v-for="s in SCORE_STEPS"
+                                :key="s"
+                                class="flex h-6 flex-1 items-center justify-center rounded-sm transition-colors"
+                                :class="[
+                                    scoreSegmentFilled(s)
+                                        ? 'bg-purple-500'
+                                        : s === 0
+                                            ? 'bg-gray-700 hover:bg-gray-600'
+                                            : 'bg-gray-800 hover:bg-gray-700',
+                                ]"
+                                @click="clickScoreSegment(s)"
+                            >
+                                <span
+                                    class="text-[9px] font-bold leading-none"
+                                    :class="scoreSegmentFilled(s) || s === 0 ? 'text-white' : 'text-gray-500'"
+                                >
+                                    {{ s }}
+                                </span>
+                            </button>
+                        </div>
+
+                        <button
+                            class="shrink-0 rounded p-0.5 text-gray-500 transition-colors hover:text-gray-200 disabled:opacity-30"
+                            :disabled="(formValue ?? 0) >= 5"
+                            @click="scoreStepForward"
                         >
                             <UIcon
                                 name="i-heroicons-chevron-right"
