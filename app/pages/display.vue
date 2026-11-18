@@ -400,7 +400,7 @@ const imageStyle = computed<CSSProperties>(() => {
         <Transition name="fade">
             <div
                 v-if="count > 0 && displayMode === 'scene' && state.showCharacters"
-                class="h-full w-full overflow-hidden"
+                class="relative z-10 h-full w-full overflow-hidden"
                 :style="{ columnCount: cols, columnGap: '4px' }"
             >
                 <img
